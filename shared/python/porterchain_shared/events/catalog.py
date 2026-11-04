@@ -3,7 +3,7 @@
 from enum import StrEnum
 
 # Bump when adding/removing/renaming events (§3.3.4); keep in sync with packages/events.
-CATALOG_VERSION = "1.2.1"
+CATALOG_VERSION = "1.2.2"
 
 
 class DomainEventType(StrEnum):
@@ -104,6 +104,18 @@ class DomainEventType(StrEnum):
 
     # Retired vendor sync names — kept so old envelopes still deserialize.
     # Nothing emits these after the PorterChain day-plan cutover.
+
+    # Custody (doc 84 F1): one append-only event per handoff of a parcel
+    CUSTODY_PICKED_UP = "custody.picked_up"
+    CUSTODY_HANDOVER_OUT = "custody.handover_out"
+    CUSTODY_HANDOVER_IN = "custody.handover_in"
+    CUSTODY_DEPOT_IN = "custody.depot_in"
+    CUSTODY_SORTED = "custody.sorted"
+    CUSTODY_LOADED = "custody.loaded"
+    CUSTODY_DELIVERED = "custody.delivered"
+    CUSTODY_RETURNED = "custody.returned"
+    CUSTODY_HELD = "custody.held"
+    CUSTODY_EXCEPTION = "custody.exception"
 
     # CRM
     LEAD_CREATED = "lead.created"

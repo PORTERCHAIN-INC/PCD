@@ -21,15 +21,15 @@ See also `dependency-freeze.mdc` — no drive-by frontend bumps until ~2026-10.
 
 - **Local before production:** test on this Mac, then local image build, then CI/CD. Never dispatch Deploy first. SSOT: `local-before-production.mdc`.
 - **Dev layer first:** follow [PRIORITY_TODOS.md](../docs/PRIORITY_TODOS.md) + checklist items verifiable on localhost/CI.
-- **Prod layer later:** Doppler, droplet, Fleetbase bridge, `validate:*:prod` — after dev layer complete.
+- **Prod layer later:** SOPS secrets, droplet, Fleetbase bridge, `validate:*:prod` — after dev layer complete.
 - **Stripe:** Checkout remains the retail prepaid path. **Freeze lifted 2026-09-12** — additive COD via Stripe Connect + Payment Link/QR is allowed; do not break existing Checkout/webhooks.
 
-## Secrets & Clerk (local = test, prod = Doppler)
+## Secrets & Keycloak (local = test, prod = SOPS + age)
 
-- **Source of truth:** `env/clerk.env` → `pnpm clerk:sync` → API + all portals.
-- API expects `CLERK_<PORTAL>_SECRET_KEY`, `_PUBLISHABLE_KEY`, `_JWKS_URL` — never ad-hoc names like `ADMIN_CLERK_SECRET_KEY`.
-- **Local dev:** test keys in `env/clerk.env`; live keys in `env/clerk.env.prod-live.bak` and `infrastructure/deploy/scripts/clerk-keys.local.env`.
-- Local API: `CLERK_DEV_BYPASS=true`; portals: `NEXT_PUBLIC_CLERK_DEV_BYPASS=true` (Bearer `dev`).
+- **Source of truth:** `env/keycloak.env` → `pnpm keycloak:sync` → API + all portals.
+- API expects `IDP_<PORTAL>_SECRET_KEY`, `_PUBLISHABLE_KEY`, `_JWKS_URL` — never ad-hoc names like `ADMIN_IDP_SECRET_KEY`.
+- **Local dev:** test keys in `env/keycloak.env`; live keys in `env/keycloak.env.prod-live.bak` and `infrastructure/deploy/scripts/keycloak-keys.local.env`.
+- Local API: `IDP_DEV_BYPASS=true`; portals: `NEXT_PUBLIC_IDP_DEV_BYPASS=true` (Bearer `dev`).
 
 ## Python (API / worker)
 
@@ -42,7 +42,7 @@ See also `dependency-freeze.mdc` — no drive-by frontend bumps until ~2026-10.
 ## TypeScript / Next.js (web portals + website)
 
 - App Router; `"use client"` only when needed; fetch via portal `lib/api.ts` → `:8001`.
-- Data: **TanStack Query v5**; validation: **Zod 4**; auth: **@clerk/nextjs 7**.
+- Data: **TanStack Query v5**; validation: **Zod 4**; auth: **@keycloak/nextjs 7**.
 - Shared UI: `@porterchain/ui`, env: `@porterchain/config`.
 - No SocketCluster SDK in web apps; no Fleetbase HTTP from frontends.
 

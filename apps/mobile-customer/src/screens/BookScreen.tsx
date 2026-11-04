@@ -52,6 +52,7 @@ import {
   type Address,
   type BookingConfirmation,
   type QuoteResult,
+  checkoutReturnScheme,
 } from "../api";
 import { humanCustomerError } from "../errors";
 import type { VisitorTracking } from "../linking";
@@ -487,7 +488,11 @@ export function BookScreen({
         confirmed = await mockComplete(quote.quote_id);
       } else {
         if (!booking.checkout_url) throw new Error("checkout_unavailable");
-        await WebBrowser.openBrowserAsync(booking.checkout_url);
+        // Closes by itself when Stripe redirects to <scheme>://book/success (L178).
+        await WebBrowser.openAuthSessionAsync(
+          booking.checkout_url,
+          `${checkoutReturnScheme}://book`
+        );
         confirmed = await pollCheckout(quote.quote_id);
       }
       if (docs.length) {

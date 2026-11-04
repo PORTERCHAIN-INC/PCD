@@ -7,6 +7,8 @@ export function baselineSecurityHeaders(opts?: {
 export function websiteCsp(opts?: {
   apiUrl?: string;
   extraConnect?: string[];
+  /** GlitchTip DSN; only its origin is added to connect-src. */
+  errorsDsn?: string;
   dev?: boolean;
 }): string;
 export function portalCsp(opts: {
@@ -15,6 +17,7 @@ export function portalCsp(opts: {
   mapTileUrl?: string;
   valhallaUrl?: string;
   frameAncestors?: string;
+  errorsDsn?: string;
   dev?: boolean;
 }): string;
 export function portalSecurityHeaders(

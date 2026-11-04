@@ -99,7 +99,7 @@ COPY: dict[str, dict[str, Any]] = {
             "delivered": (
                 "Delivered",
                 "Your delivery has arrived",
-                "Your {merchant} parcel was delivered. Photo and signature proof are one tap away.",
+                "Your {merchant} parcel was delivered.{proof_sentence}",
             ),
             "attempted": (
                 "Missed delivery",
@@ -131,6 +131,27 @@ COPY: dict[str, dict[str, Any]] = {
         "stops_away": "You're {n} stops away",
         "stop_away": "You're 1 stop away",
         "sender_fallback": "Your sender",
+        "proof": {
+            "photo+signature": " Photo and signature proof are one tap away.",
+            "photo": " The delivery photo is one tap away.",
+            "signature": " The signature is one tap away.",
+            "unknown": " Proof of delivery is one tap away.",
+        },
+        "direct_footer": (
+            "This is a service message about your delivery with {entity}, {address}. It is not marketing."
+        ),
+        "direct_kinds": {
+            "booked": "Your delivery is booked. We'll email you when it's on the way.",
+            "picked_up": "We picked up your parcel. Next stop: the drop-off.",
+            "out_for_delivery": "Your delivery is on the road and will arrive today.{window_sentence}",
+            "next_stop": "Your driver is heading to the drop-off with your delivery.",
+            "eta": "Your delivery is close.{id_sentence}",
+            "delivered": "Your parcel was delivered.{proof_sentence}",
+            "attempted": "We tried to deliver your parcel but couldn't complete it. {attempt_sentence}",
+            "rescheduled": "Your delivery is now booked for {window_label}.",
+            "schedule_request": "Please pick a delivery window before we dispatch your parcel.",
+            "cancelled": "Your delivery was cancelled. If this is unexpected, contact us.",
+        },
     },
     "fr": {
         "steps": ("Réservée", "Ramassée", "En route", "Livrée"),
@@ -181,7 +202,7 @@ COPY: dict[str, dict[str, Any]] = {
             "delivered": (
                 "Livrée",
                 "Votre livraison est arrivée",
-                "Votre colis {merchant} a été livré. La photo et la signature sont à portée de clic.",
+                "Votre colis {merchant} a été livré.{proof_sentence}",
             ),
             "attempted": (
                 "Livraison manquée",
@@ -213,6 +234,28 @@ COPY: dict[str, dict[str, Any]] = {
         "stops_away": "Plus que {n} arrêts avant vous",
         "stop_away": "Plus qu'un arrêt avant vous",
         "sender_fallback": "Votre expéditeur",
+        "proof": {
+            "photo+signature": " La photo et la signature sont à portée de clic.",
+            "photo": " La photo de livraison est à portée de clic.",
+            "signature": " La signature est à portée de clic.",
+            "unknown": " La preuve de livraison est à portée de clic.",
+        },
+        "direct_footer": (
+            "Ceci est un message de service concernant votre livraison avec {entity}, {address}. "
+            "Ce n'est pas un message publicitaire."
+        ),
+        "direct_kinds": {
+            "booked": "Votre livraison est réservée. Nous vous écrirons quand elle sera en route.",
+            "picked_up": "Nous avons ramassé votre colis. Prochain arrêt : la livraison.",
+            "out_for_delivery": "Votre livraison est en route et arrivera aujourd'hui.{window_sentence}",
+            "next_stop": "Votre chauffeur se dirige vers le point de livraison.",
+            "eta": "Votre livraison approche.{id_sentence}",
+            "delivered": "Votre colis a été livré.{proof_sentence}",
+            "attempted": "Nous avons tenté de livrer votre colis, sans succès. {attempt_sentence}",
+            "rescheduled": "Votre livraison est maintenant prévue {window_label}.",
+            "schedule_request": "Veuillez choisir une plage de livraison avant l'envoi de votre colis.",
+            "cancelled": "Votre livraison a été annulée. Si c'est inattendu, communiquez avec nous.",
+        },
     },
 }
 
@@ -256,6 +299,31 @@ def _stops_line(c: dict[str, Any], ctx: dict[str, Any]) -> str:
     if n <= 0:
         return c["next"]
     return c["stop_away"] if n == 1 else _fmt(c["stops_away"], {"n": n})
+
+
+def is_direct_booking(ctx: dict[str, Any]) -> bool:
+    """A customer's own booking (no merchant): never name a 'sender' (L180)."""
+    if ctx.get("direct_booking"):
+        return True
+    name = _g(ctx, "merchant_name")
+    return not name or name in {COPY[k]["sender_fallback"] for k in COPY}
+
+
+def _proof_sentence(c: dict[str, Any], ctx: dict[str, Any]) -> str:
+    """Name only the proof actually captured (L180). No proof_types in ctx → generic line."""
+    raw = ctx.get("proof_types")
+    if raw is None:
+        return c["proof"]["unknown"]
+    kinds = {str(k).lower() for k in (raw or [])}
+    photo = "photo" in kinds
+    sig = "signature" in kinds
+    if photo and sig:
+        return c["proof"]["photo+signature"]
+    if photo:
+        return c["proof"]["photo"]
+    if sig:
+        return c["proof"]["signature"]
+    return ""
 
 
 def _attempt_sentence(c: dict[str, Any], ctx: dict[str, Any]) -> str:
@@ -403,7 +471,8 @@ def render_receiver_email(template: str, ctx: dict[str, Any]) -> tuple[str, str,
     kind, tone, step = RECEIVER_TEMPLATES[template]
     lang = language(ctx)
     c = COPY[lang]
-    merchant = _g(ctx, "merchant_name") or c["sender_fallback"]
+    direct = is_direct_booking(ctx)
+    merchant = "" if direct else _g(ctx, "merchant_name")
     window_label = _g(ctx, "window_label")
     values = {
         "merchant": merchant,
@@ -413,13 +482,16 @@ def render_receiver_email(template: str, ctx: dict[str, Any]) -> tuple[str, str,
         "window_sentence": _fmt(c["window_sentence"], {"label": window_label}) if window_label else "",
         "id_sentence": c["id_sentence"] if ctx.get("id_required") else "",
         "attempt_sentence": _attempt_sentence(c, ctx),
+        "proof_sentence": _proof_sentence(c, ctx),
     }
     eyebrow, headline, lead = (_fmt(x, values) for x in c["kinds"][kind])
+    if direct:
+        lead = _fmt(c["direct_kinds"][kind], values)
     # Admin-edited copy (template manager): subject and intro only; layout stays fixed.
     if _g(ctx, "copy_intro"):
         lead = _fmt(_g(ctx, "copy_intro"), {**values, "tracking": _g(ctx, "tracking_number")})
     tracking = _g(ctx, "tracking_number")
-    subject = f"{headline} · {merchant}" + (f" · {tracking}" if tracking else "")
+    subject = headline + (f" · {merchant}" if merchant else "") + (f" · {tracking}" if tracking else "")
     if _g(ctx, "copy_subject"):
         subject = _fmt(_g(ctx, "copy_subject"), {**values, "tracking": tracking})
     (cta_label, cta_url), secondary = _actions(kind, c, ctx, lang)
@@ -429,7 +501,10 @@ def render_receiver_email(template: str, ctx: dict[str, Any]) -> tuple[str, str,
 
     help_line = _g(ctx, "help_line") or _g(ctx, "support_email") or "support@porterchain.com"
     site = (_g(ctx, "website_url") or "https://porterchain.com").rstrip("/")
-    footer = _fmt(c["footer_service"], {"merchant": merchant, "entity": LEGAL_ENTITY, "address": LEGAL_ADDRESS})
+    footer = _fmt(
+        c["direct_footer"] if direct else c["footer_service"],
+        {"merchant": merchant, "entity": LEGAL_ENTITY, "address": LEGAL_ADDRESS},
+    )
     help_txt = _fmt(c["footer_help"], {"help": help_line})
     privacy_url = site + c["privacy_path"]
 
@@ -459,7 +534,7 @@ def render_receiver_email(template: str, ctx: dict[str, Any]) -> tuple[str, str,
         <tr><td style="padding:0 4px 16px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
             <td class="pc-ink" style="font-family:{FONT};font-size:15px;font-weight:800;letter-spacing:-0.01em;color:{NAVY};">PorterChain</td>
-            <td align="right" class="pc-muted" style="font-family:{FONT};font-size:12px;color:{MUTED};">{_brand_mark(ctx, merchant)}</td>
+            <td align="right" class="pc-muted" style="font-family:{FONT};font-size:12px;color:{MUTED};">{_brand_mark(ctx, merchant) if merchant else ""}</td>
           </tr></table>
         </td></tr>
         <tr><td class="pc-card" bgcolor="#ffffff" style="background:#ffffff;border:1px solid {LINE};border-radius:20px;padding:36px 28px 32px;">

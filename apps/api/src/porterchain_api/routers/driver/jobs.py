@@ -175,9 +175,29 @@ def job_detail(
     settings: Settings = Depends(get_settings)):
     guard_portal_ready(ctx, settings)
     try:
-        return svc.platform.jobs.job_detail(db, ctx.driver, order_id)
+        detail = svc.platform.jobs.job_detail(db, ctx.driver, order_id)
     except LookupError as exc:
         raise HTTPException(status_code=404, detail="job_not_found") from exc
+    return _with_flow_spec(db, detail, order_id)
+
+
+def _with_flow_spec(db: Session, detail, order_id: str):
+    """Doc 82 §1.1: attach the server-generated guided flow; never break the job read."""
+    try:
+        from porterchain_api.booking_models import Order
+        from porterchain_api.flow_engine.service import flow_specs_for_order
+
+        order = db.get(Order, order_id)
+        if order is None:
+            return detail
+        spec = flow_specs_for_order(db, order)
+        if isinstance(detail, dict):
+            detail = {**detail, "flow_spec": spec}
+        else:
+            detail = detail.model_copy(update={"flow_spec": spec})
+    except Exception:  # noqa: BLE001 - guidance is additive
+        pass
+    return detail
 
 
 @router.get("/routes/assigned", response_model=RouteResponse | None)
@@ -228,12 +248,16 @@ def arrivestop_response(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings)):
     require_approved_driver(ctx)
+    from porterchain_driver.pod_policy import DriverOffDuty
+
     try:
         with db_transaction(db):
             stop = svc.platform.stops.arrivestop_response(
                 db, ctx.driver, stop_id
             )
         return stop_response(stop)
+    except DriverOffDuty as exc:
+        raise HTTPException(status_code=409, detail=exc.payload) from exc
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:

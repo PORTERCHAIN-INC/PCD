@@ -66,7 +66,7 @@ Business types share one system, but each **sees only its own documents and capa
 - **C8 Packing slip:** the merchant turns it on, or the order has line items they send.
 - **C9 Their labels:** `label_mode = theirs/both` (§4). Otherwise we print ours.
 - **C10 Signature / ID:** declared value over $500, the merchant's setting, or the customer requests it. Pharmacy is always A.
-- **C11 2-person:** furniture class F4, a single item over 50 kg, or the customer picks the add-on (doc 72 §8).
+- **C11 Dolly (was 2-person, changed 2026-10-29, doc 84 §8.1 Q4):** furniture class F4, a single item over 32 kg, or the customer picks the add-on. One driver with a modular dolly, within safe limits; no 2-person crew.
 - **C12 Bulk upload / API for CHA:** on when the org has a developer key or uploads CSV.
 
 **Each document is a separate module** (`doc_bol`, `doc_pallet_manifest`, `doc_customs_pack`, `doc_pod`, `doc_rx_custody`, `doc_cold_chain`, `doc_tdg`, `doc_packing_slip`, `label_*`). Each has its own templates, table and tests.

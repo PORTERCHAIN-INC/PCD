@@ -1,11 +1,14 @@
-"""Admin Lead Ingest settings — status (no secret values) + Doppler write-through."""
+"""Admin Lead Ingest settings: status (no secret values) and validated change requests.
+
+Secrets live in SOPS + age (``secrets/<host>.enc.yaml``, doc 37). The API cannot decrypt or
+write that file, so a save validates the input and returns the key names an operator must set
+with ``sops`` before the next deploy. Values are never echoed back.
+"""
 
 from __future__ import annotations
 
 import json
 import logging
-import os
-import secrets
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -13,14 +16,10 @@ from sqlalchemy.orm import Session
 from porterchain_api.admin_engine.audit import log_admin_audit
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.config import Settings, get_settings
-from porterchain_api.integrations.doppler_secrets import (
-    DopplerNotConfiguredError,
-    doppler_configured,
-    list_secret_names,
-    set_secrets,
-)
 
 logger = logging.getLogger(__name__)
+
+SECRETS_FILE = "secrets/droplet.enc.yaml"
 
 # Write-only secrets (never returned to UI).
 SECRET_FIELDS: tuple[str, ...] = (
@@ -68,22 +67,18 @@ def _runtime_value(settings: Settings, env_key: str) -> str:
     return str(raw).strip()
 
 
-def _configured(settings: Settings, env_key: str, *, doppler_names: set[str]) -> bool:
+def _configured(settings: Settings, env_key: str) -> bool:
     if env_key == "REFERRAL_CREDIT_CENTS":
         return True
-    if _runtime_value(settings, env_key):
-        return True
-    return env_key in doppler_names
+    return bool(_runtime_value(settings, env_key))
 
 
 def lead_ingest_settings_status(settings: Settings | None = None) -> dict[str, Any]:
     settings = settings or get_settings()
-    names = list_secret_names(settings) if doppler_configured(settings) else set()
     secrets_status = {
         key: {
-            "configured": _configured(settings, key, doppler_names=names),
+            "configured": _configured(settings, key),
             "in_runtime": bool(_runtime_value(settings, key)),
-            "in_doppler": key in names,
         }
         for key in SECRET_FIELDS
     }
@@ -96,30 +91,14 @@ def lead_ingest_settings_status(settings: Settings | None = None) -> dict[str, A
         "REFERRAL_CREDIT_CENTS": int(settings.referral_credit_cents or 0),
     }
     return {
-        "doppler": {
-            "configured": doppler_configured(settings),
-            "project": settings.doppler_project,
-            "config": settings.doppler_config,
-        },
+        "secrets_store": {"kind": "sops", "file": SECRETS_FILE, "writable": False},
         "secrets": secrets_status,
         "visible": visible,
         "note": (
-            "Secret values are never shown. Saving writes to Doppler and updates this API process; "
-            "other replicas need sync-secrets + recreate to pick up changes."
+            "Secret values are never shown. These keys live in the SOPS file; a save checks "
+            f"the values and lists the keys to set with `sops {SECRETS_FILE}`, then redeploy."
         ),
     }
-
-
-def _apply_runtime(env_key: str, value: str) -> None:
-    """Best-effort: update process env + Settings cache for this worker."""
-    os.environ[env_key] = value
-    attr = _SETTINGS_ATTR.get(env_key)
-    if not attr:
-        return
-    try:
-        get_settings.cache_clear()
-    except Exception:
-        pass
 
 
 def update_lead_ingest_settings(
@@ -129,27 +108,15 @@ def update_lead_ingest_settings(
     *,
     settings: Settings | None = None,
 ) -> dict[str, Any]:
-    """
-    Apply visible fields + optional secret writes.
+    """Validate visible fields and secret inputs; return the keys to set in SOPS.
 
-    Secret keys: omit or empty = leave unchanged; non-empty = set.
-    Special: ``generate`` list may include GOOGLE_LEAD_WEBHOOK_SECRET /
-    SOCIAL_LEAD_WEBHOOK_SECRET / META_WEBHOOK_VERIFY_TOKEN / PUBLIC_INGEST_API_KEY.
+    Secret keys: omit or empty = leave unchanged. Nothing is written by the API.
     """
     settings = settings or get_settings()
     to_write: dict[str, str] = {}
 
-    generate = body.get("generate") or []
-    if isinstance(generate, list):
-        for key in generate:
-            if key not in (
-                "GOOGLE_LEAD_WEBHOOK_SECRET",
-                "SOCIAL_LEAD_WEBHOOK_SECRET",
-                "META_WEBHOOK_VERIFY_TOKEN",
-                "PUBLIC_INGEST_API_KEY",
-            ):
-                raise ValueError(f"cannot_generate:{key}")
-            to_write[key] = secrets.token_hex(32)
+    if body.get("generate"):
+        raise ValueError("generate_unsupported_use_sops")
 
     secrets_in = body.get("secrets") if isinstance(body.get("secrets"), dict) else {}
     for key in SECRET_FIELDS:
@@ -220,36 +187,33 @@ def update_lead_ingest_settings(
             raise ValueError("referral_credit_cents_out_of_range")
         to_write["REFERRAL_CREDIT_CENTS"] = str(cents)
 
-    # Empty visible clears are allowed (PIXEL / URN / TERRITORY); secrets never clear via empty.
-    doppler_result: dict[str, Any]
-    if to_write:
-        try:
-            doppler_result = set_secrets(settings, to_write)
-        except DopplerNotConfiguredError as exc:
-            raise ValueError("doppler_token_missing") from exc
-        except RuntimeError as exc:
-            raise ValueError(str(exc)) from exc
-        for key, value in to_write.items():
-            _apply_runtime(key, value)
-    else:
-        doppler_result = {"ok": True, "written": [], "skipped": "noop"}
-
+    keys = sorted(to_write.keys())
+    save: dict[str, Any] = {
+        "ok": True,
+        "applied": False,
+        "keys": keys,
+        "how": (
+            f"Run `sops {SECRETS_FILE}` on the ops machine, set these keys, then redeploy."
+            if keys
+            else "noop"
+        ),
+    }
     try:
         log_admin_audit(
             db,
             ctx,
-            action="settings.lead_ingest.update",
+            action="settings.lead_ingest.change_requested",
             resource_type="lead_ingest",
-            resource_id="doppler",
-            payload={"keys": sorted(to_write.keys()), "doppler_ok": bool(doppler_result.get("ok"))},
+            resource_id="sops",
+            payload={"keys": keys},
         )
         db.commit()
     except Exception:
         logger.exception("lead_ingest_audit_failed")
         db.rollback()
 
-    status = lead_ingest_settings_status(get_settings())
-    status["save"] = doppler_result
+    status = lead_ingest_settings_status(settings)
+    status["save"] = save
     return status
 
 

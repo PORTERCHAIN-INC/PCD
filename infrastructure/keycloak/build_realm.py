@@ -47,7 +47,12 @@ def clients() -> list[dict]:
     out = []
     for cid, (bases, port) in SITES.items():
         bases_all = bases + [f"{LOCAL}:{port}", f"http://127.0.0.1:{port}"]
-        out.append(public_pkce_client(cid, [f"{b}/auth/callback" for b in bases_all], bases_all))
+        # L214: invite / setup emails return to the portal's sign-in entry (exact paths, no wildcard).
+        landing = ["/auth/callback", "/auth/login", "/login", "/sign-in", "/sign-up"]
+        c = public_pkce_client(cid, [f"{b}{p}" for b in bases_all for p in landing], bases_all)
+        # L164: "Back to application" on Keycloak info pages (verify link opened in another browser).
+        c["baseUrl"] = bases[0] + "/"
+        out.append(c)
     for cid, uri in MOBILE.items():
         out.append(public_pkce_client(cid, [uri], []))
     out.append({  # API: resource server only (audience); validates JWTs via JWKS.
@@ -109,11 +114,21 @@ def groups() -> list[dict]:
     ]
 
 
+# New-device email code (email-otp-authenticator v1.8.1). Device trust = per user+realm cookie; IP trust off.
+NEW_DEVICE_CODE = {
+    "code-length": "6", "code-alphabet": "0123456789", "code-lifetime": "600",
+    "device-trust-enabled": "true", "device-trust-duration": "180", "ip-trust-enabled": "false",
+    "trust-only-when-sole": "false", "resend-cooldown": "60", "issuance-limit": "5", "issuance-limit-window": "900",
+}
+
+
 def browser_flow() -> list[dict]:
-    """Cookie | IdP redirector | (password or passkey) then OTP only if role mfa_required."""
+    """Cookie | IdP redirector | (password or passkey), then:
+    - non-staff: email code ONLY on a new/unrecognised browser (email-otp-authenticator device-trust cookie),
+    - staff (role mfa_required): TOTP, never the email code."""
     return [
         {"alias": "pc-browser", "providerId": "basic-flow", "topLevel": True, "builtIn": False,
-         "description": "PorterChain browser login: no OTP/CAPTCHA except staff admin TOTP",
+         "description": "PorterChain browser login: email code only on a new device (non-staff); staff admin TOTP",
          "authenticationExecutions": [
              {"authenticator": "auth-cookie", "requirement": "ALTERNATIVE", "priority": 10, "autheticatorFlow": False},
              {"authenticator": "identity-provider-redirector", "requirement": "ALTERNATIVE", "priority": 20, "autheticatorFlow": False},
@@ -122,7 +137,18 @@ def browser_flow() -> list[dict]:
         {"alias": "pc-forms", "providerId": "basic-flow", "topLevel": False, "builtIn": False,
          "authenticationExecutions": [
              {"flowAlias": "pc-first-factor", "requirement": "REQUIRED", "priority": 10, "autheticatorFlow": True},
+             {"flowAlias": "pc-new-device-code", "requirement": "CONDITIONAL", "priority": 15, "autheticatorFlow": True},
              {"flowAlias": "pc-staff-otp", "requirement": "CONDITIONAL", "priority": 20, "autheticatorFlow": True},
+         ]},
+        # Needs the Unlicense email-otp-authenticator extension (render-realm.sh drops this subflow when
+        # EMAIL_OTP_ENABLED=false, e.g. in tests on the stock image).
+        {"alias": "pc-new-device-code", "providerId": "basic-flow", "topLevel": False, "builtIn": False,
+         "description": "Email code on a new/unrecognised browser (not staff)",
+         "authenticationExecutions": [
+             {"authenticator": "conditional-user-role", "requirement": "REQUIRED", "priority": 10,
+              "autheticatorFlow": False, "authenticatorConfig": "pc-not-staff"},
+             {"authenticator": "email-otp-form", "requirement": "REQUIRED", "priority": 20,
+              "autheticatorFlow": False, "authenticatorConfig": "pc-new-device-code-cfg"},
          ]},
         {"alias": "pc-first-factor", "providerId": "basic-flow", "topLevel": False, "builtIn": False,
          "authenticationExecutions": [
@@ -160,7 +186,7 @@ def realm() -> dict:
         "realm": "porterchain", "enabled": True, "displayName": "PorterChain",
         "registrationAllowed": True, "registrationEmailAsUsername": True, "loginWithEmailAllowed": True,
         "duplicateEmailsAllowed": False, "resetPasswordAllowed": True, "rememberMe": True,
-        "verifyEmail": False,  # no email-code step in normal login (L36)
+        "verifyEmail": True,  # L82: API trusts only a verified KC email; verified users see no extra login step
         "sslRequired": "external",
         "bruteForceProtected": True, "permanentLockout": False, "failureFactor": 10,
         "waitIncrementSeconds": 60, "maxFailureWaitSeconds": 900, "maxDeltaTimeSeconds": 43200,
@@ -176,7 +202,11 @@ def realm() -> dict:
         "roles": roles(), "groups": groups(), "defaultRoles": ["customer"],
         "clients": clients(), "users": service_account_users(),
         "authenticationFlows": browser_flow(),
-        "authenticatorConfig": [{"alias": "pc-mfa-role", "config": {"condUserRole": MFA_ROLE, "negate": "false"}}],
+        "authenticatorConfig": [
+            {"alias": "pc-mfa-role", "config": {"condUserRole": MFA_ROLE, "negate": "false"}},
+            {"alias": "pc-not-staff", "config": {"condUserRole": MFA_ROLE, "negate": "true"}},
+            {"alias": "pc-new-device-code-cfg", "config": NEW_DEVICE_CODE},
+        ],
         "requiredActions": [
             {"alias": "VERIFY_EMAIL", "name": "Verify Email", "providerId": "VERIFY_EMAIL", "enabled": True, "defaultAction": False, "priority": 1},
             {"alias": "UPDATE_PASSWORD", "name": "Update Password", "providerId": "UPDATE_PASSWORD", "enabled": True, "defaultAction": False, "priority": 5},
@@ -184,7 +214,7 @@ def realm() -> dict:
             {"alias": "webauthn-register-passwordless", "name": "Passkey Register", "providerId": "webauthn-register-passwordless", "enabled": True, "defaultAction": False, "priority": 20},
         ],
         "identityProviders": idps(),
-        "attributes": {"frontendUrl": ""},
+        "attributes": {"frontendUrl": "", "actionTokenGeneratedByUserLifespan.verify-email": "43200"},  # L84: 12 h verify link
     }
 
 

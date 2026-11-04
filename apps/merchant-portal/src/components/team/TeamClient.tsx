@@ -452,7 +452,7 @@ function MembersTab({
         <a href={merchantSignupUrl()} className="font-medium text-secondary underline">
           {merchantSignupUrl()}
         </a>
-        . They sign up with the email above, and their password stays in Clerk.
+        . They sign up with the email above, and their password stays in Keycloak.
       </p>
 
       <ul className="divide-y divide-primary/5 rounded-2xl border border-primary/10 bg-white">
@@ -593,18 +593,18 @@ function ActivityTab({ entries }: { entries: ActivityLogEntry[] }) {
 
 function SecurityTab({ status }: { status: TwoFactorStatus | null }) {
   const local = useLocalDevAuth();
-  const clerkOn = isAuthConfigured() && !local;
+  const idpOn = isAuthConfigured() && !local;
 
   return (
     <section className="rounded-2xl border border-primary/10 bg-white p-6">
       <h2 className="font-semibold text-primary">Two-factor authentication</h2>
       <p className="mt-2 text-sm text-muted">
         {status?.note ||
-          "MFA is managed in your PorterChain sign-in account (Clerk), not as a portal toggle."}
+          "MFA is managed in your PorterChain sign-in account (Keycloak), not as a portal toggle."}
       </p>
       {local ? (
-        <p className="mt-4 text-sm text-muted">Local Clerk bypass does not use MFA.</p>
-      ) : clerkOn ? (
+        <p className="mt-4 text-sm text-muted">Local Keycloak bypass does not use MFA.</p>
+      ) : idpOn ? (
         <AccountMfaStatus />
       ) : (
         <p className="mt-4 text-sm text-muted">

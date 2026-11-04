@@ -215,7 +215,7 @@ export default function CapacityGuideChat({
         track(ANALYTICS_EVENTS.CAPACITY_GUIDE_ASK, {
           sourceSection,
           from: HUB_FROM.chooser,
-          topic: "groq",
+          topic: "rules",
           cta_label: messageText(message).slice(0, 80),
         });
         for (const card of toolCardsFromMessage(message)) {

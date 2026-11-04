@@ -1,4 +1,4 @@
-"""User directory on Keycloak (L36) — replaces the Clerk Backend API adapter.
+"""User directory on Keycloak (L36) — replaces the Keycloak Backend API adapter.
 
 One realm (``porterchain``) holds every persona, so every user class resolves to the same
 directory. Users are returned as a neutral dict::
@@ -194,13 +194,17 @@ class IdentityDirectory:
     ) -> dict[str, Any]:
         rep = self._rep(subject) or {}
         body: dict[str, Any] = {}
+        # L219: Keycloak's user profile rejects a PUT without username/email (400), so keep them.
+        for key in ("username", "email", "firstName", "lastName"):
+            if rep.get(key) is not None:
+                body[key] = rep[key]
         if first_name is not None:
             body["firstName"] = first_name
         if last_name is not None:
             body["lastName"] = last_name
         if metadata is not None:
             body["attributes"] = {**(rep.get("attributes") or {}), **_encode_meta(metadata)}
-        if body:
+        if first_name is not None or last_name is not None or metadata is not None:
             self.kc._call("PUT", f"/users/{subject}", json=body).raise_for_status()
         return self.get_user(subject) or {}
 
@@ -248,6 +252,18 @@ class IdentityDirectory:
         existing = self.find_user_by_email(normalized)
         if existing:
             self.update_user_metadata(existing["id"], metadata)
+            # L219: "Resend invite" for someone who never finished setup must send the email again.
+            pending = list(existing.get("required_actions") or [])
+            if pending:
+                sent = self.kc.send_actions_email(
+                    existing["id"],
+                    pending,
+                    client_id=PORTAL_CLIENTS.get(kind, "pc-customer-portal"),
+                    redirect_uri=redirect_url,
+                )
+                if not sent:
+                    logger.warning("identity_invite_email_failed kind=%s", kind)
+                return InviteResult(action="invited", subject=existing["id"], invitation_id=existing["id"])
             return InviteResult(action="found", subject=existing["id"])
         user = self.create_user(normalized, metadata=metadata)
         sent = self.kc.send_actions_email(

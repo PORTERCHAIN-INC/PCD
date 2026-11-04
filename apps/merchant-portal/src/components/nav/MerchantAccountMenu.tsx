@@ -67,6 +67,7 @@ function KeycloakAccountMenu() {
 
   const email = profile?.email ?? session?.user_email ?? user?.email ?? "";
   const name =
+    session?.display_name ??
     user?.fullName ??
     user?.username ??
     session?.company_name ??

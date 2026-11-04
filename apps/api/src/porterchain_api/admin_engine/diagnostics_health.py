@@ -20,7 +20,9 @@ from porterchain_api.admin_engine.diagnostics_helpers import (
     _component,
     _now_iso,
     _portal_component,
-    _run_probe_batch,
+    UNREACHABLE_PROBE_TIMEOUT_SEC,
+    ProbeBatch,
+    _unreachable_probe,
 )
 from porterchain_api.admin_engine.settings_service import PORTERCHAIN_VERSION
 from porterchain_api.config import Settings
@@ -74,11 +76,9 @@ class DiagnosticsHealthMixin:
         return out
 
     def _build_health_dashboard(self, db: Session, settings: Settings) -> dict[str, Any]:
-        ready = readiness(db, settings)
-        platform = get_platform_settings()
-        integration = self._settings_svc.integration_health(db, settings, ready=ready)
-        components: list[dict[str, Any]] = []
-
+        local = settings.app_env == "local"
+        # Network probes (portals, Valhalla, IdP, Mailpit, metrics) start first, in parallel, and
+        # share one short deadline. The DB-bound checks below run meanwhile on this thread.
         portal_targets = [
             ("website", "Website", settings.website_url),
             ("customer_portal", "Customer Portal", settings.customer_portal_url),
@@ -86,16 +86,30 @@ class DiagnosticsHealthMixin:
             ("admin_portal", "Admin Portal", settings.admin_portal_url),
             ("driver_mobile", "Driver Mobile App", settings.driver_portal_url),
         ]
-        local = settings.app_env == "local"
-        portal_order = [cid for cid, _, _ in portal_targets]
-        portal_jobs = [
-            (cid, name, lambda cid=cid, name=name, url=url: _portal_component(cid, name, url, local=local))
-            for cid, name, url in portal_targets
+        platform = get_platform_settings()
+        portal_batch = ProbeBatch(
+            [
+                (cid, name, lambda cid=cid, name=name, url=url: _portal_component(cid, name, url, local=local))
+                for cid, name, url in portal_targets
+            ],
+            max_workers=len(portal_targets),
+        )
+        http_probe_jobs = [
+            ("valhalla", "Valhalla", lambda: self._probe_valhalla(platform)),
+            ("keycloak", "Keycloak", lambda: self._probe_idp(settings, platform)),
+            ("mailpit", "Mailpit (Dev Email)", lambda: self._probe_mailpit(settings)),
+            ("metrics_endpoint", "Prometheus Metrics", lambda: self._probe_metrics(settings)),
         ]
-        portal_results = _run_probe_batch(portal_jobs, max_workers=len(portal_targets))
-        for cid in portal_order:
-            _, probe = portal_results[cid]
-            components.append(probe)
+        http_batch = ProbeBatch(http_probe_jobs)
+
+        ready = readiness(db, settings)
+        integration = self._settings_svc.integration_health(db, settings, ready=ready)
+        components: list[dict[str, Any]] = []
+
+        portal_results = portal_batch.collect(UNREACHABLE_PROBE_TIMEOUT_SEC)
+        for cid, _, _ in portal_targets:
+            name, probe = portal_results[cid]
+            components.append(probe if probe is not None else _component(cid, name, **_unreachable_probe(UNREACHABLE_PROBE_TIMEOUT_SEC, local=local)))
 
         api_entry = integration.get("api", {})
         if isinstance(api_entry, dict):
@@ -163,8 +177,8 @@ class DiagnosticsHealthMixin:
         day_plan_probe = self._probe_day_plan(settings)
         components.append(_component("dispatch", "Dispatch (day plan)", **day_plan_probe))
 
-        maps_probe = self._probe_google_maps(platform, app_env=settings.app_env)
-        components.append(_component("google_maps", "Google Maps", **maps_probe))
+        maps_probe = self._probe_maps(platform, app_env=settings.app_env)
+        components.append(_component("maps", "Maps (PMTiles + Photon)", **maps_probe))
 
         osrm_probe = self._probe_osrm(platform)
         components.append(_component("osrm", "OSRM", **osrm_probe))
@@ -190,17 +204,10 @@ class DiagnosticsHealthMixin:
         ready_probe = self._probe_readiness(settings, db)
         components.append(_component("readiness_probe", "API Readiness", **ready_probe))
 
-        http_probe_jobs = [
-            ("valhalla", "Valhalla", lambda: self._probe_valhalla(platform)),
-            ("clerk", "Clerk", lambda: self._probe_clerk(settings, platform)),
-            ("mailpit", "Mailpit (Dev Email)", lambda: self._probe_mailpit(settings)),
-            ("metrics_endpoint", "Prometheus Metrics", lambda: self._probe_metrics(settings)),
-        ]
-        http_probe_order = [cid for cid, _, _ in http_probe_jobs]
-        http_results = _run_probe_batch(http_probe_jobs)
-        for cid in http_probe_order:
+        http_results = http_batch.collect(UNREACHABLE_PROBE_TIMEOUT_SEC)
+        for cid, _, _ in http_probe_jobs:
             name, probe = http_results[cid]
-            components.append(_component(cid, name, **probe))
+            components.append(_component(cid, name, **(probe if probe is not None else _unreachable_probe(UNREACHABLE_PROBE_TIMEOUT_SEC, local=local))))
 
         counts = {"healthy": 0, "warning": 0, "critical": 0}
         for c in components:

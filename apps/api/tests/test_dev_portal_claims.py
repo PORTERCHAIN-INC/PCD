@@ -47,4 +47,4 @@ def test_all_synthetic_subjects_are_bypass() -> None:
     assert is_dev_bypass_subject(DEV_LEGACY_SUBJECT)
     assert is_dev_bypass_subject(DEV_MERCHANT_SUBJECT)
     assert is_dev_bypass_subject(DEV_CUSTOMER_SUBJECT)
-    assert not is_dev_bypass_subject("user_live_clerk")
+    assert not is_dev_bypass_subject("user_live_idp")

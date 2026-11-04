@@ -225,7 +225,7 @@ def all_exceptions(board, db, **kw) -> dict:
 
 def _driver(db: Session, cls: str = "van") -> Driver:
     s = uuid4().hex[:8]
-    d = Driver(email=f"p2-{s}@dispatch.test", full_name=f"P2 {s}", status="APPROVED", auth_subject=f"clerk_p2_{s}",
+    d = Driver(email=f"p2-{s}@dispatch.test", full_name=f"P2 {s}", status="APPROVED", auth_subject=f"idp_p2_{s}",
                is_online=True, license_verified=True, insurance_verified=True, background_check_status="cleared")
     db.add(d)
     db.flush()

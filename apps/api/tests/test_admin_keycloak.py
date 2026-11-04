@@ -192,10 +192,73 @@ def pc_admin_user():
                                                 "emailVerified": True, "requiredActions": []})
         uid = c.get(f"{adm}/users?email={email}&exact=true", headers=h).json()[0]["id"]
         c.put(f"{adm}/users/{uid}/reset-password", headers=h, json={"type": "password", "value": pw, "temporary": False})
+        smtp = os.environ.get("PCD_TEST_KC_SMTP_HOST", "")  # e.g. pcd-ls-mailpit (shared docker network)
+        if smtp:
+            realm = c.get(adm, headers=h).json()
+            realm["smtpServer"] = {"host": smtp, "port": "1025", "from": "no-reply@porterchain.test"}
+            c.put(adm, headers=h, json=realm)
         role = c.get(f"{adm}/roles/support", headers=h).json()
         c.post(f"{adm}/users/{uid}/role-mappings/realm", headers=h, json=[role])
         yield {"email": email, "password": pw}
         c.delete(f"{adm}/users/{uid}", headers=_master_headers(c))
+
+
+def _totp(secret: bytes, at: float | None = None, digits: int = 6, period: int = 30) -> str:
+    import hashlib
+    import hmac
+    import struct
+
+    counter = int((at if at is not None else time.time()) // period)
+    mac = hmac.new(secret, struct.pack(">Q", counter), hashlib.sha1).digest()
+    off = mac[-1] & 0x0F
+    return str((struct.unpack(">I", mac[off:off + 4])[0] & 0x7FFFFFFF) % 10**digits).zfill(digits)
+
+
+def _mailpit_code(email: str) -> str | None:
+    """Latest 6-digit code sent to ``email`` (local Mailpit, only when the test realm has SMTP)."""
+    import re
+
+    api = os.environ.get("PCD_TEST_MAILPIT_URL", "").rstrip("/")
+    if not api:
+        return None
+    for _ in range(10):
+        msgs = httpx.get(f"{api}/api/v1/search", params={"query": f"to:{email}"}, timeout=10).json()
+        if msgs.get("messages"):
+            body = httpx.get(f"{api}/api/v1/message/{msgs['messages'][0]['ID']}", timeout=10).json()
+            m = re.search(r"\b(\d{6})\b", body.get("Text", ""))
+            if m:
+                return m.group(1)
+        time.sleep(1)
+    return None
+
+
+def _complete_second_factor(
+    c: httpx.Client, page: str, jar: str, email: str = "", allow_totp_setup: bool = False
+) -> httpx.Response | None:
+    """Fill the Keycloak OTP-setup (TOTP) or email-code page. None if the page is neither."""
+    import html
+    import re
+
+    form = re.search(r'<form[^>]+action="([^"]+)"', page)
+    if not form:
+        return None
+    action = html.unescape(form.group(1))
+    secret = re.search(r'name="totpSecret"[^>]*value="([^"]+)"', page) or re.search(
+        r'value="([^"]+)"[^>]*name="totpSecret"', page)
+    if secret and allow_totp_setup:
+        data = {"totp": _totp(secret.group(1).encode()), "totpSecret": secret.group(1),
+                "userLabel": "test", "mode": "manual"}
+    elif secret:
+        return None  # admin tiers must enrol TOTP themselves: the caller asserts this blocks
+    elif re.search(r'name="(email-otp|emailCode|email_code|code|otp)"', page):
+        field = re.search(r'name="(email-otp|emailCode|email_code|code|otp)"', page).group(1)
+        code = _mailpit_code(email)
+        if not code:
+            pytest.skip("email-code step needs SMTP to Mailpit in the test realm (PCD_TEST_MAILPIT_URL)")
+        data = {field: code}
+    else:
+        return None
+    return c.post(action, data=data, headers={"Cookie": jar})
 
 
 def _browser_login(email: str, password: str) -> str:
@@ -222,6 +285,17 @@ def _browser_login(email: str, password: str) -> str:
         res = c.post(action, data={"username": email, "password": password, "credentialId": ""},
                      headers={"Cookie": jar})
         location = res.headers.get("location", "")
+        # Second factor (L8): a fresh user lands on a Keycloak step (OTP setup / code) instead of
+        # the redirect. Complete it like a human would, then continue.
+        for _ in range(3):
+            if res.status_code == 302 and location.startswith(redirect):
+                break
+            step = c.get(location, headers={"Cookie": jar}) if res.status_code == 302 else res
+            res = _complete_second_factor(c, step.text, jar, email)
+            if res is None:
+                res = step
+                break
+            location = res.headers.get("location", "")
         if res.status_code != 302 or not location.startswith(redirect):
             body = res.text
             if res.status_code == 302:  # e.g. required-action / OTP step inside Keycloak

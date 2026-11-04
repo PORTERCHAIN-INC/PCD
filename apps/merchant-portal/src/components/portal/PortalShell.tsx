@@ -11,6 +11,7 @@ import MerchantAccessGate from "@/components/MerchantAccessGate";
 import MerchantAccountMenu from "@/components/nav/MerchantAccountMenu";
 import MerchantCompanySwitcher from "@/components/nav/MerchantCompanySwitcher";
 import NotificationBell from "@/components/nav/NotificationBell";
+import { LanguageSwitcher } from "@/i18n/LanguageSwitcher";
 import ModuleGate from "@/components/portal/ModuleGate";
 import MerchantLogo from "@/components/branding/MerchantLogo";
 import SandboxModeBanner from "@/components/portal/SandboxModeBanner";
@@ -83,6 +84,7 @@ function MerchantChrome({ children }: { children: React.ReactNode }) {
       actions={
         <>
           <MerchantCompanySwitcher compact />
+          <LanguageSwitcher />
           <NotificationBell viewAllHref="/notifications" />
           <MerchantAccountMenu />
         </>

@@ -199,6 +199,8 @@ export type DriverJobDetail = DriverJobSummary & {
   otp_required?: boolean;
   pod_requirements?: PodRequirements;
   pod_missing?: string[];
+  /** Doc 82 §1.1: server-generated guided flow (pickup + delivery). */
+  flow_spec?: import("@porterchain/driver-flows").JobFlowSpecs | Record<string, never>;
   on_duty?: boolean;
   currency?: string;
   amount_cents?: number;

@@ -13,6 +13,8 @@ import {
   useOptionalSessionContext,
   usePortalSessionGate,
   type SessionContext,
+  humanAuthError,
+  isWrongPortalError,
 } from "@porterchain/auth";
 import { isDevelopmentBuild } from "@porterchain/auth/devBypass";
 
@@ -23,7 +25,7 @@ type Props = {
 
 export default function MerchantAccessGate({ children, onProfile }: Props) {
   const localDevAuth = useLocalDevAuth();
-  // Ungated only in a development build. A shipped portal with no Clerk keys
+  // Ungated only in a development build. A shipped portal with no Keycloak keys
   // shows a wall instead of the portal — missing keys fail closed (BJ).
   if (isDevelopmentBuild() && (localDevAuth || !isAuthConfigured())) {
     return <>{children}</>;
@@ -82,7 +84,7 @@ function sessionFromMerchant(merchant: {
 function MerchantAccessGateWithAuth({ children, onProfile }: Props) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isLoaded: clerkLoaded, isSignedIn } = useAuth();
+  const { isLoaded: idpLoaded, isSignedIn } = useAuth();
   const { isLoaded: merchantAuthLoaded, getApiToken, session: merchantSession } = useMerchantAuth();
   // Sync init — async useEffect is too late; PortalSessionGate would call onSignedOut → /sign-in.
   const [impToken] = useState<string | null>(() =>
@@ -145,7 +147,7 @@ function MerchantAccessGateWithAuth({ children, onProfile }: Props) {
   }, [merchantSession]);
 
   // Wait for merchant session so ACTIVE users skip the duplicate session-context call.
-  const gateReady = clerkLoaded && merchantAuthLoaded;
+  const gateReady = idpLoaded && merchantAuthLoaded;
 
   const { denied, errorDetail } = usePortalSessionGate({
     portal: "merchant",
@@ -163,22 +165,31 @@ function MerchantAccessGateWithAuth({ children, onProfile }: Props) {
 
   if ((denied || errorDetail) && !impToken) {
     const loginUrl = "/sign-in";
-    const deniedAccess = errorDetail === "missing_portal_permission" || denied;
+    const deniedAccess = isWrongPortalError(errorDetail) || denied;
+    // L83: the API only trusts a verified email; say so instead of a raw code.
+    const needsVerify = ["email_required", "idp_email_required", "idp_email_unverified"].includes(
+      errorDetail || ""
+    );
     return (
       <div className="mx-auto flex min-h-[50vh] max-w-md flex-col items-center justify-center gap-3 p-6 text-center">
         <h1 className="text-lg font-semibold text-primary">
-          {deniedAccess ? "Access denied" : "Session error"}
+          {deniedAccess ? "Access denied" : needsVerify ? "Verify your email" : "Session error"}
         </h1>
         <p className="text-sm text-muted">
           {deniedAccess
-            ? "This account is not provisioned for the Merchant portal."
-            : errorDetail === "porterchain_api_timeout"
-              ? "Porterchain API did not respond. Start the API on port 8001 and refresh."
-              : errorDetail === "merchant_closed"
-                ? "This company account is closed. Use Company at the top to switch to another company, or contact PorterChain."
-                : errorDetail === "merchant_suspended"
-                  ? "This company is suspended. Use Company at the top to switch to another company, or contact PorterChain to restore access."
-                  : `Could not load your session (${errorDetail || "unknown"}).`}
+            ? humanAuthError(
+                errorDetail === "missing_portal_permission" ? "" : errorDetail,
+                "This account is not provisioned for the Merchant portal."
+              )
+            : needsVerify
+              ? "Open the link in the email we sent you to verify your address, then sign in again. No email? Sign out and sign in again to get a new link."
+              : errorDetail === "porterchain_api_timeout"
+                ? "Porterchain API did not respond. Start the API on port 8001 and refresh."
+                : errorDetail === "merchant_closed"
+                  ? "This company account is closed. Use Company at the top to switch to another company, or contact PorterChain."
+                  : errorDetail === "merchant_suspended"
+                    ? "This company is suspended. Use Company at the top to switch to another company, or contact PorterChain to restore access."
+                    : `Could not load your session (${errorDetail || "unknown"}).`}
         </p>
         <a
           href={loginUrl}

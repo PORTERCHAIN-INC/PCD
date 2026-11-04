@@ -8,7 +8,7 @@
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
   "rememberMe": true,
-  "verifyEmail": false,
+  "verifyEmail": true,
   "sslRequired": "external",
   "bruteForceProtected": true,
   "permanentLockout": false,
@@ -233,9 +233,25 @@
       "serviceAccountsEnabled": false,
       "redirectUris": [
         "https://porterchain.com/auth/callback",
+        "https://porterchain.com/auth/login",
+        "https://porterchain.com/login",
+        "https://porterchain.com/sign-in",
+        "https://porterchain.com/sign-up",
         "https://www.porterchain.com/auth/callback",
+        "https://www.porterchain.com/auth/login",
+        "https://www.porterchain.com/login",
+        "https://www.porterchain.com/sign-in",
+        "https://www.porterchain.com/sign-up",
         "http://localhost:3000/auth/callback",
-        "http://127.0.0.1:3000/auth/callback"
+        "http://localhost:3000/auth/login",
+        "http://localhost:3000/login",
+        "http://localhost:3000/sign-in",
+        "http://localhost:3000/sign-up",
+        "http://127.0.0.1:3000/auth/callback",
+        "http://127.0.0.1:3000/auth/login",
+        "http://127.0.0.1:3000/login",
+        "http://127.0.0.1:3000/sign-in",
+        "http://127.0.0.1:3000/sign-up"
       ],
       "webOrigins": [
         "https://porterchain.com",
@@ -292,7 +308,8 @@
             "jsonType.label": "String"
           }
         }
-      ]
+      ],
+      "baseUrl": "https://porterchain.com/"
     },
     {
       "clientId": "pc-merchant-portal",
@@ -306,8 +323,20 @@
       "serviceAccountsEnabled": false,
       "redirectUris": [
         "https://merchant.porterchain.com/auth/callback",
+        "https://merchant.porterchain.com/auth/login",
+        "https://merchant.porterchain.com/login",
+        "https://merchant.porterchain.com/sign-in",
+        "https://merchant.porterchain.com/sign-up",
         "http://localhost:3001/auth/callback",
-        "http://127.0.0.1:3001/auth/callback"
+        "http://localhost:3001/auth/login",
+        "http://localhost:3001/login",
+        "http://localhost:3001/sign-in",
+        "http://localhost:3001/sign-up",
+        "http://127.0.0.1:3001/auth/callback",
+        "http://127.0.0.1:3001/auth/login",
+        "http://127.0.0.1:3001/login",
+        "http://127.0.0.1:3001/sign-in",
+        "http://127.0.0.1:3001/sign-up"
       ],
       "webOrigins": [
         "https://merchant.porterchain.com",
@@ -363,7 +392,8 @@
             "jsonType.label": "String"
           }
         }
-      ]
+      ],
+      "baseUrl": "https://merchant.porterchain.com/"
     },
     {
       "clientId": "pc-customer-portal",
@@ -377,8 +407,20 @@
       "serviceAccountsEnabled": false,
       "redirectUris": [
         "https://customer.porterchain.com/auth/callback",
+        "https://customer.porterchain.com/auth/login",
+        "https://customer.porterchain.com/login",
+        "https://customer.porterchain.com/sign-in",
+        "https://customer.porterchain.com/sign-up",
         "http://localhost:3004/auth/callback",
-        "http://127.0.0.1:3004/auth/callback"
+        "http://localhost:3004/auth/login",
+        "http://localhost:3004/login",
+        "http://localhost:3004/sign-in",
+        "http://localhost:3004/sign-up",
+        "http://127.0.0.1:3004/auth/callback",
+        "http://127.0.0.1:3004/auth/login",
+        "http://127.0.0.1:3004/login",
+        "http://127.0.0.1:3004/sign-in",
+        "http://127.0.0.1:3004/sign-up"
       ],
       "webOrigins": [
         "https://customer.porterchain.com",
@@ -434,7 +476,8 @@
             "jsonType.label": "String"
           }
         }
-      ]
+      ],
+      "baseUrl": "https://customer.porterchain.com/"
     },
     {
       "clientId": "pc-driver-portal",
@@ -448,8 +491,20 @@
       "serviceAccountsEnabled": false,
       "redirectUris": [
         "https://driver.porterchain.com/auth/callback",
+        "https://driver.porterchain.com/auth/login",
+        "https://driver.porterchain.com/login",
+        "https://driver.porterchain.com/sign-in",
+        "https://driver.porterchain.com/sign-up",
         "http://localhost:3003/auth/callback",
-        "http://127.0.0.1:3003/auth/callback"
+        "http://localhost:3003/auth/login",
+        "http://localhost:3003/login",
+        "http://localhost:3003/sign-in",
+        "http://localhost:3003/sign-up",
+        "http://127.0.0.1:3003/auth/callback",
+        "http://127.0.0.1:3003/auth/login",
+        "http://127.0.0.1:3003/login",
+        "http://127.0.0.1:3003/sign-in",
+        "http://127.0.0.1:3003/sign-up"
       ],
       "webOrigins": [
         "https://driver.porterchain.com",
@@ -505,7 +560,8 @@
             "jsonType.label": "String"
           }
         }
-      ]
+      ],
+      "baseUrl": "https://driver.porterchain.com/"
     },
     {
       "clientId": "pc-admin",
@@ -519,8 +575,20 @@
       "serviceAccountsEnabled": false,
       "redirectUris": [
         "https://admin.porterchain.com/auth/callback",
+        "https://admin.porterchain.com/auth/login",
+        "https://admin.porterchain.com/login",
+        "https://admin.porterchain.com/sign-in",
+        "https://admin.porterchain.com/sign-up",
         "http://localhost:3002/auth/callback",
-        "http://127.0.0.1:3002/auth/callback"
+        "http://localhost:3002/auth/login",
+        "http://localhost:3002/login",
+        "http://localhost:3002/sign-in",
+        "http://localhost:3002/sign-up",
+        "http://127.0.0.1:3002/auth/callback",
+        "http://127.0.0.1:3002/auth/login",
+        "http://127.0.0.1:3002/login",
+        "http://127.0.0.1:3002/sign-in",
+        "http://127.0.0.1:3002/sign-up"
       ],
       "webOrigins": [
         "https://admin.porterchain.com",
@@ -576,7 +644,8 @@
             "jsonType.label": "String"
           }
         }
-      ]
+      ],
+      "baseUrl": "https://admin.porterchain.com/"
     },
     {
       "clientId": "pc-customer-app",
@@ -744,7 +813,7 @@
       "providerId": "basic-flow",
       "topLevel": true,
       "builtIn": false,
-      "description": "PorterChain browser login: no OTP/CAPTCHA except staff admin TOTP",
+      "description": "PorterChain browser login: email code only on a new device (non-staff); staff admin TOTP",
       "authenticationExecutions": [
         {
           "authenticator": "auth-cookie",
@@ -779,10 +848,39 @@
           "autheticatorFlow": true
         },
         {
+          "flowAlias": "pc-new-device-code",
+          "requirement": "CONDITIONAL",
+          "priority": 15,
+          "autheticatorFlow": true
+        },
+        {
           "flowAlias": "pc-staff-otp",
           "requirement": "CONDITIONAL",
           "priority": 20,
           "autheticatorFlow": true
+        }
+      ]
+    },
+    {
+      "alias": "pc-new-device-code",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "description": "Email code on a new/unrecognised browser (not staff)",
+      "authenticationExecutions": [
+        {
+          "authenticator": "conditional-user-role",
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "autheticatorFlow": false,
+          "authenticatorConfig": "pc-not-staff"
+        },
+        {
+          "authenticator": "email-otp-form",
+          "requirement": "REQUIRED",
+          "priority": 20,
+          "autheticatorFlow": false,
+          "authenticatorConfig": "pc-new-device-code-cfg"
         }
       ]
     },
@@ -834,6 +932,28 @@
       "config": {
         "condUserRole": "mfa_required",
         "negate": "false"
+      }
+    },
+    {
+      "alias": "pc-not-staff",
+      "config": {
+        "condUserRole": "mfa_required",
+        "negate": "true"
+      }
+    },
+    {
+      "alias": "pc-new-device-code-cfg",
+      "config": {
+        "code-length": "6",
+        "code-alphabet": "0123456789",
+        "code-lifetime": "600",
+        "device-trust-enabled": "true",
+        "device-trust-duration": "180",
+        "ip-trust-enabled": "false",
+        "trust-only-when-sole": "false",
+        "resend-cooldown": "60",
+        "issuance-limit": "5",
+        "issuance-limit-window": "900"
       }
     }
   ],
@@ -903,6 +1023,7 @@
     }
   ],
   "attributes": {
-    "frontendUrl": ""
+    "frontendUrl": "",
+    "actionTokenGeneratedByUserLifespan.verify-email": "43200"
   }
 }

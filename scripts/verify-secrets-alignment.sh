@@ -18,31 +18,18 @@ fail() { echo -e "${RED}✗${NC} $*"; }
 echo "=== Porterchain secrets alignment ==="
 echo ""
 
-# --- Local Clerk ---
-CLERK_SOURCE=""
-for candidate in "$ROOT/env/clerk.env" "$ROOT/infrastructure/deploy/scripts/clerk-keys.local.env"; do
-  if [ -f "$candidate" ]; then
-    CLERK_SOURCE="$candidate"
-    break
-  fi
-done
-
-if [ -n "$CLERK_SOURCE" ]; then
-  if bash "$ROOT/infrastructure/deploy/scripts/validate-clerk-keys.sh" "$CLERK_SOURCE" >/dev/null 2>&1; then
-    ok "Local Clerk: 12 keys in $(basename "$CLERK_SOURCE")"
-  else
-    fail "Local Clerk: incomplete keys in $CLERK_SOURCE"
-    bash "$ROOT/infrastructure/deploy/scripts/validate-clerk-keys.sh" "$CLERK_SOURCE" || true
-  fi
+# --- Local Keycloak (self-hosted IdP) ---
+if [ -f "$ROOT/env/.env" ] && grep -q "^KEYCLOAK_URL=" "$ROOT/env/.env"; then
+  ok "Local Keycloak: KEYCLOAK_URL set in env/.env"
 else
-  warn "Local Clerk: no env/clerk.env — copy env/clerk.env.example"
+  warn "Local Keycloak: KEYCLOAK_URL not in env/.env (apps default to http://localhost:8180)"
 fi
 
 # --- GitHub (required deploy) ---
-GITHUB_REQUIRED=(DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DOPPLER_TOKEN)
-GITHUB_BUILD=(CLERK_CUSTOMER_PUBLISHABLE_KEY CLERK_MERCHANT_PUBLISHABLE_KEY CLERK_ADMIN_PUBLISHABLE_KEY CLERK_DRIVER_PUBLISHABLE_KEY)
-GITHUB_OPTIONAL=(SENTRY_DSN NEXT_PUBLIC_SENTRY_DSN POSTGRES_PASSWORD JWT_SECRET STRIPE_SECRET STRIPE_WEBHOOK_SECRET)
-GITHUB_LEGACY=(CLERK_SECRET_KEY CLERK_PUBLISHABLE_KEY CLERK_JWKS_URL)
+GITHUB_REQUIRED=(DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY SOPS_AGE_KEY)
+GITHUB_BUILD=()
+GITHUB_OPTIONAL=(POSTGRES_PASSWORD JWT_SECRET STRIPE_SECRET STRIPE_WEBHOOK_SECRET)
+GITHUB_LEGACY=(CLERK_SECRET_KEY CLERK_PUBLISHABLE_KEY CLERK_JWKS_URL CLERK_CUSTOMER_PUBLISHABLE_KEY CLERK_MERCHANT_PUBLISHABLE_KEY CLERK_ADMIN_PUBLISHABLE_KEY CLERK_DRIVER_PUBLISHABLE_KEY)
 
 if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
   GH_SECRETS="$(gh secret list 2>/dev/null | awk '{print $1}' | sort -u || true)"
@@ -55,26 +42,16 @@ if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
     if has_secret "$key"; then ok "GitHub build-time: $key"; else warn "GitHub build-time: $key missing"; fi
   done
 
-  DOPPLER_SET=false
-  has_secret DOPPLER_TOKEN && DOPPLER_SET=true
-
-  if [ "$DOPPLER_SET" = true ]; then
-    ok "Runtime secrets: Doppler is SSOT (legacy GitHub runtime secrets optional)"
-    for key in "${GITHUB_LEGACY[@]}"; do
-      if has_secret "$key"; then warn "GitHub legacy (can remove): $key"; fi
-    done
-    for key in "${GITHUB_OPTIONAL[@]}"; do
-      if has_secret "$key"; then warn "GitHub duplicate of Doppler (can remove): $key"; fi
-    done
-  else
-    warn "DOPPLER_TOKEN not set — runtime secrets must live in GitHub"
-    for key in POSTGRES_PASSWORD JWT_SECRET STRIPE_SECRET STRIPE_WEBHOOK_SECRET; do
-      if has_secret "$key"; then ok "GitHub runtime (legacy): $key"; else fail "GitHub runtime (legacy): $key MISSING"; fi
-    done
-  fi
+  ok "Runtime secrets: secrets/droplet.enc.yaml (SOPS + age) is SSOT"
+  for key in "${GITHUB_LEGACY[@]}" DOPPLER_TOKEN; do
+    if has_secret "$key"; then warn "GitHub legacy (can remove): $key"; fi
+  done
+  for key in "${GITHUB_OPTIONAL[@]}"; do
+    if has_secret "$key"; then warn "GitHub duplicate of SOPS file (can remove): $key"; fi
+  done
 
   for key in SENTRY_DSN NEXT_PUBLIC_SENTRY_DSN; do
-    if has_secret "$key"; then ok "Optional: $key"; else warn "Optional gap: $key"; fi
+    if has_secret "$key"; then warn "GitHub legacy (can remove; GlitchTip DSN is GLITCHTIP_DSN in SOPS + vars.NEXT_PUBLIC_GLITCHTIP_DSN): $key"; fi
   done
 else
   warn "gh CLI not authenticated — skip GitHub checks"
@@ -87,33 +64,7 @@ for f in secrets/*.enc.yaml; do
 done
 if grep -q "PLACEHOLDER" .sops.yaml 2>/dev/null; then warn "SOPS: .sops.yaml still has placeholder age recipients"; fi
 
-# --- Doppler (legacy, optional; removed once SOPS is verified) ---
-if command -v doppler >/dev/null 2>&1; then
-  DOPPLER_OK=0
-  if [ -n "${DOPPLER_TOKEN:-}" ]; then
-    export DOPPLER_TOKEN
-    DOPPLER_OK=1
-  elif timeout 3 doppler me >/dev/null 2>&1; then
-    DOPPLER_OK=1
-  fi
-  if [ "$DOPPLER_OK" -eq 1 ]; then
-    DOPPLER_KEYS="$(doppler secrets --project "${DOPPLER_PROJECT:-pcd}" --config "${DOPPLER_CONFIG:-prd}" --only-names 2>/dev/null | sort || true)"
-    if [ -n "$DOPPLER_KEYS" ]; then
-      for key in POSTGRES_PASSWORD JWT_SECRET STRIPE_SECRET STRIPE_WEBHOOK_SECRET CLERK_CUSTOMER_SECRET_KEY; do
-        if echo "$DOPPLER_KEYS" | grep -qx "$key"; then ok "Doppler: $key"; else warn "Doppler: $key missing"; fi
-      done
-      if echo "$DOPPLER_KEYS" | grep -qx CLERK_SECRET_KEY; then
-        warn "Doppler: legacy CLERK_SECRET_KEY present — run prune-legacy-clerk-doppler.sh"
-      fi
-    else
-      warn "Doppler: could not list secrets (check login / project access)"
-    fi
-  else
-    warn "Doppler CLI not logged in — skip Doppler checks (doppler login)"
-  fi
-else
-  warn "Doppler CLI not installed"
-fi
+if [ ! -f secrets/droplet.enc.yaml ]; then warn "SOPS: secrets/droplet.enc.yaml not created yet (see secrets/README.md)"; fi
 
 echo ""
 echo "Canonical map: docs/SECRETS_MAP.md"

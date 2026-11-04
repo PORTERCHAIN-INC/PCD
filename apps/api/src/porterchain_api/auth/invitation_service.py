@@ -1,8 +1,8 @@
-"""Invitation workflows — Driver + optional Admin customer Clerk invites.
+"""Invitation workflows — Driver + optional Admin customer Keycloak invites.
 
 Staff use staff IdP enroll (``StaffIdpService``). Merchant seats are email-bind via
 ``merchant_engine.team_service.ensure_merchant_seat``. Retail customers may self-signup
-on Platform Clerk; Admin can also mint a local customer row and optionally invite.
+on Platform Keycloak; Admin can also mint a local customer row and optionally invite.
 """
 
 from __future__ import annotations
@@ -32,12 +32,12 @@ ACCEPTED_ACTIONS = frozenset({"found", "created"})
 OPEN_SIGNUP_USER_TYPES = frozenset({"customer", "merchant"})
 
 
-def pending_clerk_id(email: str) -> str:
+def pending_idp_id(email: str) -> str:
     return f"pending:{email.lower().strip()}"
 
 
 class InvitationService:
-    """Send Clerk invitations for drivers and Admin-created retail customers."""
+    """Send Keycloak invitations for drivers and Admin-created retail customers."""
 
     def invite_driver(
         self,
@@ -47,7 +47,7 @@ class InvitationService:
         driver: Any,
     ) -> UserInvitation:
         normalized = driver.email.lower().strip()
-        clerk = directory_for_kind(settings, "driver")
+        keycloak = directory_for_kind(settings, "driver")
         redirect = f"{settings.driver_portal_url.rstrip('/')}/login"
         metadata = {
             "role": "driver",
@@ -56,16 +56,20 @@ class InvitationService:
             "driver_id": driver.id,
             "invitation_only": True,
         }
-        clerk_result = clerk.invite_user(normalized, redirect_url=redirect, metadata=metadata)
-        if clerk_result.subject:
-            driver.auth_subject = clerk_result.subject
+        # L214: kind="driver" so Keycloak uses pc-driver-portal (its redirect list has /login);
+        # the default (customer client) rejected the redirect and no invite email was sent.
+        idp_result = keycloak.invite_user(
+            normalized, redirect_url=redirect, metadata=metadata, kind="driver"
+        )
+        if idp_result.subject:
+            driver.auth_subject = idp_result.subject
 
         invitation = self._record_invitation(
             db,
             email=normalized,
             user_type="driver",
             role="driver",
-            clerk_result=clerk_result,
+            idp_result=idp_result,
             platform_user_id=driver.id,
             invited_by=ctx.user.id if ctx and ctx.user else None,
             redirect_url=redirect,
@@ -91,12 +95,12 @@ class InvitationService:
         settings: Settings,
         driver: Any,
     ) -> UserInvitation:
-        """Create (or link) the driver's Clerk user directly — no invite link needed.
+        """Create (or link) the driver's Keycloak user directly — no invite link needed.
 
-        Idempotent: an existing Clerk user with the same email is linked, never duplicated.
+        Idempotent: an existing Keycloak user with the same email is linked, never duplicated.
         Backend-created email addresses are verified, and no password is set, so the
-        driver signs in with an email code. Pending invites are revoked in Clerk and
-        closed locally. On any Clerk failure we fall back to the invite flow.
+        driver signs in with an email code. Pending invites are revoked in Keycloak and
+        closed locally. On any Keycloak failure we fall back to the invite flow.
         """
         normalized = driver.email.lower().strip()
         redirect = f"{settings.driver_portal_url.rstrip('/')}/login"
@@ -108,15 +112,15 @@ class InvitationService:
             "invitation_only": True,
         }
         try:
-            clerk = directory_for_kind(settings, "driver")
-            existing = clerk.find_user_by_email(normalized)
+            keycloak = directory_for_kind(settings, "driver")
+            existing = keycloak.find_user_by_email(normalized)
             if existing:
                 auth_subject = str(existing["id"])
-                clerk.update_user_metadata(auth_subject, metadata)
+                keycloak.update_user_metadata(auth_subject, metadata)
                 action = "found"
             else:
                 first, _, last = (driver.full_name or "").strip().partition(" ")
-                created = clerk.create_user(
+                created = keycloak.create_user(
                     normalized,
                     first_name=first or None,
                     last_name=last.strip() or None,
@@ -126,11 +130,11 @@ class InvitationService:
                 auth_subject = str(created["id"])
                 action = "created"
             try:
-                clerk.revoke_pending_invitations(normalized)
+                keycloak.revoke_pending_invitations(normalized)
             except Exception:
                 logger.warning("driver_invite_revoke_failed driver=%s", driver.id, exc_info=True)
         except Exception as exc:
-            logger.warning("driver_clerk_provision_failed driver=%s: %s", driver.id, exc)
+            logger.warning("driver_idp_provision_failed driver=%s: %s", driver.id, exc)
             return self.invite_driver(db, ctx, settings, driver)
 
         driver.auth_subject = auth_subject
@@ -153,7 +157,7 @@ class InvitationService:
             email=normalized,
             user_type="driver",
             role="driver",
-            clerk_result=InviteResult(action=action, subject=auth_subject),
+            idp_result=InviteResult(action=action, subject=auth_subject),
             platform_user_id=driver.id,
             invited_by=ctx.user.id if ctx and ctx.user else None,
             redirect_url=redirect,
@@ -163,7 +167,7 @@ class InvitationService:
             log_admin_audit(
                 db,
                 ctx,
-                action="driver.clerk_provisioned",
+                action="driver.idp_provisioned",
                 resource_type="driver",
                 resource_id=driver.id,
                 payload={"email": normalized, "identity_action": action},
@@ -202,13 +206,13 @@ class InvitationService:
         settings: Settings,
         customer: Any,
     ) -> UserInvitation:
-        """Invite (or link) a retail customer on Platform Clerk. Does not commit."""
+        """Invite (or link) a retail customer on Platform Keycloak. Does not commit."""
         if not is_directory_configured(settings, "customer"):
             raise ValueError("identity_not_configured")
         normalized = (customer.email or "").lower().strip()
         if not normalized:
             raise ValueError("email_required")
-        clerk = directory_for_kind(settings, "customer")
+        keycloak = directory_for_kind(settings, "customer")
         redirect = f"{settings.customer_portal_url.rstrip('/')}/sign-up"
         metadata = {
             "role": "customer",
@@ -216,18 +220,18 @@ class InvitationService:
             "user_type": "customer",
             "customer_id": customer.id,
         }
-        clerk_result = clerk.invite_user(normalized, redirect_url=redirect, metadata=metadata)
-        if clerk_result.subject:
-            customer.auth_subject = clerk_result.subject
+        idp_result = keycloak.invite_user(normalized, redirect_url=redirect, metadata=metadata)
+        if idp_result.subject:
+            customer.auth_subject = idp_result.subject
             from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-            sync_authz_after_persona_mutation(db, clerk_result.subject)
+            sync_authz_after_persona_mutation(db, idp_result.subject)
         invitation = self._record_invitation(
             db,
             email=normalized,
             user_type="customer",
             role="customer",
-            clerk_result=clerk_result,
+            idp_result=idp_result,
             platform_user_id=customer.id,
             invited_by=ctx.user.id if ctx and ctx.user else None,
             redirect_url=redirect,
@@ -240,7 +244,7 @@ class InvitationService:
                 action="customer.invited",
                 resource_type="customer",
                 resource_id=customer.id,
-                payload={"email": normalized, "identity_action": clerk_result.action},
+                payload={"email": normalized, "identity_action": idp_result.action},
             )
         return invitation
 
@@ -267,7 +271,7 @@ class InvitationService:
         email: str,
         user_type: str,
         role: str,
-        clerk_result: InviteResult,
+        idp_result: InviteResult,
         platform_user_id: str,
         invited_by: str | None,
         redirect_url: str,
@@ -279,15 +283,15 @@ class InvitationService:
             email=email,
             user_type=user_type,
             role=role,
-            status="accepted" if clerk_result.action in ACCEPTED_ACTIONS else "pending",
-            external_invitation_id=clerk_result.invitation_id,
-            auth_subject=clerk_result.subject,
+            status="accepted" if idp_result.action in ACCEPTED_ACTIONS else "pending",
+            external_invitation_id=idp_result.invitation_id,
+            auth_subject=idp_result.subject,
             platform_user_id=platform_user_id,
             merchant_id=merchant_id,
             invited_by=invited_by,
             redirect_url=redirect_url,
-            invitation_metadata={**(metadata or {}), "identity_action": clerk_result.action},
-            accepted_at=datetime.now(UTC) if clerk_result.action in ACCEPTED_ACTIONS else None,
+            invitation_metadata={**(metadata or {}), "identity_action": idp_result.action},
+            accepted_at=datetime.now(UTC) if idp_result.action in ACCEPTED_ACTIONS else None,
         )
         db.add(invitation)
         return invitation

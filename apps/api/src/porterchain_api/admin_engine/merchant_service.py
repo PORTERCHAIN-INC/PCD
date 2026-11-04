@@ -15,7 +15,7 @@ from porterchain_api.merchant_engine.lookups import (
     get_merchant_by_email,
     get_merchant_user_by_email,
     get_seat,
-    get_seat_by_clerk,
+    get_seat_by_idp,
     list_merchants as lookup_list_merchants,
     list_subsidiaries as lookup_subsidiaries,
     seats_for_merchant,
@@ -64,11 +64,11 @@ class AdminMerchantService:
             raise ValueError("merchant_user_email_exists")
 
         if send_invite and is_directory_configured(settings, "merchant"):
-            clerk = directory_for_kind(settings, "merchant")
-            existing_clerk = clerk.find_user_by_email(normalized)
-            if existing_clerk:
-                subject_ref = str(existing_clerk["id"])
-                linked = get_seat_by_clerk(db, subject_ref)
+            keycloak = directory_for_kind(settings, "merchant")
+            existing_idp = keycloak.find_user_by_email(normalized)
+            if existing_idp:
+                subject_ref = str(existing_idp["id"])
+                linked = get_seat_by_idp(db, subject_ref)
                 if linked:
                     raise ValueError("merchant_user_email_exists")
 
@@ -83,10 +83,10 @@ class AdminMerchantService:
         )
 
         if send_invite and is_directory_configured(settings, "merchant"):
-            clerk = directory_for_kind(settings, "merchant")
-            existing_clerk = clerk.find_user_by_email(normalized)
-            if existing_clerk:
-                subject_ref = str(existing_clerk["id"])
+            keycloak = directory_for_kind(settings, "merchant")
+            existing_idp = keycloak.find_user_by_email(normalized)
+            if existing_idp:
+                subject_ref = str(existing_idp["id"])
                 add_linked_seat(
                     db,
                     merchant_id=merchant.id,
@@ -97,7 +97,7 @@ class AdminMerchantService:
                 )
                 set_status(merchant, MerchantStatus.ONBOARDING.value)
                 merge_profile(merchant, {"source": "admin_register_portal_user"})
-                clerk.update_user_metadata(
+                keycloak.update_user_metadata(
                     subject_ref,
                     {
                         "role": MerchantRole.OWNER.value,
@@ -112,7 +112,7 @@ class AdminMerchantService:
                     "merchant.created",
                     "merchant",
                     merchant.id,
-                    {"email": normalized, "identity_linked": True, "via": "portal_clerk_user"},
+                    {"email": normalized, "identity_linked": True, "via": "portal_idp_user"},
                 )
                 db.commit()
                 db.refresh(merchant)
@@ -164,8 +164,8 @@ class AdminMerchantService:
                     db, ctx, settings, merchant.id, email=normalized
                 )
             except ValueError as exc:
-                # Seat reserved but owner not Clerk-linked yet — stay ONBOARDING (M-11).
-                if str(exc) != "owner_not_clerk_linked":
+                # Seat reserved but owner not Keycloak-linked yet — stay ONBOARDING (M-11).
+                if str(exc) != "owner_not_idp_linked":
                     raise
                 merchant = self._get_or_raise(db, merchant.id)
 
@@ -310,7 +310,7 @@ class AdminMerchantService:
         *,
         email: str,
     ) -> Any:
-        """Reserve owner seat by email (no Clerk invite). ``settings`` unused."""
+        """Reserve owner seat by email (no Keycloak invite). ``settings`` unused."""
         _ = settings
         merchant = self._get_or_raise(db, merchant_id)
         user = ensure_merchant_seat(
@@ -344,7 +344,7 @@ class AdminMerchantService:
         email: str,
         role: str = MerchantRole.OPS.value,
     ) -> Any:
-        """Reserve teammate seat by email (no Clerk invite). ``settings`` unused."""
+        """Reserve teammate seat by email (no Keycloak invite). ``settings`` unused."""
         _ = settings
         merchant = self._get_or_raise(db, merchant_id)
         user = ensure_merchant_seat(
@@ -444,10 +444,12 @@ class AdminMerchantService:
         return merchant
 
     @staticmethod
-    def _validate_preferred_vehicles(db: Session, preferred: list[str]) -> list[str]:
+    def _validate_preferred_vehicles(
+        db: Session, preferred: list[str], existing: list[str] | None = None
+    ) -> list[str]:
         from porterchain_api.admin_engine.merchant_org import validate_preferred_vehicles
 
-        return validate_preferred_vehicles(db, preferred)
+        return validate_preferred_vehicles(db, preferred, existing)
 
     def remove_team_member(
         self,

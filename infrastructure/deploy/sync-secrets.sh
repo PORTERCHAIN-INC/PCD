@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
 # Sync production secrets to /opt/porterchain/.env (DD-14).
 #
-# Clerk: platform_driver — TWO apps
-#   Platform (clerk.admin.porterchain.com) → CLERK_* + CUSTOMER/MERCHANT/ADMIN slots
-#   Driver   (clerk.driver.porterchain.com) → CLERK_DRIVER_*
-# CLERK_UNIFIED_MODE must stay false. Do not strip portal slots.
+# Auth: self-hosted Keycloak (realm porterchain). API needs KEYCLOAK_ADMIN_CLIENT_SECRET;
+# web apps need AUTH_SESSION_SECRET. Legacy CLERK_* keys are stripped from .env.
 #
 # Modes:
-#   SOPS_SECRETS_FILE set → decrypt with sops + age (preferred, doc 37)
-#   DOPPLER_TOKEN set  → download from Doppler (secret manager SSOT)
-#   otherwise          → write .env from CI env vars (legacy / break-glass)
+#   runtime.env present   → CI decrypted secrets/droplet.enc.yaml (sops + age) on the runner
+#                           and copied it here; apply it (deploy.yml path)
+#   SOPS_SECRETS_FILE set → decrypt on this host with sops + the host age key (doc 37)
+#   otherwise             → write .env from CI env vars (break-glass)
 #
 # Usage (on droplet):
 #   cd /opt/porterchain && bash sync-secrets.sh
 #
 # Local dry-run:
-#   DOPPLER_TOKEN=dp.st… bash infrastructure/deploy/sync-secrets.sh /tmp/porterchain-test
+#   SOPS_SECRETS_FILE=secrets/droplet.enc.yaml bash infrastructure/deploy/sync-secrets.sh /tmp/porterchain-test
 
 set -euo pipefail
 
@@ -30,10 +29,8 @@ REQUIRED_KEYS=(
   STRIPE_WEBHOOK_SECRET
   JWT_SECRET
   SPICEDB_PRESHARED_KEY
-  CLERK_SECRET_KEY
-  CLERK_JWKS_URL
-  CLERK_DRIVER_SECRET_KEY
-  CLERK_DRIVER_JWKS_URL
+  KEYCLOAK_ADMIN_CLIENT_SECRET
+  AUTH_SESSION_SECRET
 )
 
 env_value() {
@@ -41,7 +38,7 @@ env_value() {
   local line value
   line="$(grep -E "^${key}=" .env 2>/dev/null | tail -n1 || true)"
   value="${line#*=}"
-  # Doppler env export may wrap values in single/double quotes.
+  # dotenv exports may wrap values in single/double quotes.
   if [[ "$value" == \"*\" && "$value" == *\" ]]; then
     value="${value:1:${#value}-2}"
   elif [[ "$value" == \'*\' && "$value" == *\' ]]; then
@@ -59,99 +56,22 @@ set_env_key() {
   printf '%s=%s\n' "$key" "$value" >> .env
 }
 
-# Promote Admin slot → Platform triad when triad is missing (Platform = Admin app).
-promote_platform_triad_from_admin() {
-  local sk pk jwks
-  sk="$(env_value CLERK_SECRET_KEY)"
-  pk="$(env_value CLERK_PUBLISHABLE_KEY)"
-  jwks="$(env_value CLERK_JWKS_URL)"
-
-  if [ -z "$sk" ]; then
-    sk="$(env_value CLERK_ADMIN_SECRET_KEY)"
-    if [ -n "$sk" ]; then
-      set_env_key CLERK_SECRET_KEY "$sk"
-    fi
-  fi
-  if [ -z "$pk" ]; then
-    pk="$(env_value CLERK_ADMIN_PUBLISHABLE_KEY)"
-    if [ -n "$pk" ]; then
-      set_env_key CLERK_PUBLISHABLE_KEY "$pk"
-    fi
-  fi
-  if [ -z "$jwks" ]; then
-    jwks="$(env_value CLERK_ADMIN_JWKS_URL)"
-    if [ -n "$jwks" ]; then
-      set_env_key CLERK_JWKS_URL "$jwks"
-    fi
+# Clerk is gone (L36): drop any CLERK_* left in a legacy secret source.
+strip_legacy_clerk() {
+  if grep -qE "^(NEXT_PUBLIC_)?CLERK_" .env 2>/dev/null; then
+    grep -v -E "^(NEXT_PUBLIC_)?CLERK_" .env > .env.tmp && mv .env.tmp .env
+    echo "::warning::removed legacy CLERK_* keys from .env (delete them at the source)" >&2
   fi
 }
 
-# Expand Platform triad into customer/merchant/admin slots when empty.
-expand_platform_slots() {
-  local sk pk jwks portal
-  sk="$(env_value CLERK_SECRET_KEY)"
-  pk="$(env_value CLERK_PUBLISHABLE_KEY)"
-  jwks="$(env_value CLERK_JWKS_URL)"
-  if [ -z "$sk" ]; then
-    return 0
-  fi
-
-  for portal in ADMIN CUSTOMER MERCHANT; do
-    if [ -z "$(env_value "CLERK_${portal}_SECRET_KEY")" ]; then
-      set_env_key "CLERK_${portal}_SECRET_KEY" "$sk"
-    fi
-    if [ -z "$(env_value "CLERK_${portal}_PUBLISHABLE_KEY")" ] && [ -n "$pk" ]; then
-      set_env_key "CLERK_${portal}_PUBLISHABLE_KEY" "$pk"
-    fi
-    if [ -z "$(env_value "CLERK_${portal}_JWKS_URL")" ]; then
-      set_env_key "CLERK_${portal}_JWKS_URL" "$jwks"
-    fi
-  done
-}
-
-normalize_clerk_platform_driver() {
-  promote_platform_triad_from_admin
-  expand_platform_slots
-  set_env_key CLERK_MODE platform_driver
-  set_env_key CLERK_UNIFIED_MODE false
-}
-
-verify_clerk_env() {
-  local sk jwks pk dsk djwks
-  sk="$(env_value CLERK_SECRET_KEY)"
-  jwks="$(env_value CLERK_JWKS_URL)"
-  pk="$(env_value CLERK_PUBLISHABLE_KEY)"
-  dsk="$(env_value CLERK_DRIVER_SECRET_KEY)"
-  djwks="$(env_value CLERK_DRIVER_JWKS_URL)"
-
-  if [ -z "$sk" ] || [ -z "$jwks" ]; then
-    echo "::error::Clerk: set CLERK_SECRET_KEY + CLERK_JWKS_URL (Platform / admin.porterchain.com)" >&2
+verify_auth_env() {
+  local secret
+  secret="$(env_value AUTH_SESSION_SECRET)"
+  if [ "${#secret}" -lt 32 ]; then
+    echo "::error::AUTH_SESSION_SECRET must be at least 32 characters" >&2
     return 1
   fi
-  if [ -z "$dsk" ] || [ -z "$djwks" ]; then
-    echo "::error::Clerk: set CLERK_DRIVER_SECRET_KEY + CLERK_DRIVER_JWKS_URL (Porterchain Driver)" >&2
-    return 1
-  fi
-  if [[ "$sk" == sk_test_* ]] || [[ "$pk" == pk_test_* ]] || [[ "$dsk" == sk_test_* ]]; then
-    echo "::error::Clerk: test keys are not allowed in production (need sk_live_ / pk_live_)" >&2
-    return 1
-  fi
-  if [[ "$sk" != sk_live_* ]]; then
-    echo "::error::Clerk: CLERK_SECRET_KEY must be sk_live_… (Platform)" >&2
-    return 1
-  fi
-  if [[ "$dsk" != sk_live_* ]]; then
-    echo "::error::Clerk: CLERK_DRIVER_SECRET_KEY must be sk_live_… (Driver)" >&2
-    return 1
-  fi
-  if [ -n "$pk" ] && [[ "$pk" != pk_live_* ]]; then
-    echo "::error::Clerk: CLERK_PUBLISHABLE_KEY must be pk_live_… (Platform)" >&2
-    return 1
-  fi
-  if [ "$sk" = "$dsk" ]; then
-    echo "::warning::Clerk: Platform and Driver secret keys match — expected distinct apps in production" >&2
-  fi
-  echo "Clerk: platform_driver (Platform + Driver triads)"
+  echo "Auth: Keycloak (realm ${KEYCLOAK_REALM:-porterchain})"
   return 0
 }
 
@@ -165,7 +85,7 @@ normalize_zeptomail() {
   host_lc="$(printf '%s' "$host" | tr '[:upper:]' '[:lower:]')"
 
   if [ -z "$pass" ]; then
-    echo "::warning::ZeptoMail: MAIL_PASSWORD empty — transactional email will not send until upload-mail-to-doppler.sh" >&2
+    echo "::warning::ZeptoMail: MAIL_PASSWORD empty — transactional email will not send until MAIL_PASSWORD is set in secrets/droplet.enc.yaml" >&2
     return 0
   fi
 
@@ -198,7 +118,7 @@ write_firebase_file() {
   if [ -n "${FIREBASE_CREDENTIALS_JSON:-}" ]; then
     printf '%s' "$FIREBASE_CREDENTIALS_JSON" > secrets/firebase-service-account.json
   elif [ -f secrets/firebase-service-account.json ] && [ -s secrets/firebase-service-account.json ]; then
-    : # keep existing file when syncing from Doppler without inline JSON
+    : # keep existing file when the secrets file has no inline JSON
   else
     : > secrets/firebase-service-account.json
   fi
@@ -263,114 +183,43 @@ verify_env() {
   return "$missing"
 }
 
-# SOPS + age first (doc 37). Doppler branches below stay as fallback until SOPS is verified.
+# SOPS + age (doc 37) is the only secrets store.
+apply_env_file() {
+  local src="$1" label="$2" bytes
+  bytes="$(wc -c < "$src")"
+  if [ "$bytes" -lt 500 ]; then
+    echo "::error::${label} too small (${bytes} bytes)" >&2
+    exit 1
+  fi
+  if [ -s .env ]; then cp -a .env ".env.bak.$(date -u +%Y%m%dT%H%M%SZ)"; fi
+  # Copy then rename so a partial failure never leaves a truncated .env.
+  cp -a "$src" .env.incoming
+  mv -f .env.incoming .env
+  extract_firebase_from_env
+  strip_inline_firebase_from_env
+  strip_legacy_clerk
+  echo "Secrets applied from ${label} ($(wc -c < .env) bytes)"
+}
+
 SOPS_FILE="${SOPS_SECRETS_FILE:-}"
-if [ -n "${SOPS_FILE}" ] && [ -f "${SOPS_FILE}" ] && command -v sops >/dev/null 2>&1; then
+if [ -f "${TARGET_DIR}/runtime.env" ]; then
+  apply_env_file "${TARGET_DIR}/runtime.env" "CI-staged runtime.env"
+  rm -f "${TARGET_DIR}/runtime.env"
+elif [ -n "${SOPS_FILE}" ]; then
+  [ -f "${SOPS_FILE}" ] || { echo "::error::SOPS_SECRETS_FILE not found: ${SOPS_FILE}" >&2; exit 1; }
+  command -v sops >/dev/null 2>&1 || { echo "::error::sops is not installed" >&2; exit 1; }
   tmp_env="$(mktemp "${TARGET_DIR}/.env.sops.XXXXXX")"
   trap 'rm -f "${tmp_env}"' EXIT
   sops -d --output-type dotenv "${SOPS_FILE}" > "${tmp_env}"
   if [ ! -s "${tmp_env}" ]; then echo "::error::sops decrypt produced an empty file" >&2; exit 1; fi
-  if [ -s .env ]; then cp -a .env ".env.bak.$(date -u +%Y%m%dT%H%M%SZ)"; fi
-  mv "${tmp_env}" .env
-  trap - EXIT
-  extract_firebase_from_env
-  strip_inline_firebase_from_env
-  normalize_clerk_platform_driver
-  echo "Secrets synced from SOPS (${SOPS_FILE})"
-elif [ -f "${TARGET_DIR}/doppler.env" ]; then
-  bytes="$(wc -c < "${TARGET_DIR}/doppler.env")"
-  echo "Using pre-downloaded doppler.env (${bytes} bytes)"
-  if [ "$bytes" -lt 500 ]; then
-    echo "::error::doppler.env too small (${bytes} bytes)" >&2
-    exit 1
-  fi
-  if [ -s .env ]; then
-    cp -a .env ".env.bak.$(date -u +%Y%m%dT%H%M%SZ)"
-  fi
-  # Copy then rename so a partial failure never leaves a truncated .env.
-  cp -a "${TARGET_DIR}/doppler.env" .env.incoming
-  mv -f .env.incoming .env
-  rm -f "${TARGET_DIR}/doppler.env" "${TARGET_DIR}/doppler.token"
-  echo "sync step: applied doppler.env -> .env ($(wc -c < .env) bytes)"
-  extract_firebase_from_env
-  echo "sync step: firebase extract done ($(wc -c < .env) bytes)"
-  strip_inline_firebase_from_env
-  echo "sync step: firebase strip done ($(wc -c < .env) bytes)"
-  normalize_clerk_platform_driver
-  echo "sync step: clerk normalize done ($(wc -c < .env) bytes)"
-  echo "Secrets applied from CI-staged doppler.env"
-elif [ -f "${TARGET_DIR}/doppler.token" ] || [ -n "${DOPPLER_TOKEN:-}" ]; then
-  if [ -f "${TARGET_DIR}/doppler.token" ]; then
-    DOPPLER_TOKEN="$(tr -d '\r\n' < "${TARGET_DIR}/doppler.token")"
-    export DOPPLER_TOKEN
-    echo "Using Doppler token from doppler.token (len=${#DOPPLER_TOKEN})"
-  elif [ -n "${DOPPLER_TOKEN:-}" ]; then
-    echo "Using Doppler token from environment (len=${#DOPPLER_TOKEN})"
-  fi
-
-  _download_doppler_env() {
-    local out="$1"
-    local project="${DOPPLER_PROJECT:-pcd}"
-    local config="${DOPPLER_CONFIG:-prd}"
-    if command -v doppler >/dev/null 2>&1; then
-      if doppler secrets download \
-        --no-file \
-        --format env \
-        --project "$project" \
-        --config "$config" \
-        >"$out"; then
-        return 0
-      fi
-      echo "doppler CLI download failed; trying HTTP API…" >&2
-    fi
-    local code
-    code="$(curl -sS -o "$out" -w '%{http_code}' \
-      -H "Authorization: Bearer ${DOPPLER_TOKEN}" \
-      "https://api.doppler.com/v3/configs/config/secrets/download?project=${project}&config=${config}&format=env")"
-    if [ "$code" != "200" ]; then
-      echo "::error::Doppler secrets download failed (HTTP ${code}) for ${project}/${config}" >&2
-      head -c 400 "$out" >&2 || true
-      echo >&2
-      return 1
-    fi
-    return 0
-  }
-
-  if [ -z "${DOPPLER_TOKEN}" ]; then
-    echo "::error::DOPPLER_TOKEN is empty on droplet (env + doppler.token missing)" >&2
-    exit 1
-  fi
-  export DOPPLER_TOKEN
-  tmp_env="$(mktemp "${TARGET_DIR}/.env.doppler.XXXXXX")"
-  trap 'rm -f "${tmp_env}"' EXIT
-  if ! _download_doppler_env "${tmp_env}"; then
-    exit 1
-  fi
-  if [ ! -s "${tmp_env}" ]; then
-    echo "::error::doppler secrets download produced an empty file" >&2
-    exit 1
-  fi
-  if [ -s .env ]; then
-    cp -a .env ".env.bak.$(date -u +%Y%m%dT%H%M%SZ)"
-  fi
-  mv "${tmp_env}" .env
-  trap - EXIT
-  rm -f "${TARGET_DIR}/doppler.token"
-  extract_firebase_from_env
-  strip_inline_firebase_from_env
-  normalize_clerk_platform_driver
-  echo "Secrets synced from Doppler (${DOPPLER_PROJECT:-pcd}/${DOPPLER_CONFIG:-prd})"
+  apply_env_file "${tmp_env}" "SOPS (${SOPS_FILE})"
+  rm -f "${tmp_env}"; trap - EXIT
 else
-  # Break-glass: Platform + Driver (optional Admin names as Platform fallback).
-  CLERK_SECRET_KEY="${CLERK_SECRET_KEY:-${CLERK_ADMIN_SECRET_KEY:-}}"
-  CLERK_PUBLISHABLE_KEY="${CLERK_PUBLISHABLE_KEY:-${CLERK_ADMIN_PUBLISHABLE_KEY:-}}"
-  CLERK_JWKS_URL="${CLERK_JWKS_URL:-${CLERK_ADMIN_JWKS_URL:-}}"
+  # Break-glass: write .env from CI env vars.
   # Expand required vars before truncating .env (bash evaluates ${VAR:?} while writing the heredoc).
   : "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
-  : "${CLERK_SECRET_KEY:?CLERK_SECRET_KEY (Platform) is required}"
-  : "${CLERK_JWKS_URL:?CLERK_JWKS_URL (Platform) is required}"
-  : "${CLERK_DRIVER_SECRET_KEY:?CLERK_DRIVER_SECRET_KEY is required}"
-  : "${CLERK_DRIVER_JWKS_URL:?CLERK_DRIVER_JWKS_URL is required}"
+  : "${KEYCLOAK_ADMIN_CLIENT_SECRET:?KEYCLOAK_ADMIN_CLIENT_SECRET is required}"
+  : "${AUTH_SESSION_SECRET:?AUTH_SESSION_SECRET is required}"
   : "${STRIPE_SECRET:?STRIPE_SECRET is required}"
   : "${STRIPE_WEBHOOK_SECRET:?STRIPE_WEBHOOK_SECRET is required}"
   : "${JWT_SECRET:?JWT_SECRET is required}"
@@ -380,26 +229,10 @@ else
   fi
   cat > .env <<EOF
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-CLERK_MODE=platform_driver
-CLERK_UNIFIED_MODE=false
-CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
-CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY:-}
-CLERK_JWKS_URL=${CLERK_JWKS_URL}
-CLERK_ADMIN_SECRET_KEY=${CLERK_ADMIN_SECRET_KEY:-${CLERK_SECRET_KEY}}
-CLERK_ADMIN_PUBLISHABLE_KEY=${CLERK_ADMIN_PUBLISHABLE_KEY:-${CLERK_PUBLISHABLE_KEY}}
-CLERK_ADMIN_JWKS_URL=${CLERK_ADMIN_JWKS_URL:-${CLERK_JWKS_URL}}
-CLERK_CUSTOMER_SECRET_KEY=${CLERK_CUSTOMER_SECRET_KEY:-${CLERK_SECRET_KEY}}
-CLERK_CUSTOMER_PUBLISHABLE_KEY=${CLERK_CUSTOMER_PUBLISHABLE_KEY:-${CLERK_PUBLISHABLE_KEY}}
-CLERK_CUSTOMER_JWKS_URL=${CLERK_CUSTOMER_JWKS_URL:-${CLERK_JWKS_URL}}
-CLERK_MERCHANT_SECRET_KEY=${CLERK_MERCHANT_SECRET_KEY:-${CLERK_SECRET_KEY}}
-CLERK_MERCHANT_PUBLISHABLE_KEY=${CLERK_MERCHANT_PUBLISHABLE_KEY:-${CLERK_PUBLISHABLE_KEY}}
-CLERK_MERCHANT_JWKS_URL=${CLERK_MERCHANT_JWKS_URL:-${CLERK_JWKS_URL}}
-CLERK_DRIVER_SECRET_KEY=${CLERK_DRIVER_SECRET_KEY}
-CLERK_DRIVER_PUBLISHABLE_KEY=${CLERK_DRIVER_PUBLISHABLE_KEY:-}
-CLERK_DRIVER_JWKS_URL=${CLERK_DRIVER_JWKS_URL}
-CLERK_AUTHORIZED_PARTIES=${CLERK_AUTHORIZED_PARTIES:-}
-CLERK_AUTHORIZED_ISSUERS=${CLERK_AUTHORIZED_ISSUERS:-}
-CLERK_WEBHOOK_SIGNING_SECRET=${CLERK_WEBHOOK_SIGNING_SECRET:-}
+KEYCLOAK_URL=${KEYCLOAK_URL:-https://auth.porterchain.com}
+KEYCLOAK_REALM=${KEYCLOAK_REALM:-porterchain}
+KEYCLOAK_ADMIN_CLIENT_SECRET=${KEYCLOAK_ADMIN_CLIENT_SECRET}
+AUTH_SESSION_SECRET=${AUTH_SESSION_SECRET}
 STRIPE_SECRET=${STRIPE_SECRET}
 STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
 JWT_SECRET=${JWT_SECRET}
@@ -407,7 +240,7 @@ SPICEDB_PRESHARED_KEY=${SPICEDB_PRESHARED_KEY}
 SPICEDB_ENABLED=${SPICEDB_ENABLED:-true}
 SPICEDB_REQUIRED=${SPICEDB_REQUIRED:-true}
 SPICEDB_ENDPOINT=${SPICEDB_ENDPOINT:-spicedb:50051}
-SENTRY_DSN=${SENTRY_DSN:-}
+GLITCHTIP_DSN=${GLITCHTIP_DSN:-}
 CORS_ORIGINS=https://porterchain.com,https://www.porterchain.com,https://admin.porterchain.com,https://merchant.porterchain.com,https://driver.porterchain.com,https://customer.porterchain.com
 PORTERCHAIN_PUSH_ENABLED=${PORTERCHAIN_PUSH_ENABLED:-false}
 PORTERCHAIN_PUSH_SEND=${PORTERCHAIN_PUSH_SEND:-false}
@@ -439,8 +272,8 @@ if ! verify_env; then
   echo "::error::sync-secrets verify_env failed" >&2
   exit 1
 fi
-if ! verify_clerk_env; then
-  echo "::error::sync-secrets verify_clerk_env failed" >&2
+if ! verify_auth_env; then
+  echo "::error::sync-secrets verify_auth_env failed" >&2
   exit 1
 fi
-echo "✓ ${#REQUIRED_KEYS[@]} required keys present in .env (platform_driver)"
+echo "✓ ${#REQUIRED_KEYS[@]} required keys present in .env (keycloak)"

@@ -35,17 +35,36 @@ export function KeycloakSignInPanel({
   returnTo,
   loginHint,
   primaryLabel,
+  autoRedirect = true,
 }: {
   mode?: "sign-in" | "sign-up";
   returnTo: string;
   loginHint?: string;
   primaryLabel?: string;
+  /** One-step sign-in (previous provider feel): open the Keycloak form straight away. The button stays as fallback
+   *  after an error, when the IdP bounced back within 15 s (loop guard), or for social shortcuts. */
+  autoRedirect?: boolean;
 }) {
   const a = useAuth();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    setError(authErrorMessage(new URLSearchParams(window.location.search).get("auth_error")));
+    const err = authErrorMessage(new URLSearchParams(window.location.search).get("auth_error"));
+    setError(err);
+    if (!autoRedirect || err) return;
+    const KEY = "pc_auth_auto_redirect_at";
+    let last = 0;
+    try {
+      last = Number(window.sessionStorage.getItem(KEY) ?? 0);
+      window.sessionStorage.setItem(KEY, String(Date.now()));
+    } catch {
+      /* storage blocked: still redirect once */
+    }
+    if (Date.now() - last < 15_000) return; // bounced straight back: show the button instead of looping
+    setBusy("primary");
+    if (mode === "sign-up") a.signUp({ returnTo });
+    else a.signIn({ returnTo, loginHint });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const go = (key: string, idpHint?: string) => {
     setBusy(key);
@@ -63,7 +82,7 @@ export function KeycloakSignInPanel({
       <button
         type="button"
         data-testid="auth-primary"
-        className={`${btn} bg-primary text-white hover:opacity-90`}
+        className={`${btn} bg-secondary text-white hover:bg-[#1d4ed8]`}
         disabled={busy != null}
         onClick={() => go("primary")}
       >

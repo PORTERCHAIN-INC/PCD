@@ -43,7 +43,9 @@ def compute_urgency(order: Any, *, now: datetime | None = None) -> str:
             scheduled = scheduled.replace(tzinfo=UTC)
         hours = (scheduled - now).total_seconds() / 3600
         if hours < 0:
-            return "critical"
+            # L45: an ASAP job is "due" from booking time; overdue is high, critical only for
+            # high-value or more than 2 h late.
+            return "critical" if (high_value or hours < -2) else "high"
         if hours <= 1:
             return "critical" if high_value else "high"
         if hours <= 3:

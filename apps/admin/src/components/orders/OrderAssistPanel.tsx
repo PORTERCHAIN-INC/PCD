@@ -192,8 +192,8 @@ export function OrderAssistPanel({
                       <Badge tone={p.confidence === "high" ? "green" : "slate"}>
                         {p.confidence}
                       </Badge>
-                      {p.kind === "draft_message" && p.draft_source === "nvidia_nim" ? (
-                        <Badge tone="sky">NVIDIA NIM</Badge>
+                      {p.kind === "draft_message" && p.draft_source === "llm" ? (
+                        <Badge tone="sky">AI draft</Badge>
                       ) : null}
                       <span className="text-[10px] uppercase tracking-wide text-muted">
                         {p.kind}

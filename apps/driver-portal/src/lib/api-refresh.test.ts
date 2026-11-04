@@ -6,10 +6,10 @@ describe("driverFetch 401 recovery", () => {
     vi.resetModules();
   });
 
-  it("refreshes the Clerk token once and replays the request", async () => {
+  it("refreshes the Keycloak token once and replays the request", async () => {
     const getToken = vi.fn().mockResolvedValue("fresh");
     vi.stubGlobal("window", {
-      Clerk: { session: { getToken } },
+      Keycloak: { session: { getToken } },
       location: { pathname: "/account", href: "" },
     });
     const fetchMock = vi

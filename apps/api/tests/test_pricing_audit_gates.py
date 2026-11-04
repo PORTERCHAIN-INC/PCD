@@ -33,7 +33,7 @@ def _merchant_ctx(db, *, pricing_model: str = "fsa") -> MerchantContext:
     db.flush()
     user = MerchantUser(
         merchant_id=merchant.id,
-        auth_subject=f"clerk_{suffix}",
+        auth_subject=f"idp_{suffix}",
         email=f"user-{suffix}@test.local",
         role=MerchantRole.OWNER.value,
     )

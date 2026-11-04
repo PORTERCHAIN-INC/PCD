@@ -22,7 +22,7 @@ def _settings() -> Settings:
 
 
 def _claims(subject_ref: str, email: str) -> IdentityClaims:
-    return IdentityClaims(auth_subject=subject_ref, email=email, clerk_app="merchant")
+    return IdentityClaims(auth_subject=subject_ref, email=email, idp_app="merchant")
 
 
 def _company(
@@ -56,7 +56,7 @@ def _company(
 
 
 def _two_companies(db) -> tuple[str, str, Merchant, Merchant]:
-    """One working company and one suspended company on the same Clerk seat."""
+    """One working company and one suspended company on the same Keycloak seat."""
     subject_ref = f"user_{uuid4().hex[:12]}"
     email = f"{subject_ref}@bf.test"
     working = _company(db, subject_ref=subject_ref, email=email, name="Working Co")

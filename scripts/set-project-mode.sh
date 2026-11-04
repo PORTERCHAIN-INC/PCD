@@ -17,7 +17,7 @@ Maps to APP_ENV (canonical after API normalize):
   production  → production
 
 Then restart API and portals. Companion flags (only legal in development):
-  CLERK_DEV_BYPASS, STRIPE_MOCK
+  IDP_DEV_BYPASS, STRIPE_MOCK
 EOF
   exit 1
 }
@@ -73,13 +73,13 @@ echo "Updated: $ENV_FILE"
 [[ -f "$API_ENV" ]] && echo "Updated: $API_ENV"
 case "$APP_ENV_VALUE" in
   local)
-    echo "Legal companion flags: CLERK_DEV_BYPASS=true, STRIPE_MOCK=true (optional)."
+    echo "Legal companion flags: IDP_DEV_BYPASS=true, STRIPE_MOCK=true (optional)."
     ;;
   test)
     echo "Testing mode: auth bypass and Stripe mock stay blocked."
     ;;
   production)
-    echo "Production mode: CLERK_DEV_BYPASS must be false; live Clerk required."
+    echo "Production mode: IDP_DEV_BYPASS must be false; live Keycloak required."
     ;;
 esac
 echo "Restart required: stop and start API + portals (e.g. pnpm dev:stop && pnpm dev:start)."

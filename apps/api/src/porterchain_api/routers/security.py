@@ -33,7 +33,7 @@ def _resolve_actor(
         except Exception:
             pass
         if token == "dev" and allow_auth_dev_bypass(settings):
-            return "clerk", "dev_clerk_user"
+            return "keycloak", "dev_idp_user"
     return "anonymous", None
 
 

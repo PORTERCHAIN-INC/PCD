@@ -1,3 +1,5 @@
+"use client";
+
 import { formatCents } from "@/lib/utils";
 
 type BulkError = Record<string, unknown>;

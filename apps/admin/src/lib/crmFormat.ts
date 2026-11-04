@@ -9,19 +9,32 @@ export function moneyExact(cents: number | null | undefined, currency = "CAD"): 
 
 export function shortDate(iso: string | null | undefined): string {
   if (!iso) return "—";
-  return new Intl.DateTimeFormat("en-CA", { dateStyle: "medium" }).format(new Date(iso));
+  return new Intl.DateTimeFormat("en-CA", {
+    dateStyle: "medium",
+    timeZone: "America/Toronto",
+  }).format(new Date(iso));
 }
 
 export function dateTime(iso: string | null | undefined): string {
   if (!iso) return "—";
-  return new Intl.DateTimeFormat("en-CA", { dateStyle: "medium", timeStyle: "short" }).format(
-    new Date(iso)
-  );
+  return new Intl.DateTimeFormat("en-CA", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "America/Toronto",
+  }).format(new Date(iso));
 }
 
 export function relativeTime(iso: string | null | undefined): string {
   if (!iso) return "—";
   const diff = Date.now() - new Date(iso).getTime();
+  if (diff < -60000) {
+    // L183: future times (a promised ETA) were all shown as "just now".
+    const ahead = Math.round(-diff / 60000);
+    if (ahead < 60) return `in ${ahead}m`;
+    const h = Math.round(ahead / 60);
+    if (h < 24) return `in ${h}h`;
+    return `in ${Math.round(h / 24)}d`;
+  }
   const mins = Math.round(diff / 60000);
   if (mins < 1) return "just now";
   if (mins < 60) return `${mins}m ago`;
@@ -96,8 +109,12 @@ export const STATUS_TONE: Record<string, Tone> = {
 };
 
 export function toCsv(headers: string[], rows: string[][]): string {
-  const escape = (value: string) =>
-    /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+  // Neutralise spreadsheet formulas (CSV injection) before quoting.
+  const safe = (value: string) => (/^[=+\-@\t\r]/.test(value) ? `'${value}` : value);
+  const escape = (raw: string) => {
+    const value = safe(raw);
+    return /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+  };
   return [headers, ...rows].map((r) => r.map(escape).join(",")).join("\n");
 }
 

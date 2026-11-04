@@ -1,4 +1,4 @@
-"""Resolve Clerk subject → AuthPrincipal from persona tables.
+"""Resolve Keycloak subject → AuthPrincipal from persona tables.
 
 Authorization Checks use SpiceDB via CurrentPrincipal — not this helper.
 """
@@ -99,7 +99,7 @@ def resolve_persona_principal(
 
 
 def _profile_email_ok(system_email: str | None, identity_email: str | None) -> bool:
-    # Fail closed: Clerk id alone must never authorize a persona.
+    # Fail closed: Keycloak id alone must never authorize a persona.
     if not identity_email:
         return False
     return emails_match(system_email, identity_email)

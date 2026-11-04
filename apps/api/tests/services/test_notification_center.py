@@ -37,7 +37,7 @@ def no_real_sends(monkeypatch):
     def _boom(*_a, **_k):
         raise AssertionError("real send attempted")
 
-    for name in ("_send_sms", "_send_push", "_send_email_smtp", "_send_sms_twilio", "_send_email_zeptomail_https"):
+    for name in ("_send_sms", "_send_push", "_send_email_smtp", "_send_email_zeptomail_https"):
         monkeypatch.setattr(ds.DeliveryService, name, _boom)
 
 

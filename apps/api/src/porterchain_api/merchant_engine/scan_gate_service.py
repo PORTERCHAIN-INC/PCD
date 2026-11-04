@@ -239,6 +239,13 @@ class ScanGateService:
         else:
             if pkg.status in (STATUS_MANIFESTED, STATUS_MISSING_AT_PICKUP):
                 raise ValueError("scan_pickup_required_first")
+            from porterchain_api.order_engine.buckets import PICKUP_LEG
+
+            # The pickup stop must be confirmed before any box can be marked delivered.
+            raw_state = getattr(order, "state", None)
+            o_state = str(getattr(raw_state, "value", raw_state) or "").upper()
+            if o_state in PICKUP_LEG or o_state in ("BOOKED", "DISPATCH_READY", "DRIVER_ASSIGNED"):
+                raise ValueError("scan_pickup_required_first")
             duplicate = pkg.status == STATUS_DELIVERED
             set_package_status(
                 db, pkg, STATUS_DELIVERED, actor_type="driver", actor_id=actor_id, source="scan_delivery"

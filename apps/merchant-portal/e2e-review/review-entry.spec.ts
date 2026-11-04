@@ -20,7 +20,7 @@ async function waitForCode(): Promise<string> {
   throw new Error("no email code arrived");
 }
 
-/** Clerk's Cloudflare check can ask for a click ("Verify you are human"), as a reviewer would. */
+/** Keycloak's Cloudflare check can ask for a click ("Verify you are human"), as a reviewer would. */
 async function passHumanCheckIfShown(page: Page) {
   const frame = page.frameLocator('iframe[src*="challenges.cloudflare.com"]');
   const box = frame.locator('input[type="checkbox"], label').first();
@@ -57,7 +57,7 @@ test("review account signs in with email + password and reaches every feature", 
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.fill('input[name="password"]', process.env.REVIEW_PASSWORD ?? "");
   await page.getByRole("button", { name: "Continue", exact: true }).click();
-  await enterCodeIfAsked(page); // Clerk new-device check, when enabled
+  await enterCodeIfAsked(page); // Keycloak new-device check, when enabled
   await expectFullFeatures(page);
 });
 
@@ -74,9 +74,10 @@ test("brand-new self sign-up → email code → merchant → full features", asy
   await expectFullFeatures(page);
 });
 
-test("Clerk blocked → clear error with retry, never an endless spinner", async ({ page }) => {
-  await page.route(/clerk\.(admin\.)?porterchain\.com|clerk\.accounts\.dev|clerk-js/, (r) =>
-    r.abort()
+test("Keycloak blocked → clear error with retry, never an endless spinner", async ({ page }) => {
+  await page.route(
+    /keycloak\.(admin\.)?porterchain\.com|keycloak\.accounts\.dev|keycloak-js/,
+    (r) => r.abort()
   );
   await page.goto("/sign-in");
   await expect(page.getByTestId("auth-load-failed")).toBeVisible({ timeout: 25_000 });

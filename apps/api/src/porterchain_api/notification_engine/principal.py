@@ -70,7 +70,7 @@ def _resolve_merchant_recipient(
 ) -> NotificationUser | None:
     """Inbox identity is the company (``merchants.id``), selected by ``X-Merchant-Id``.
 
-    Clerk Organization ids are not companies. Do not look up ``external_org_id``.
+    Keycloak Organization ids are not companies. Do not look up ``external_org_id``.
     """
     seats = _active_merchant_seats(db, auth_subject)
     requested = (merchant_id or "").strip() or None
@@ -106,7 +106,7 @@ async def get_notification_user(
 
     token = credentials.credentials
     # All DB work runs in the threadpool; only the JWKS verify is awaited on the
-    # loop (2026-10-14 freeze: sync DB/Clerk I/O on the loop stalled every request).
+    # loop (2026-10-14 freeze: sync DB/Keycloak I/O on the loop stalled every request).
     pre_user = await run_in_threadpool(
         _notification_pre_sync, db, token, settings
     )
@@ -163,7 +163,7 @@ def _notification_post_sync(
     # Prefer merchant/customer before admin — never auto-elevate merchants to admin
     # under AUTH_DEV_BYPASS (that stole inbox identity and masked membership bugs).
     # X-Merchant-Id is the company UUID, and the only company selector (BF).
-    # Ignore Clerk org_id on the JWT.
+    # Ignore Keycloak org_id on the JWT.
     requested_merchant = (x_merchant_id or "").strip() or None
     skip_merchant = portal in {"admin", "customer", "driver"}
     if not skip_merchant:
@@ -179,7 +179,7 @@ def _notification_post_sync(
             raise HTTPException(status_code=403, detail=MERCHANT_INBOX_FORBIDDEN)
 
     if portal == "driver":
-        # Driver identity comes ONLY from the verified token's own Clerk user.
+        # Driver identity comes ONLY from the verified token's own Keycloak user.
         # ``X-Driver-Id`` is never trusted to pick a driver: a customer/merchant
         # token with a forged header must not reach another driver's inbox,
         # preferences or push devices (audit day 4, finding 1).

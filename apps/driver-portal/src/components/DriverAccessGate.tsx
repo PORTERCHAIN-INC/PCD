@@ -6,6 +6,8 @@ import { SignOutButton, useAuth } from "@porterchain/auth/oidc/client";
 import { LogOut } from "lucide-react";
 import {
   humanAuthError,
+  isBlockedAccountError,
+  isWrongPortalError,
   useOptionalSessionContext,
   usePortalSessionGate,
   type SessionContext,
@@ -21,7 +23,7 @@ export default function DriverAccessGate({ children }: Props) {
   if (!isAuthConfigured()) {
     return <>{children}</>;
   }
-  // Local email picker: middleware + BFF cookie; do not wait on Clerk isLoaded.
+  // Local email picker: middleware + BFF cookie; do not wait on Keycloak isLoaded.
   if (isDevEmailLogin()) {
     return <>{children}</>;
   }
@@ -72,7 +74,7 @@ function DriverAccessGateWithAuth({ children }: Props) {
     onNeedOnboarding,
   });
 
-  // Local email-picker session: middleware + BFF enforce cookie; skip Clerk gate.
+  // Local email-picker session: middleware + BFF enforce cookie; skip Keycloak gate.
   if (isLoaded && !isSignedIn && isDevEmailLogin()) {
     return <>{children}</>;
   }
@@ -83,7 +85,11 @@ function DriverAccessGateWithAuth({ children }: Props) {
       <div className="flex min-h-dvh items-center justify-center bg-gray-bg p-6">
         <div className="max-w-md rounded-2xl border border-primary/10 bg-white p-8 text-center shadow-sm">
           <h1 className="text-xl font-bold text-primary">
-            {errorDetail === "missing_portal_permission" ? "Access denied" : "Session error"}
+            {isWrongPortalError(errorDetail)
+              ? "Access denied"
+              : isBlockedAccountError(errorDetail)
+                ? "Account unavailable"
+                : "Session error"}
           </h1>
           <p className="mt-2 text-sm text-muted">
             {humanAuthError(

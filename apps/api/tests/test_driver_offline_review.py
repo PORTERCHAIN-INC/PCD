@@ -14,7 +14,7 @@ from porterchain_api.driver_models import DriverOfflineAction
 
 def _driver(db) -> Driver:
     s = uuid4().hex[:8]
-    d = Driver(email=f"or-{s}@offline.test", full_name=f"OR {s}", status="APPROVED", auth_subject=f"clerk_or_{s}")
+    d = Driver(email=f"or-{s}@offline.test", full_name=f"OR {s}", status="APPROVED", auth_subject=f"idp_or_{s}")
     db.add(d)
     db.flush()
     return d

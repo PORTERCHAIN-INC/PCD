@@ -68,7 +68,7 @@ const EN: CoreFaq[] = [
     group: "trust",
     question: "What if something is lost or damaged?",
     answer:
-      "$2,500 goods insurance is included. Shipping something valuable? Add enhanced coverage up to $25,000 for +$10 per stop. Report it with the tracking number and photos; we reply within one business day.",
+      "Standard liability is $4.41 per kg (Ontario rules). Optional declared-value cover (1.5% of the value, $3 minimum, up to $2,500 per parcel) will be offered once our cargo insurance is confirmed. Report it with the tracking number and photos; we reply within one business day.",
     link: { href: "/trust/claims", label: "Claims process" },
   },
   {
@@ -150,7 +150,7 @@ const FR: CoreFaq[] = [
     group: "trust",
     question: "Et si un colis est perdu ou endommagé?",
     answer:
-      "L'assurance marchandises de 2 500 $ est incluse. Pour un envoi de valeur, ajoutez une couverture améliorée jusqu'à 25 000 $ pour 10 $ de plus par arrêt. Écrivez-nous avec le numéro de suivi et des photos; réponse en un jour ouvrable.",
+      "La responsabilité standard est de 4,41 $ par kg (règles de l'Ontario). Une couverture facultative à valeur déclarée (1,5 % de la valeur, minimum 3 $, jusqu'à 2 500 $ par colis) sera offerte dès que notre assurance marchandises sera confirmée. Écrivez-nous avec le numéro de suivi et des photos; réponse en un jour ouvrable.",
     link: { href: "/trust/claims", label: "Réclamations" },
   },
   {

@@ -34,6 +34,7 @@ import { ProblemSheet } from "../ui/job/ProblemSheet";
 import { ProofSheets, type ProofSheet } from "../ui/job/ProofSheets";
 import { StepRail } from "../ui/job/StepRail";
 import { StopDocumentsCard } from "../ui/job/StopDocumentsCard";
+import { GuidedFlowCard } from "../ui/job/GuidedFlowCard";
 import {
   Banner,
   Body,
@@ -49,6 +50,7 @@ import {
 import { Sheet } from "../ui/Sheet";
 import { SyncBanners } from "../ui/SyncBanners";
 import { color, radius, space, target, type } from "../ui/theme";
+import { isSilentError } from "../errorCopy";
 
 type Props = {
   field: FieldSession;
@@ -202,7 +204,10 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
       case "photo":
         return void capturePodPhotoDataUrl()
           .then((photoUrl) => setPod({ ...pod, photoUrl }))
-          .catch((e: unknown) => setError(e instanceof Error ? e.message : "photo_failed"));
+          .catch((e: unknown) => {
+            const m = e instanceof Error ? e.message : "photo_failed";
+            if (!isSilentError(m)) setError(m); // L170: closing the camera is not an error
+          });
       case "signature":
       case "id_check":
       case "otp":
@@ -417,12 +422,15 @@ export function JobScreen({ field, route, action, pod, setPod, run, onGoToday, o
         <Title testID="stop-address" accessibilityRole="header">
           {h.nextStop ?? "Address loading…"}
         </Title>
-        {h.etaLabel || h.distanceLabel ? (
+        {/* L172: ETA/distance only while still heading to the stop. */}
+        {(view.step === "offer" || view.step === "start" || view.step === "arrive") &&
+        (h.etaLabel || h.distanceLabel) ? (
           <Muted>{[h.etaLabel, h.distanceLabel].filter(Boolean).join(" · ")}</Muted>
         ) : null}
       </View>
       <StepRail steps={view.rail} />
       <OrderStopsCard stops={h.orderStops} currentStopId={h.stopId} />
+      {orderId && view.step !== "offer" ? <GuidedFlowCard orderId={orderId} /> : null}
       {orderId && view.step !== "offer" ? <StopDocumentsCard orderId={orderId} /> : null}
 
       {h.accessNotes ? (

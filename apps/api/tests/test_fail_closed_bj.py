@@ -1,4 +1,4 @@
-"""BJ — production with missing Clerk keys fails closed; the dev bypass never ships."""
+"""BJ — production with missing Keycloak keys fails closed; the dev bypass never ships."""
 
 from __future__ import annotations
 
@@ -14,17 +14,17 @@ from porterchain_api.auth.identity_provider import verify_access_token
 from porterchain_api.auth.dev import allow_auth_dev_bypass
 from porterchain_api.config import Settings
 
-_CLERK_ENV_PREFIXES = ("CLERK_", "NEXT_PUBLIC_CLERK_")
+_IDP_ENV_PREFIXES = ("IDP_", "NEXT_PUBLIC_IDP_")
 
 # Every environment name a deploy might carry. Only "local" is a developer laptop.
 SERVER_ENVS = ("production", "staging", "development", "dev", "test", "prod", "")
 
 
 @pytest.fixture(autouse=True)
-def _clear_clerk_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    """The local .env has test Clerk keys; they must not leak into these cases."""
+def _clear_idp_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The local .env has test Keycloak keys; they must not leak into these cases."""
     for key in list(os.environ):
-        if key.startswith(_CLERK_ENV_PREFIXES):
+        if key.startswith(_IDP_ENV_PREFIXES):
             monkeypatch.delenv(key, raising=False)
 
 
@@ -34,47 +34,47 @@ def _settings(**overrides: object) -> Settings:
         "auth_dev_bypass": False,
         "jwt_secret": "b" * 48,
         "database_url": "postgresql+psycopg://u:p@h/d",
-        "clerk_secret_key": "",
-        "clerk_publishable_key": "",
-        "clerk_jwks_url": "",
-        "clerk_customer_secret_key": "",
-        "clerk_customer_publishable_key": "",
-        "clerk_customer_jwks_url": "",
-        "clerk_merchant_secret_key": "",
-        "clerk_merchant_publishable_key": "",
-        "clerk_merchant_jwks_url": "",
-        "clerk_admin_secret_key": "",
-        "clerk_admin_publishable_key": "",
-        "clerk_admin_jwks_url": "",
-        "clerk_driver_secret_key": "",
-        "clerk_driver_publishable_key": "",
-        "clerk_driver_jwks_url": "",
-        "clerk_unified_mode": False,
-        "clerk_authorized_issuers": "",
-        "clerk_authorized_parties": "",
-        "clerk_audience": "",
-        "clerk_webhook_signing_secret": "",
+        "idp_secret_key": "",
+        "idp_publishable_key": "",
+        "idp_jwks_url": "",
+        "idp_customer_secret_key": "",
+        "idp_customer_publishable_key": "",
+        "idp_customer_jwks_url": "",
+        "idp_merchant_secret_key": "",
+        "idp_merchant_publishable_key": "",
+        "idp_merchant_jwks_url": "",
+        "idp_admin_secret_key": "",
+        "idp_admin_publishable_key": "",
+        "idp_admin_jwks_url": "",
+        "idp_driver_secret_key": "",
+        "idp_driver_publishable_key": "",
+        "idp_driver_jwks_url": "",
+        "idp_unified_mode": False,
+        "idp_authorized_issuers": "",
+        "idp_authorized_parties": "",
+        "idp_audience": "",
+        "idp_webhook_signing_secret": "",
     }
     base.update(overrides)
     return Settings(_env_file=None, **base)  # type: ignore[arg-type]
 
 
 def _live(**overrides: object) -> Settings:
-    """A complete, live Clerk config — what a correct production deploy looks like."""
+    """A complete, live Keycloak config — what a correct production deploy looks like."""
     params: dict[str, object] = {
         "keycloak_url": "https://auth.porterchain.test",
-        "clerk_customer_secret_key": "sk_live_cust",
-        "clerk_customer_publishable_key": "pk_live_cust",
-        "clerk_customer_jwks_url": "https://cust.clerk.accounts.dev/.well-known/jwks.json",
-        "clerk_merchant_secret_key": "sk_live_merch",
-        "clerk_merchant_publishable_key": "pk_live_merch",
-        "clerk_merchant_jwks_url": "https://merch.clerk.accounts.dev/.well-known/jwks.json",
-        "clerk_admin_secret_key": "sk_live_admin",
-        "clerk_admin_publishable_key": "pk_live_admin",
-        "clerk_admin_jwks_url": "https://admin.clerk.accounts.dev/.well-known/jwks.json",
-        "clerk_driver_secret_key": "sk_live_driver",
-        "clerk_driver_publishable_key": "pk_live_driver",
-        "clerk_driver_jwks_url": "https://driver.clerk.accounts.dev/.well-known/jwks.json",
+        "idp_customer_secret_key": "sk_live_cust",
+        "idp_customer_publishable_key": "pk_live_cust",
+        "idp_customer_jwks_url": "https://cust.keycloak.accounts.dev/.well-known/jwks.json",
+        "idp_merchant_secret_key": "sk_live_merch",
+        "idp_merchant_publishable_key": "pk_live_merch",
+        "idp_merchant_jwks_url": "https://merch.keycloak.accounts.dev/.well-known/jwks.json",
+        "idp_admin_secret_key": "sk_live_admin",
+        "idp_admin_publishable_key": "pk_live_admin",
+        "idp_admin_jwks_url": "https://admin.keycloak.accounts.dev/.well-known/jwks.json",
+        "idp_driver_secret_key": "sk_live_driver",
+        "idp_driver_publishable_key": "pk_live_driver",
+        "idp_driver_jwks_url": "https://driver.keycloak.accounts.dev/.well-known/jwks.json",
     }
     params.update(overrides)
     return _settings(**params)
@@ -138,7 +138,7 @@ def test_bearer_dev_is_refused_when_the_bypass_is_off() -> None:
     asyncio.run(_run())
 
 
-# --- Missing Clerk keys fail closed ---
+# --- Missing Keycloak keys fail closed ---
 
 
 def test_production_refuses_to_boot_without_keycloak() -> None:

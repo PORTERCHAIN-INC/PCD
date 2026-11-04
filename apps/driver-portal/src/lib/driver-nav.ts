@@ -16,6 +16,7 @@ import {
   User,
   Wallet,
   Banknote,
+  Boxes,
 } from "lucide-react";
 
 export type DriverNavItem = {
@@ -55,6 +56,12 @@ export const DRIVER_NAV_GROUPS: DriverNavGroup[] = [
         badgeKey: "jobs",
       },
       { href: "/route", label: "Route", description: "Stops in order", icon: Route },
+      {
+        href: "/batches",
+        label: "Batches",
+        description: "Bulk pickups, handovers, building drops",
+        icon: Boxes,
+      },
       {
         href: "/navigation",
         label: "Navigate",

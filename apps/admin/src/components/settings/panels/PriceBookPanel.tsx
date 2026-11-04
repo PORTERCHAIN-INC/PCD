@@ -143,162 +143,173 @@ export default function PriceBookPanel({
       </p>
       {toast && <p className="text-sm text-secondary">{toast}</p>}
 
-      <SettingsCard
-        title="Merchant parcels"
-        description="Off by default. When on, merchants without a contract schedule pay per parcel by tier instead of the generic size tiers. Merchants can override in their pricing tab."
+      <fieldset
+        disabled
+        aria-label="Retired price book (read only)"
+        className="space-y-6 opacity-70"
       >
-        <div className="space-y-3">
-          {toggle("merchant_parcels.enabled", "Use the price book for merchant parcels")}
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Field label={lbl("Stop price, no FSA match (CAD)", bp("stop_price_cents"))}>
-              {money("stop_price_cents", book, editBook)}
-            </Field>
-            <Field label={lbl("Minimum (CAD)", bp("minimum.cents"))}>
-              {money("minimum.cents", book, editBook)}
-            </Field>
-            <Field label={lbl("Minimum applies", bp("minimum.mode"))}>
-              <Select
-                disabled={!canEdit}
-                value={String(getPath(book, "minimum.mode") ?? "per_route")}
-                onChange={(e) => editBook("minimum.mode", e.target.value)}
-              >
-                <option value="per_route">Per route</option>
-                <option value="per_stop">Per stop</option>
-              </Select>
-            </Field>
-          </div>
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="text-xs uppercase text-muted">
-                <th className="py-1">
-                  Parcels at stop
-                  <Example show={bp("parcel_tiers")} />
-                </th>
-                <th className="py-1">Per parcel (CAD)</th>
-                <th className="py-1">Custom quote</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tiers.map((t, i) => (
-                <tr key={i} className="border-t border-primary/5">
-                  <td className="py-1">
-                    {t.max_parcels == null ? "More" : `Up to ${String(t.max_parcels)}`}
-                  </td>
-                  <td className="py-1">
-                    {money(`parcel_tiers.${i}.cents_per_parcel`, book, editBook)}
-                  </td>
-                  <td className="py-1">{t.custom_quote ? "Yes" : "No"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Field label={lbl("Small parcel max (lb)", bp("small_parcel.max_lb"))}>
-              {count("small_parcel.max_lb", book, editBook)}
-            </Field>
-            <Field label="Small parcels per group">
-              {count("small_parcel.group_size", book, editBook)}
-            </Field>
-            <Field label={lbl("Small parcel charge", bp("small_parcel.charge_mode"))}>
-              <Select
-                disabled={!canEdit}
-                value={String(getPath(book, "small_parcel.charge_mode") ?? "free")}
-                onChange={(e) => editBook("small_parcel.charge_mode", e.target.value)}
-              >
-                <option value="free">Free</option>
-                <option value="per_group">One parcel per group</option>
-              </Select>
-            </Field>
-          </div>
-          <p className="text-xs text-muted">
-            Handling (per box, higher of weight or footprint):{" "}
-            {handling
-              .map(
-                (h) =>
-                  `${String(h.code)} ≤${String(h.max_weight)} lb +$${centsToDollars(h.surcharge_cents)}`
-              )
-              .join(" · ")}
-            ; beyond = custom quote.
-          </p>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {handling.map((h, i) => (
-              <Field key={String(h.code)} label={`${String(h.code)} surcharge (CAD)`}>
-                {money(`handling.tiers.${i}.surcharge_cents`, book, editBook)}
+        <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          Retired 2026-10-31: the price book no longer sets prices. Read only, kept for history.
+          Live pricing is $6 / $9 parcels + size/weight handling, hourly vehicles for merchants, or
+          an admin custom merchant price. Driver pay below is still live.
+        </p>
+        <SettingsCard
+          title="Merchant parcels"
+          description="Off by default. When on, merchants without a contract schedule pay per parcel by tier instead of the generic size tiers. Merchants can override in their pricing tab."
+        >
+          <div className="space-y-3">
+            {toggle("merchant_parcels.enabled", "Use the price book for merchant parcels")}
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Field label={lbl("Stop price, no FSA match (CAD)", bp("stop_price_cents"))}>
+                {money("stop_price_cents", book, editBook)}
               </Field>
-            ))}
-          </div>
-        </div>
-      </SettingsCard>
-
-      <SettingsCard
-        collapsed
-        title="Retail single price"
-        description="Off by default. One price for a retail delivery."
-      >
-        <div className="space-y-3">
-          {toggle("retail.enabled", "Use the single retail price")}
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Field label={lbl("Price (CAD)", bp("retail.fixed_price_cents"))}>
-              {money("retail.fixed_price_cents", book, editBook)}
-            </Field>
-            <Field label={lbl("Parcels included", bp("retail.included_parcels"))}>
-              {count("retail.included_parcels", book, editBook)}
-            </Field>
-            <Field label={lbl("Each extra parcel (CAD)", bp("retail.extra_parcel_cents"))}>
-              {money("retail.extra_parcel_cents", book, editBook)}
-            </Field>
-          </div>
-        </div>
-      </SettingsCard>
-
-      <SettingsCard
-        collapsed
-        title="Dedicated vehicle"
-        description="Off by default. Booked by the hour or half-day block."
-      >
-        <div className="space-y-3">
-          {toggle("dedicated.enabled", "Offer dedicated vehicles")}
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Field label={lbl("Billing unit", bp("dedicated.unit"))}>
-              <Select
-                disabled={!canEdit}
-                value={String(getPath(book, "dedicated.unit") ?? "half_day")}
-                onChange={(e) => editBook("dedicated.unit", e.target.value)}
-              >
-                <option value="half_day">Half-day block</option>
-                <option value="hour">Hour</option>
-              </Select>
-            </Field>
-            <Field label="Block hours">{count("dedicated.block_hours", book, editBook)}</Field>
-            <Field label="Minimum units">{count("dedicated.min_units", book, editBook)}</Field>
-          </div>
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="text-xs uppercase text-muted">
-                <th className="py-1">
-                  Vehicle
-                  <Example show={bp("dedicated.vehicles")} />
-                </th>
-                <th className="py-1">Hour (CAD)</th>
-                <th className="py-1">Half-day (CAD)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.keys(vehicles).map((id) => (
-                <tr key={id} className="border-t border-primary/5">
-                  <td className="py-1 font-medium">{id}</td>
-                  <td className="py-1">
-                    {money(`dedicated.vehicles.${id}.hour_cents`, book, editBook)}
-                  </td>
-                  <td className="py-1">
-                    {money(`dedicated.vehicles.${id}.half_day_cents`, book, editBook)}
-                  </td>
+              <Field label={lbl("Minimum (CAD)", bp("minimum.cents"))}>
+                {money("minimum.cents", book, editBook)}
+              </Field>
+              <Field label={lbl("Minimum applies", bp("minimum.mode"))}>
+                <Select
+                  disabled={!canEdit}
+                  value={String(getPath(book, "minimum.mode") ?? "per_route")}
+                  onChange={(e) => editBook("minimum.mode", e.target.value)}
+                >
+                  <option value="per_route">Per route</option>
+                  <option value="per_stop">Per stop</option>
+                </Select>
+              </Field>
+            </div>
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="text-xs uppercase text-muted">
+                  <th className="py-1">
+                    Parcels at stop
+                    <Example show={bp("parcel_tiers")} />
+                  </th>
+                  <th className="py-1">Per parcel (CAD)</th>
+                  <th className="py-1">Custom quote</th>
                 </tr>
+              </thead>
+              <tbody>
+                {tiers.map((t, i) => (
+                  <tr key={i} className="border-t border-primary/5">
+                    <td className="py-1">
+                      {t.max_parcels == null ? "More" : `Up to ${String(t.max_parcels)}`}
+                    </td>
+                    <td className="py-1">
+                      {money(`parcel_tiers.${i}.cents_per_parcel`, book, editBook)}
+                    </td>
+                    <td className="py-1">{t.custom_quote ? "Yes" : "No"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Field label={lbl("Small parcel max (lb)", bp("small_parcel.max_lb"))}>
+                {count("small_parcel.max_lb", book, editBook)}
+              </Field>
+              <Field label="Small parcels per group">
+                {count("small_parcel.group_size", book, editBook)}
+              </Field>
+              <Field label={lbl("Small parcel charge", bp("small_parcel.charge_mode"))}>
+                <Select
+                  disabled={!canEdit}
+                  value={String(getPath(book, "small_parcel.charge_mode") ?? "free")}
+                  onChange={(e) => editBook("small_parcel.charge_mode", e.target.value)}
+                >
+                  <option value="free">Free</option>
+                  <option value="per_group">One parcel per group</option>
+                </Select>
+              </Field>
+            </div>
+            <p className="text-xs text-muted">
+              Handling (per box, higher of weight or footprint):{" "}
+              {handling
+                .map(
+                  (h) =>
+                    `${String(h.code)} ≤${String(h.max_weight)} lb +$${centsToDollars(h.surcharge_cents)}`
+                )
+                .join(" · ")}
+              ; beyond = custom quote.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {handling.map((h, i) => (
+                <Field key={String(h.code)} label={`${String(h.code)} surcharge (CAD)`}>
+                  {money(`handling.tiers.${i}.surcharge_cents`, book, editBook)}
+                </Field>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </SettingsCard>
+            </div>
+          </div>
+        </SettingsCard>
+
+        <SettingsCard
+          collapsed
+          title="Retail single price"
+          description="Off by default. One price for a retail delivery."
+        >
+          <div className="space-y-3">
+            {toggle("retail.enabled", "Use the single retail price")}
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Field label={lbl("Price (CAD)", bp("retail.fixed_price_cents"))}>
+                {money("retail.fixed_price_cents", book, editBook)}
+              </Field>
+              <Field label={lbl("Parcels included", bp("retail.included_parcels"))}>
+                {count("retail.included_parcels", book, editBook)}
+              </Field>
+              <Field label={lbl("Each extra parcel (CAD)", bp("retail.extra_parcel_cents"))}>
+                {money("retail.extra_parcel_cents", book, editBook)}
+              </Field>
+            </div>
+          </div>
+        </SettingsCard>
+
+        <SettingsCard
+          collapsed
+          title="Dedicated vehicle"
+          description="Off by default. Booked by the hour or half-day block."
+        >
+          <div className="space-y-3">
+            {toggle("dedicated.enabled", "Offer dedicated vehicles")}
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Field label={lbl("Billing unit", bp("dedicated.unit"))}>
+                <Select
+                  disabled={!canEdit}
+                  value={String(getPath(book, "dedicated.unit") ?? "half_day")}
+                  onChange={(e) => editBook("dedicated.unit", e.target.value)}
+                >
+                  <option value="half_day">Half-day block</option>
+                  <option value="hour">Hour</option>
+                </Select>
+              </Field>
+              <Field label="Block hours">{count("dedicated.block_hours", book, editBook)}</Field>
+              <Field label="Minimum units">{count("dedicated.min_units", book, editBook)}</Field>
+            </div>
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="text-xs uppercase text-muted">
+                  <th className="py-1">
+                    Vehicle
+                    <Example show={bp("dedicated.vehicles")} />
+                  </th>
+                  <th className="py-1">Hour (CAD)</th>
+                  <th className="py-1">Half-day (CAD)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.keys(vehicles).map((id) => (
+                  <tr key={id} className="border-t border-primary/5">
+                    <td className="py-1 font-medium">{id}</td>
+                    <td className="py-1">
+                      {money(`dedicated.vehicles.${id}.hour_cents`, book, editBook)}
+                    </td>
+                    <td className="py-1">
+                      {money(`dedicated.vehicles.${id}.half_day_cents`, book, editBook)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </SettingsCard>
+      </fieldset>
 
       <SettingsCard
         collapsed
@@ -361,9 +372,12 @@ export default function PriceBookPanel({
               placeholder="e.g. Approved v3 parcel tiers"
             />
           </label>
-          <Button variant="primary" disabled={!dirty || saving} onClick={() => void save()}>
-            <Save className="h-4 w-4" />{" "}
-            {saving ? "Saving…" : dirty === "pay" ? "Save driver pay" : "Save price book"}
+          <Button
+            variant="primary"
+            disabled={dirty !== "pay" || saving}
+            onClick={() => void save()}
+          >
+            <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save driver pay"}
           </Button>
         </div>
       )}

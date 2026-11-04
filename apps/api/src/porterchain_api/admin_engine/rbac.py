@@ -240,8 +240,15 @@ def permissions_catalog() -> dict[str, Any]:
     return {"roles": roles, "modules": modules}
 
 
+#: Call-site names that are not ``platform`` permissions in schema.zed. ``orders_write``
+#: only exists on ``organization``; checking it on ``platform`` made SpiceDB fail with
+#: FAILED_PRECONDITION -> 503 authz_unavailable (admin Generate invoice, create order, ...).
+_MODULE_ALIASES = {"orders_write": "orders"}
+
+
 def require_module(ctx: AdminContext, module: str) -> None:
     """Authorize admin module via SpiceDB only — no matrix fallback, no portal bypass."""
+    module = _MODULE_ALIASES.get(module, module)
     from porterchain_api.authz.client import get_authz_client
     from porterchain_api.authz.tuples import PLATFORM_ID
 

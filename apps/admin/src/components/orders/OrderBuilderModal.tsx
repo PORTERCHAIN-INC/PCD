@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AddressAutocompleteInput } from "@porterchain/maps";
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { adminFetch } from "@/lib/api";
@@ -22,13 +23,17 @@ type StopDraft = {
   formatted: string;
   lat: string;
   lng: string;
+  postal?: string;
   time_window_start: string;
   time_window_end: string;
   service_time_minutes: string;
   notes: string;
 };
 
-const KINDS: { id: OrderKind; label: string; hint: string }[] = [
+/** Warehouse holding is disabled (Phase 0: no storage). Code kept behind this flag. */
+const COLLECT_ONLY_ENABLED = process.env.NEXT_PUBLIC_COLLECT_ONLY_ENABLED === "true";
+
+const ALL_KINDS: { id: OrderKind; label: string; hint: string }[] = [
   { id: "single", label: "Single P→D", hint: "One pickup, one delivery" },
   { id: "hub_spoke", label: "Hub & spoke", hint: "One pickup, many deliveries" },
   { id: "multi_pickup_delivery", label: "Multi P/D", hint: "Multiple pickups and deliveries" },
@@ -39,6 +44,8 @@ const KINDS: { id: OrderKind; label: string; hint: string }[] = [
     hint: "Pick up to our warehouse; deliver later",
   },
 ];
+
+const KINDS = ALL_KINDS.filter((k) => COLLECT_ONLY_ENABLED || k.id !== "collect_only");
 
 function seedStops(kind: OrderKind): StopDraft[] {
   const base = (type: "pickup" | "dropoff", n: number): StopDraft => ({
@@ -115,6 +122,20 @@ export function OrderBuilderModal({
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOptions>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // L128: parcel size/weight (or hourly vehicle) and a live price before creating.
+  const [mode, setMode] = useState<"parcels" | "vehicle">("parcels");
+  const [parcel, setParcel] = useState({ qty: "1", l: "", w: "", h: "", lb: "" });
+  const [hours, setHours] = useState("3");
+  const [helpStops, setHelpStops] = useState("0");
+  const [price, setPrice] = useState<{
+    amount_cents: number;
+    subtotal_cents: number;
+    tax_cents: number;
+    lines: { label: string; amount_cents: number }[];
+    custom_quote: string | null;
+  } | null>(null);
+  const [pricing, setPricing] = useState(false);
+  const [priceError, setPriceError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -166,36 +187,99 @@ export function OrderBuilderModal({
     });
   }
 
+  const num = (v: string) => (v.trim() && Number(v) > 0 ? Number(v) : null);
+  function sizeFields() {
+    return mode === "vehicle"
+      ? {
+          booking_mode: "vehicle",
+          dedicated_hours: num(hours),
+          help_stops: Math.max(0, Math.floor(Number(helpStops) || 0)),
+        }
+      : {
+          booking_mode: "parcels",
+          parcel_count: Math.max(1, Math.floor(Number(parcel.qty) || 1)),
+          length_in: num(parcel.l),
+          width_in: num(parcel.w),
+          height_in: num(parcel.h),
+          weight_lb: num(parcel.lb),
+        };
+  }
+  function draftBody() {
+    return {
+      merchant_id: merchantId,
+      order_kind: kind,
+      vehicle_class: vehicleClass,
+      package_type: "looseParcel",
+      scheduled_at: new Date(scheduledAt).toISOString(),
+      schedule_mode: kind === "scheduled_pickup" ? "later" : "now",
+      special_instructions: instructions || null,
+      delivery_options: normalizeDeliveryOptions(deliveryOptions) ?? null,
+      stops: stops.map((s, i) => ({
+        type: s.type,
+        sequence: i,
+        formatted: s.formatted.trim(),
+        lat: s.lat ? Number(s.lat) : null,
+        lng: s.lng ? Number(s.lng) : null,
+        postal: s.postal || null,
+        time_window_start: s.time_window_start ? new Date(s.time_window_start).toISOString() : null,
+        time_window_end: s.time_window_end ? new Date(s.time_window_end).toISOString() : null,
+        service_time_seconds: s.service_time_minutes
+          ? Math.round(Number(s.service_time_minutes) * 60)
+          : null,
+        notes: s.notes || null,
+      })),
+      ...sizeFields(),
+    };
+  }
+
+  const readyToPrice =
+    Boolean(merchantId) &&
+    stops.filter((s) => s.formatted.trim()).length >= 2 &&
+    stops.some((s) => s.type === "pickup" && s.formatted.trim()) &&
+    stops.some((s) => s.type === "dropoff" && s.formatted.trim());
+  const priceKey = JSON.stringify([
+    merchantId,
+    kind,
+    vehicleClass,
+    scheduledAt,
+    stops.map((s) => [s.type, s.formatted, s.lat, s.lng]),
+    mode,
+    parcel,
+    hours,
+    helpStops,
+  ]);
+  useEffect(() => {
+    if (!open || !readyToPrice) {
+      setPrice(null);
+      return;
+    }
+    setPricing(true);
+    const t = window.setTimeout(async () => {
+      try {
+        const token = await getApiToken();
+        const p = await adminFetch<NonNullable<typeof price>>("/v1/admin/orders/preview", token, {
+          method: "POST",
+          body: JSON.stringify(draftBody()),
+        });
+        setPrice(p);
+        setPriceError(null);
+      } catch (e) {
+        setPrice(null);
+        setPriceError(e instanceof Error ? e.message : "Could not price this order");
+      } finally {
+        setPricing(false);
+      }
+    }, 500);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [priceKey, open, readyToPrice]);
+
   async function submit() {
     setBusy(true);
     setError(null);
     try {
       const token = await getApiToken();
-      const body = {
-        merchant_id: merchantId,
-        order_kind: kind,
-        vehicle_class: vehicleClass,
-        package_type: "looseParcel",
-        scheduled_at: new Date(scheduledAt).toISOString(),
-        schedule_mode: kind === "scheduled_pickup" ? "later" : "now",
-        special_instructions: instructions || null,
-        delivery_options: normalizeDeliveryOptions(deliveryOptions) ?? null,
-        stops: stops.map((s, i) => ({
-          type: s.type,
-          sequence: i,
-          formatted: s.formatted.trim(),
-          lat: s.lat ? Number(s.lat) : null,
-          lng: s.lng ? Number(s.lng) : null,
-          time_window_start: s.time_window_start
-            ? new Date(s.time_window_start).toISOString()
-            : null,
-          time_window_end: s.time_window_end ? new Date(s.time_window_end).toISOString() : null,
-          service_time_seconds: s.service_time_minutes
-            ? Math.round(Number(s.service_time_minutes) * 60)
-            : null,
-          notes: s.notes || null,
-        })),
-      };
+      const body = draftBody();
       const result = await adminFetch<{ order_id: string; tracking_number: string }>(
         "/v1/admin/orders",
         token,
@@ -221,7 +305,10 @@ export function OrderBuilderModal({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={() => void submit()} disabled={busy || !merchantId}>
+          <Button
+            onClick={() => void submit()}
+            disabled={busy || !merchantId || Boolean(price?.custom_quote)}
+          >
             {busy ? "Creating…" : "Create & dispatch-ready"}
           </Button>
         </>
@@ -307,6 +394,123 @@ export function OrderBuilderModal({
           </div>
         </div>
 
+        <fieldset
+          className="space-y-2 rounded-xl border border-primary/10 p-3"
+          aria-label="How to price"
+        >
+          <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-muted">
+            How to price
+          </legend>
+          <div className="flex gap-4 text-sm">
+            <label className="flex items-center gap-1">
+              <input
+                type="radio"
+                name="ob-mode"
+                checked={mode === "parcels"}
+                onChange={() => setMode("parcels")}
+              />{" "}
+              Per parcel
+            </label>
+            <label className="flex items-center gap-1">
+              <input
+                type="radio"
+                name="ob-mode"
+                checked={mode === "vehicle"}
+                onChange={() => setMode("vehicle")}
+              />{" "}
+              Hourly vehicle
+            </label>
+          </div>
+          {mode === "parcels" ? (
+            <div className="grid grid-cols-5 gap-2 text-xs">
+              {(
+                [
+                  ["qty", "Qty"],
+                  ["l", "Length in"],
+                  ["w", "Width in"],
+                  ["h", "Height in"],
+                  ["lb", "Weight lb (each)"],
+                ] as const
+              ).map(([k, label]) => (
+                <label key={k} className="block">
+                  <span className="text-muted">{label}</span>
+                  <input
+                    type="number"
+                    min={k === "qty" ? 1 : 0}
+                    aria-label={`Parcel ${label}`}
+                    className="mt-1 w-full rounded-lg border border-primary/15 px-2 py-1.5 text-sm"
+                    value={parcel[k]}
+                    onChange={(e) => setParcel({ ...parcel, [k]: e.target.value })}
+                  />
+                </label>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <label className="block">
+                <span className="text-muted">Hours needed (3 h minimum)</span>
+                <input
+                  type="number"
+                  min={1}
+                  step={0.25}
+                  aria-label="Hours needed"
+                  className="mt-1 w-full rounded-lg border border-primary/15 px-2 py-1.5 text-sm"
+                  value={hours}
+                  onChange={(e) => setHours(e.target.value)}
+                />
+              </label>
+              <label className="block">
+                <span className="text-muted">Stops needing load help (+$30 each)</span>
+                <input
+                  type="number"
+                  min={0}
+                  aria-label="Stops needing load help"
+                  className="mt-1 w-full rounded-lg border border-primary/15 px-2 py-1.5 text-sm"
+                  value={helpStops}
+                  onChange={(e) => setHelpStops(e.target.value)}
+                />
+              </label>
+            </div>
+          )}
+          <div
+            className="rounded-lg bg-gray-bg/60 px-3 py-2 text-sm"
+            aria-live="polite"
+            data-testid="ob-price"
+          >
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+              Price before creating
+            </p>
+            {!readyToPrice ? (
+              <p className="text-muted">
+                Pick a merchant and enter pickup and drop-off to see the price.
+              </p>
+            ) : pricing && !price ? (
+              <p className="text-muted">Pricing…</p>
+            ) : price?.custom_quote ? (
+              <p className="font-medium text-amber-800">{price.custom_quote}</p>
+            ) : price ? (
+              <>
+                {price.lines.map((l, i) => (
+                  <p key={i} className="flex justify-between">
+                    <span>{l.label}</span>
+                    <span>${(l.amount_cents / 100).toFixed(2)}</span>
+                  </p>
+                ))}
+                <p className="flex justify-between text-muted">
+                  <span>HST</span>
+                  <span>${(price.tax_cents / 100).toFixed(2)}</span>
+                </p>
+                <p className="flex justify-between font-semibold">
+                  <span>Total</span>
+                  <span>${(price.amount_cents / 100).toFixed(2)}</span>
+                </p>
+              </>
+            ) : priceError ? (
+              <p className="text-red-700">{priceError}</p>
+            ) : null}
+          </div>
+        </fieldset>
+
         <div>
           <div className="mb-2 flex items-center justify-between">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted">
@@ -381,12 +585,23 @@ export function OrderBuilderModal({
                     )}
                   </div>
                 </div>
-                <input
-                  value={s.formatted}
-                  onChange={(e) => updateStop(s.key, { formatted: e.target.value })}
-                  placeholder="Address"
-                  className="mb-2 w-full rounded-xl border border-primary/15 px-3 py-2 text-sm outline-none focus:border-secondary"
-                />
+                <div className="mb-2">
+                  <AddressAutocompleteInput
+                    id={`admin-order-stop-${s.key}`}
+                    value={s.formatted}
+                    onChange={(formatted) => updateStop(s.key, { formatted, postal: "" })}
+                    onPlaceSelect={(p) =>
+                      updateStop(s.key, {
+                        formatted: p.formatted,
+                        lat: p.lat != null ? String(p.lat) : s.lat,
+                        lng: p.lng != null ? String(p.lng) : s.lng,
+                        postal: p.postal ?? "",
+                      })
+                    }
+                    placeholder="Address"
+                    fallbackClassName="w-full rounded-xl border border-primary/15 px-3 py-2 text-sm outline-none focus:border-secondary"
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   <input
                     value={s.lat}

@@ -31,8 +31,8 @@ AFTER
 - H1: Book it by 11. Delivered today.
 - Sub: Same-day and next-day delivery across the GTA by sedan, SUV, van or box truck. See your exact price in 10 seconds. No sign-up, no sales call.
 - Calculator (in hero, above the fold): Pickup postal code · Drop-off postal code · Vehicle → [Get instant price]
-- Under button (risk reversal): Price includes HST · $2,500 parcel coverage included · Merchants pay by Interac e-Transfer
-- Trust strip: Live driver tracking · Photo proof of delivery · $2,500 coverage included (up to $25,000 for $10) · Local GTA team
+- Under button (risk reversal): Price includes HST · Clear liability and claims · Merchants pay by Interac e-Transfer
+- Trust strip: Live driver tracking · Photo proof of delivery · Clear liability and claims · Local GTA team
 
 ## PAIN → PROMISE (PAS)
 
@@ -68,7 +68,7 @@ H2: Price it. Book it. Track it.
 | One vehicle size fits all | Sedan, SUV, van or 16 ft box truck — matched to your load |
 | "It's on the way" | Live map for you and your receiver |
 | Proof on request, maybe | Photo proof on every drop |
-| Coverage fine print | $2,500 parcel coverage included; up to $25,000 for $10 |
+| Coverage fine print | $4.41/kg standard liability; optional declared-value cover (1.5%, $3 min, up to $2,500 per parcel) once cargo insurance is confirmed |
 | Card only | Merchants pay by Interac e-Transfer; customers by card |
 
 ## WHO USES US (compact strip, links to existing industry pages)
@@ -83,7 +83,7 @@ H2: Built so you never have to wonder.
 
 - Live tracking from pickup to drop-off, shared with your receiver
 - Photo proof of delivery on every stop
-- $2,500 parcel coverage included; optional $25,000 for $10
+- $4.41/kg standard liability; optional declared-value cover (1.5%, $3 min, up to $2,500 per parcel) once cargo insurance is confirmed
 - Driver privacy: receivers see the driver's first name only
 - Privacy under PIPEDA; marketing email only with consent (CASL)
 - Run by founder Ravi Chauhan and a local GTA team — call +1 (647) 619-7951
@@ -99,7 +99,7 @@ Band: "Shopify app — in review. Same-day rates at your checkout, booked automa
 2. Can you deliver today? Yes, if you book by 11 AM: delivered 2–9 PM the same day, Mon–Sat. Book later and it goes the next operating day, or pick a date.
 3. Where do you deliver? The GTA plus about 150 km. Our core areas are Vaughan, Concord, Brampton and Mississauga. The calculator confirms your postal codes instantly.
 4. Which vehicle do I need? Sedan/SUV up to about 80 kg, cargo van up to about 900 kg, 16 ft box truck up to about 3,000 kg. The calculator suggests one.
-5. What if something is damaged or lost? Every parcel includes $2,500 coverage. Need more? Add $25,000 coverage for $10. Report it with the tracking number and photos; we reply within one business day.
+5. What if something is damaged or lost? Our standard liability is $4.41 per kg. Optional declared-value cover (1.5% of value, $3 minimum, up to $2,500 per parcel) will be offered once our cargo insurance is confirmed. Report it with the tracking number and photos; we reply within one business day.
 6. How do I pay? Businesses with a merchant account pay by Interac e-Transfer per billing cycle. Customers pay by card at booking (processed by Stripe; we never store card numbers).
 7. Do I need a contract? No contract, no minimum. Open a free business account when you have regular volume.
 8. Can you handle medical deliveries? Yes. For medical items that need to stay cool, we use coolers. We don't offer refrigerated vehicles.
@@ -141,7 +141,7 @@ CTA: Get instant price · Secondary: Talk to us (+1 647 619 7951)
 | Single repeated primary CTA + mobile sticky | 0.5 | 1.0 |
 | Pain → promise | 0.3 | 0.9 |
 | Specificity (cut-off, windows, capacities) | 0.8 | 1.0 |
-| Risk reversal (instant price, no sign-up, $2,500, Interac) | 0.4 | 1.0 |
+| Risk reversal (instant price, no sign-up, clear liability, Interac) | 0.4 | 1.0 |
 | Objection-handling FAQ | 0.6 | 1.0 |
 | True trust signals, zero fake proof | 0.2 | 0.9 |
 | Contrast block / differentiation | 0.5 | 1.0 |

@@ -14,6 +14,8 @@ type Props = {
   idPrefix?: string;
   /** Hide the free-text note when the surface already has its own instructions box. */
   hideNote?: boolean;
+  /** Hide flags a surface does not offer (customers get no load-help option, 2026-10-31). */
+  hideFlags?: Array<"call_on_arrival" | "load_help">;
   className?: string;
 };
 
@@ -25,6 +27,7 @@ export function DeliveryOptionsFields({
   onChange,
   idPrefix = "dlv",
   hideNote = false,
+  hideFlags = [],
   className,
 }: Props) {
   const set = (patch: Partial<DeliveryOptions>) => onChange({ ...value, ...patch });
@@ -53,7 +56,7 @@ export function DeliveryOptionsFields({
         })}
       </div>
       <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
-        {DELIVERY_FLAGS.map((f) => (
+        {DELIVERY_FLAGS.filter((f) => !hideFlags.includes(f.id)).map((f) => (
           <label key={f.id} className="inline-flex items-center gap-2 text-sm text-primary">
             <input
               type="checkbox"

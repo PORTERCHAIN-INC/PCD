@@ -1,4 +1,5 @@
 "use client";
+import { uuid } from "@/lib/uuid";
 
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import { confirmRouteImport, createRouteImport, type RouteImportJob } from "@/lib/api";
@@ -35,7 +36,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 function newId(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return uuid();
   return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 

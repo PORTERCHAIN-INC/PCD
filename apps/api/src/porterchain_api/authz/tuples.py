@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import parse_admin_role
 from porterchain_api.admin_engine.driver_lookups import (
-    get_driver_by_clerk,
+    get_driver_by_idp,
     stamp_driver_porterchain_user_id,
 )
 from porterchain_api.admin_engine.staff_lookups import stamp_admin_porterchain_user_id
@@ -16,7 +16,7 @@ from porterchain_api.authz.client import AuthzClient, Relationship, get_authz_cl
 from porterchain_api.authz.platform_roles import relation_for_admin_role
 from porterchain_api.domain.admin_states import DriverStatus
 from porterchain_api.domain.merchant_states import MerchantRole
-from porterchain_api.merchant_engine.lookups import active_seats_for_clerk, seats_for_clerk
+from porterchain_api.merchant_engine.lookups import active_seats_for_idp, seats_for_idp
 from porterchain_api.booking_models import Customer
 from porterchain_api.user_models import PorterchainUser
 
@@ -74,7 +74,7 @@ class TupleWriter:
                 Relationship("platform", PLATFORM_ID, rel, "user", user.id)
             )
 
-        for mu in active_seats_for_clerk(db, subject, user_id=user.id):
+        for mu in active_seats_for_idp(db, subject, user_id=user.id):
             rel = relation_for_merchant_role(mu.role)
             desired.append(
                 Relationship("organization", mu.merchant_id, rel, "user", user.id)
@@ -123,12 +123,12 @@ class TupleWriter:
             to_delete.append(Relationship("platform", PLATFORM_ID, rel, "user", user.id))
 
         if subject:
-            for mu in seats_for_clerk(db, subject):
+            for mu in seats_for_idp(db, subject):
                 for rel in ORG_ROLE_RELATIONS:
                     to_delete.append(
                         Relationship("organization", mu.merchant_id, rel, "user", user.id)
                     )
-            driver = get_driver_by_clerk(db, subject)
+            driver = get_driver_by_idp(db, subject)
             if driver:
                 to_delete.append(
                     Relationship("driver_profile", driver.id, "owner", "user", user.id)

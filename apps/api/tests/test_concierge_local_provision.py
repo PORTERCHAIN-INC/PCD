@@ -1,4 +1,4 @@
-"""Super Admin concierge — local provision without Clerk; merchant seats without Clerk."""
+"""Super Admin concierge — local provision without Keycloak; merchant seats without Keycloak."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ def _email(prefix: str) -> str:
     return f"{prefix}-{uuid.uuid4().hex[:10]}@example.com"
 
 
-def test_create_driver_local_pending_when_clerk_down(db, settings) -> None:
+def test_create_driver_local_pending_when_idp_down(db, settings) -> None:
     svc = DirectoryUserService()
     email = _email("local-driver")
     with patch(
@@ -69,7 +69,7 @@ def test_create_driver_skip_invite_is_local(db, settings) -> None:
     assert str(driver.auth_subject).startswith("pending:")
 
 
-def test_merchant_seat_without_clerk_secret(db, settings) -> None:
+def test_merchant_seat_without_idp_secret(db, settings) -> None:
     owner = _email("owner")
     seat_email = _email("ops")
     merchant = create_onboarding_merchant(

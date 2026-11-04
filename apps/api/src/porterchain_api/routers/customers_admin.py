@@ -67,7 +67,7 @@ def create_customer(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> AdminCreateCustomerResponse:
-    """Create a retail customer for phone-book / care. Optional Platform Clerk invite."""
+    """Create a retail customer for phone-book / care. Optional Platform Keycloak invite."""
     _guard(ctx, "customers")
     try:
         result = _svc.create_customer(
@@ -115,7 +115,7 @@ def invite_customer(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> AdminCustomerInviteResponse:
-    """Send or re-send Platform Clerk invite for an orphan retail customer."""
+    """Send or re-send Platform Keycloak invite for an orphan retail customer."""
     _guard(ctx, "customers")
     try:
         result = _svc.send_invite(db, ctx, settings, customer_id)
@@ -123,7 +123,7 @@ def invite_customer(
         raise HTTPException(status_code=404, detail="customer_not_found") from None
     except ValueError as exc:
         detail = str(exc)
-        if detail == "customer_already_clerk_linked":
+        if detail == "customer_already_idp_linked":
             raise HTTPException(status_code=409, detail=detail) from exc
         raise HTTPException(status_code=400, detail=detail) from exc
     return AdminCustomerInviteResponse(

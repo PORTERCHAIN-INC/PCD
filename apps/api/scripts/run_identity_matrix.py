@@ -15,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TESTS = [
     "tests/test_unified_identity_characterization.py",
-    "tests/test_clerk_registry.py",
+    "tests/test_idp_registry.py",
     "tests/test_unified_identity_phase2.py",
     "tests/test_unified_identity_phase3.py",
     "tests/test_unified_identity_phase4.py",

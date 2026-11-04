@@ -18,5 +18,10 @@ from porterchain_api.routers.driver import dispatch_route  # noqa: F401
 from porterchain_api.routers.driver import navigation_pod  # noqa: F401
 from porterchain_api.routers.driver import auth_dev  # noqa: F401
 from porterchain_api.routers.driver import verification  # noqa: F401
+from porterchain_api.routers.driver import compliance  # noqa: F401
+from porterchain_api.routers.driver import batches  # noqa: F401
+from porterchain_api.routers.driver import job_docs  # noqa: F401
+from porterchain_api.routers.driver import ops_rules  # noqa: F401
+from porterchain_api.routers.driver import media  # noqa: F401
 
 __all__ = ["router"]

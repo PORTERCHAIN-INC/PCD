@@ -29,6 +29,12 @@ from porterchain_api.notification_engine import models as notification_models  #
 from porterchain_api.intelligence_engine import usage_models as ai_usage_models  # noqa: F401
 from porterchain_api.dispatch_engine import models as dispatch_models  # noqa: F401
 from porterchain_api.platform import soft_delete as soft_delete_models  # noqa: F401
+from porterchain_api.pricing_engine import models as pricing_models  # noqa: F401
+from porterchain_api.org_engine import models as org_models  # noqa: F401
+from porterchain_api.compliance_engine import models as compliance_models  # noqa: F401
+from porterchain_api.batch_engine import models as batch_models  # noqa: F401
+from porterchain_api.job_docs import models as job_docs_models  # noqa: F401
+from porterchain_api.ops_rules import models as ops_rules_models  # noqa: F401
 from porterchain_api import schema_extras  # noqa: F401,E402  (must be last: indexes on the tables above)
 
 config = context.config

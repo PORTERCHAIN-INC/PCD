@@ -291,7 +291,7 @@ def copilot_llm_suggest(
     ctx: Ctx,
     db: Session = Depends(get_db),
 ) -> dict:
-    """Phase-2 LLM ops suggestions via NVIDIA NIM when configured (read-only)."""
+    """Phase-2 LLM ops suggestions via an LLM (FEATURE_AI, off in Phase 0) when configured (read-only)."""
     from porterchain_api.intelligence_engine.copilot_service import suggest_ops_action_committed
 
     def _run():

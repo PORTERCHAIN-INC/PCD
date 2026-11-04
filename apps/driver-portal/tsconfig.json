@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@porterchain/driver-flows": ["../../packages/driver-flows/src/index.ts"]
     }
   },
   "include": [

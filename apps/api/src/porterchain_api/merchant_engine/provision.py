@@ -61,12 +61,12 @@ def create_onboarding_merchant(
 
 
 def ensure_dev_merchant_seat(db: Session, auth_subject: str) -> MerchantUser:
-    from porterchain_api.merchant_engine.lookups import get_merchant_by_clerk_org, seats_for_clerk
+    from porterchain_api.merchant_engine.lookups import get_merchant_by_idp_org, seats_for_idp
 
     if not is_merchant_dev_subject(auth_subject):
         raise LookupError("merchant_user_not_found")
 
-    merchant = get_merchant_by_clerk_org(db, "dev_merchant_org")
+    merchant = get_merchant_by_idp_org(db, "dev_merchant_org")
     if not merchant:
         merchant = create_onboarding_merchant(
             db,
@@ -77,7 +77,7 @@ def ensure_dev_merchant_seat(db: Session, auth_subject: str) -> MerchantUser:
             activated_at=datetime.now(UTC),
         )
 
-    seats = seats_for_clerk(db, auth_subject)
+    seats = seats_for_idp(db, auth_subject)
     if seats:
         return seats[0]
 

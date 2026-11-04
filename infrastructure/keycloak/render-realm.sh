@@ -2,6 +2,7 @@
 # Render realm-porterchain.json with IdP secrets from the environment (load them with
 # scripts/secrets/sops-load.sh first). Output goes to a mode-600 file you pass; never commit it.
 #   bash infrastructure/keycloak/render-realm.sh /tmp/realm.json
+# EMAIL_OTP_ENABLED=false drops the new-device email code subflow (needs the email-otp-authenticator jar).
 # APPLE_IDP_ENABLED=true keeps the Apple IdP (needs the apple provider extension installed).
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,6 +16,12 @@ if os.environ.get("APPLE_IDP_ENABLED", "false") != "true":
     realm["identityProviders"] = [i for i in realm["identityProviders"] if i["alias"] != "apple"]
 if os.environ.get("GOOGLE_IDP_ENABLED", "true") != "true":
     realm["identityProviders"] = [i for i in realm["identityProviders"] if i["alias"] != "google"]
+if os.environ.get("EMAIL_OTP_ENABLED", "true") != "true":
+    # stock image without the email-otp-authenticator extension: drop the new-device code subflow
+    realm["authenticationFlows"] = [f for f in realm["authenticationFlows"] if f["alias"] != "pc-new-device-code"]
+    for f in realm["authenticationFlows"]:
+        f["authenticationExecutions"] = [e for e in f["authenticationExecutions"] if e.get("flowAlias") != "pc-new-device-code"]
+    realm["authenticatorConfig"] = [c for c in realm["authenticatorConfig"] if c["alias"] not in ("pc-not-staff", "pc-new-device-code-cfg")]
 text = json.dumps(realm)
 missing = set()
 def sub(m):

@@ -1,4 +1,4 @@
-"""Local/dev-only driver email login (AUTH_DEV_BYPASS). Real path remains Clerk invite."""
+"""Local/dev-only driver email login (AUTH_DEV_BYPASS). Real path remains Keycloak invite."""
 
 from __future__ import annotations
 

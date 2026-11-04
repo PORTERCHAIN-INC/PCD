@@ -1,4 +1,4 @@
-"""Lead Assist — heuristic + optional NVIDIA NIM proposals (never auto-send)."""
+"""Lead Assist — heuristic + optional an LLM (FEATURE_AI, off in Phase 0) proposals (never auto-send)."""
 
 from __future__ import annotations
 
@@ -193,17 +193,17 @@ def build_lead_assist(
     base = _heuristic(lead, messages, db=db)
 
     from porterchain_api.intelligence_engine.enrichers import (
-        _call_nim,
-        _can_call_nim,
+        _call_llm,
+        _can_call_llm,
         _parse_json_object,
         _phase2_ready,
     )
     from porterchain_api.intelligence_engine.privacy import redact
 
-    if not _phase2_ready(flags or {}) or not _can_call_nim(db):
+    if not _phase2_ready(flags or {}) or not _can_call_llm(db):
         return base
 
-    result = _call_nim(
+    result = _call_llm(
         db,
         feature="lead_assist",
         system=_LEAD_ASSIST_SYSTEM,
@@ -253,7 +253,7 @@ def build_lead_assist(
         base["next_questions"] = questions
     if risks:
         base["risks"] = risks
-    base["source"] = "nvidia_nim"
+    base["source"] = "llm"
     base["model"] = result.get("model")
     return base
 

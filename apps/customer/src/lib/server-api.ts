@@ -3,11 +3,13 @@ import { cookies } from "next/headers";
 import { authDevBypassEnabled } from "@porterchain/auth/devBypass";
 import { PC_IMP_FLAG } from "@porterchain/auth/impersonation";
 
+/** Server-side: prefer the in-cluster API address (the public URL may not be reachable from the container). */
 function apiBase(): string {
-  return (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localhost:8001").replace(
-    /\/$/,
-    ""
-  );
+  return (
+    process.env.PORTERCHAIN_API_INTERNAL_URL ||
+    process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ||
+    "http://localhost:8001"
+  ).replace(/\/$/, "");
 }
 
 async function customerBearer(): Promise<string | null> {

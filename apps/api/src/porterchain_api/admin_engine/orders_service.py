@@ -418,6 +418,40 @@ class AdminOrdersService(OrderPlatformService):
             "amount_cents": invoice.amount_cents,
         }
 
+    def create_return_committed(self, db: Session, settings, order_id: str, *, actor_id: str | None = None) -> dict:
+        """L105: admin Create return books the return pickup (customer -> merchant), as the merchant portal does."""
+        from porterchain_api.merchant_engine import return_service as returns
+        from porterchain_api.merchant_engine.booking_validation import BookingValidationError
+        from porterchain_api.domain.merchant_states import MerchantRole
+        from porterchain_api.merchant_engine.offboard import billing_context
+        from porterchain_api.merchant_engine.rbac import MerchantContext
+        from porterchain_api.merchant_models import Merchant, MerchantUser
+
+        original = db.query(Order).filter(Order.id == order_id).first()
+        if not original:
+            raise LookupError("order_not_found")
+        merchant = db.get(Merchant, original.merchant_id) if original.merchant_id else None
+        if not merchant:
+            raise ValueError("return_requires_merchant: only merchant orders can be returned here")
+        returns.assert_can_open_return(db, original)
+        owner = db.query(MerchantUser).filter(MerchantUser.merchant_id == merchant.id).first()
+        mctx = (
+            MerchantContext(merchant=merchant, user=owner, role=MerchantRole.OWNER)
+            if owner
+            else billing_context(merchant)
+        )
+        key = f"admin-return:{original.id}:{len(returns.open_returns(original)) + 1}"
+        try:
+            order = returns.create_return_order(
+                db, settings, mctx, original,
+                source=returns.SOURCE_PORTAL, idempotency_key=key,
+                extra={"booked_by": "admin", "admin_user_id": actor_id},
+            )
+        except BookingValidationError as exc:
+            raise ValueError(exc.code) from exc
+        db.commit()
+        return returns.return_summary(order)
+
     def resend_receipt_committed(self, db: Session, order_id: str) -> dict:
         from porterchain_api.booking_engine.invoice_service import InvoiceService
 

@@ -260,3 +260,22 @@ def sync_checkout_confirmation(
         status=status,
         confirmation=BookingConfirmationResponse(**_confirmation_service.build_confirmation_response(db, order)),
     )
+
+
+@router.get("/quotes/{quote_id}/pdf")
+def get_quote_pdf(
+    quote_id: str,
+    db: Session = Depends(get_db),
+    lang: str = "en",
+):
+    """Quote PDF for a stored quote (same access as GET /quotes/{id}: the unguessable id)."""
+    from fastapi.responses import Response
+
+    from porterchain_api.reporting.quote_pdf import pdf_for_stored_quote
+
+    quote = _quote_service.get_quote(db, quote_id)
+    if not quote:
+        raise HTTPException(status_code=404, detail="quote_not_found")
+    pdf, name = pdf_for_stored_quote(db, quote, lang=lang)
+    return Response(content=pdf, media_type="application/pdf",
+                    headers={"Content-Disposition": f'attachment; filename="{name}"'})

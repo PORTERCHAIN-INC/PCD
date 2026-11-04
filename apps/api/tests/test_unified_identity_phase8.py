@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 from porterchain_api.auth.identity_fk_backfill import (
     PROFILE_TARGETS,
     BackfillAction,
-    _is_skippable_clerk_id,
+    _is_skippable_idp_id,
     resolve_porterchain_user_id,
 )
 from porterchain_api.admin_models import AdminUser, Driver
@@ -33,12 +33,12 @@ def test_profile_targets_cover_five_tables() -> None:
     }
 
 
-def test_skippable_clerk_ids() -> None:
-    assert _is_skippable_clerk_id(None)
-    assert _is_skippable_clerk_id("")
-    assert _is_skippable_clerk_id("pending:abc")
-    assert _is_skippable_clerk_id("dev_clerk_user")
-    assert not _is_skippable_clerk_id("user_abc")
+def test_skippable_idp_ids() -> None:
+    assert _is_skippable_idp_id(None)
+    assert _is_skippable_idp_id("")
+    assert _is_skippable_idp_id("pending:abc")
+    assert _is_skippable_idp_id("dev_idp_user")
+    assert not _is_skippable_idp_id("user_abc")
 
 
 def test_resolve_via_porterchain_users() -> None:
@@ -71,7 +71,7 @@ def test_resolve_via_identity_link_when_platform_is_pc_user() -> None:
         if model is PorterchainUser:
             def first():
                 # Distinguish auth_subject lookup vs id lookup by inspecting filter args is hard;
-                # use call count: 1st PorterchainUser query = by clerk (miss), 2nd = by id (hit)
+                # use call count: 1st PorterchainUser query = by keycloak (miss), 2nd = by id (hit)
                 n = getattr(query, "_pc_n", 0) + 1
                 query._pc_n = n  # type: ignore[attr-defined]
                 return None if n == 1 else pc

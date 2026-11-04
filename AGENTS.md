@@ -9,7 +9,7 @@ GRAPHIFY CLI          → ARCHITECTURE.md + FastAPI↔PHP map
     │ Steps 2–3
 CODEGRAPH MCP         → Pydantic / ORM / Valhalla / OSRM extract
     │ Steps 4–6
-RIPWIRE CLI           → thin routers, Stripe/Clerk adapters
+RIPWIRE CLI           → thin routers, Stripe/Keycloak adapters
 ```
 
 | Moment                      | Tool                          | Do                                                                             |

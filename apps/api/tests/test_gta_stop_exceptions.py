@@ -180,3 +180,16 @@ def test_dropoff_requires_proof_when_pod_enforced() -> None:
         pytest.raises(PermissionError, match="pod_required"),
     ):
         _assert_dropoff_pod_ready(db, order)
+
+
+def test_dropoff_exception_before_pickup_is_refused() -> None:
+    """Rehearsal bug (a): a never-collected parcel can't fail delivery / go RTS."""
+    import pytest as _pt
+
+    order = _order()
+    order.state = "DRIVER_ASSIGNED"
+    svc = _svc_order(order)
+    with _pt.raises(ValueError, match="pickup_required"):
+        svc.report_exception(
+            MagicMock(), SimpleNamespace(id="drv-1"), "ord-1-dropoff", exception_type="customer_not_available"
+        )

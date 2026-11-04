@@ -11,7 +11,7 @@ function isDevLoginEnabled(): boolean {
   return appEnv === "local" || appEnv === "development";
 }
 
-/** Clerk session, or local email-picker cookie (`pc_driver_dev_id`). */
+/** Keycloak session, or local email-picker cookie (`pc_driver_dev_id`). */
 export async function GET(request: NextRequest) {
   const { userId } = await auth();
   if (userId) {

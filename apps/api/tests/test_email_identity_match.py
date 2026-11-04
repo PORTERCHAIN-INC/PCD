@@ -1,4 +1,4 @@
-"""Email identity match — Clerk verified email must equal system profile email."""
+"""Email identity match — Keycloak verified email must equal system profile email."""
 
 from __future__ import annotations
 
@@ -9,17 +9,17 @@ import pytest
 from porterchain_api.admin_models import AdminUser
 from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.email_identity import (
-    CLERK_EMAIL_REQUIRED,
-    CLERK_EMAIL_UNVERIFIED,
+    IDP_EMAIL_REQUIRED,
+    IDP_EMAIL_UNVERIFIED,
     EMAIL_IDENTITY_MISMATCH,
     delete_email_mismatched_bindings,
     email_from_jwt_payload,
     emails_match,
     enrich_claims_with_verified_email,
     normalize_email,
-    require_system_email_matches_clerk,
-    resolve_verified_clerk_email,
-    verified_primary_email_from_clerk_user,
+    require_system_email_matches_idp,
+    resolve_verified_idp_email,
+    verified_primary_email_from_idp_user,
 )
 from porterchain_api.auth.persona_principal import resolve_persona_principal
 
@@ -30,12 +30,12 @@ def test_normalize_and_match() -> None:
     assert not emails_match("admin@porterchain.com", "ravichauhan7434@gmail.com")
 
 
-def test_require_system_email_matches_clerk() -> None:
-    require_system_email_matches_clerk("a@x.com", "A@x.com")
+def test_require_system_email_matches_idp() -> None:
+    require_system_email_matches_idp("a@x.com", "A@x.com")
     with pytest.raises(PermissionError, match=EMAIL_IDENTITY_MISMATCH):
-        require_system_email_matches_clerk("admin@porterchain.com", "ravichauhan7434@gmail.com")
-    with pytest.raises(PermissionError, match=CLERK_EMAIL_REQUIRED):
-        require_system_email_matches_clerk("admin@porterchain.com", None)
+        require_system_email_matches_idp("admin@porterchain.com", "ravichauhan7434@gmail.com")
+    with pytest.raises(PermissionError, match=IDP_EMAIL_REQUIRED):
+        require_system_email_matches_idp("admin@porterchain.com", None)
 
 
 def test_email_from_jwt_payload_variants() -> None:
@@ -44,7 +44,7 @@ def test_email_from_jwt_payload_variants() -> None:
     assert email_from_jwt_payload({"sub": "user_1"}) is None
 
 
-def test_verified_primary_email_from_clerk_user() -> None:
+def test_verified_primary_email_from_idp_user() -> None:
     verified = {
         "primary_email_address_id": "em_1",
         "email_addresses": [
@@ -55,7 +55,7 @@ def test_verified_primary_email_from_clerk_user() -> None:
             }
         ],
     }
-    assert verified_primary_email_from_clerk_user(verified) == ("owner@pareva.com", None)
+    assert verified_primary_email_from_idp_user(verified) == ("owner@pareva.com", None)
 
     unverified = {
         "primary_email_address_id": "em_1",
@@ -67,13 +67,13 @@ def test_verified_primary_email_from_clerk_user() -> None:
             }
         ],
     }
-    assert verified_primary_email_from_clerk_user(unverified) == (None, CLERK_EMAIL_UNVERIFIED)
+    assert verified_primary_email_from_idp_user(unverified) == (None, IDP_EMAIL_UNVERIFIED)
 
 
-def test_resolve_verified_clerk_email_jwt_wins() -> None:
+def test_resolve_verified_idp_email_jwt_wins() -> None:
     settings = MagicMock()
     assert (
-        resolve_verified_clerk_email(
+        resolve_verified_idp_email(
             jwt_email="Pareva@Gmail.com",
             auth_subject="user_x",
             settings=settings,
@@ -86,7 +86,7 @@ def test_enrich_claims_fetches_backend_when_jwt_omits_email() -> None:
     settings = MagicMock()
     claims = IdentityClaims(auth_subject="user_x", email=None)
     with patch(
-        "porterchain_api.auth.email_identity.resolve_verified_clerk_email",
+        "porterchain_api.auth.email_identity.resolve_verified_idp_email",
         return_value="parevalogistics@gmail.com",
     ):
         enriched = enrich_claims_with_verified_email(claims, settings)
@@ -152,7 +152,7 @@ def test_persona_principal_skips_email_mismatched_admin() -> None:
     assert resolve_persona_principal(db, claims) is None
 
 
-def test_persona_principal_skips_missing_clerk_email() -> None:
+def test_persona_principal_skips_missing_idp_email() -> None:
     from porterchain_api.auth.persona_bundle import PersonaBundle
 
     db = MagicMock()

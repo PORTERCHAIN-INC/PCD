@@ -28,6 +28,12 @@ from porterchain_api.booking_models import Invoice, Order, Payment
 from porterchain_api.merchant_engine import reporting_metrics as report_engine
 
 
+def _late_penalty_fields(db: Session, inv: Any) -> dict[str, Any]:
+    from porterchain_api.billing_engine.late_penalty import penalty_fields
+
+    return penalty_fields(db, inv)
+
+
 class MerchantBillingService:
     def _merchant_order_ids(self, db: Session, merchant_id: str):
         return db.query(Order.id).filter(Order.merchant_id == merchant_id)
@@ -237,7 +243,8 @@ class MerchantBillingService:
         aging = None
         if due:
             due_naive = due.replace(tzinfo=None) if getattr(due, "tzinfo", None) else due
-            due_iso = due_naive.isoformat()
+            # L207: stored as UTC; say so, or browsers read it as local time (4:59 a.m. not 11:59 p.m.).
+            due_iso = due_naive.replace(tzinfo=UTC).isoformat()
             now = datetime.now(UTC).replace(tzinfo=None)
             if status == "overdue" and now > due_naive:
                 aging = aging_bucket(max(0, (now - due_naive).days))
@@ -298,10 +305,12 @@ class MerchantBillingService:
             "amount_cents": int(inv.amount_cents or 0),
             "tax_cents": int(inv.tax_cents or 0),
             "fees_cents": int(inv.fees_cents or 0),
+            **_late_penalty_fields(db, inv),
             "outstanding_cents": outstanding,
             "currency": inv.currency or "cad",
             "created_at": inv.created_at,
             "pdf_url": inv.pdf_url,
+            **_supplier_tax_identity(db, inv),
             "lines": lines,
             "lines_total_cents": line_sum,
             "remittance_memo": getattr(inv, "payment_reference", None) or inv.invoice_number,
@@ -484,3 +493,9 @@ class MerchantBillingService:
 from porterchain_api.admin_models import MerchantContract  # noqa: E402, F401
 from porterchain_api.billing_engine.merchant_service import build_tax_summary  # noqa: E402, F401
 from porterchain_api.billing_engine.merchant_service import rows_to_csv  # noqa: E402, F401
+
+
+def _supplier_tax_identity(db: Session, inv: Any) -> dict[str, Any]:
+    from porterchain_api.booking_engine.invoice_service import supplier_tax_identity
+
+    return supplier_tax_identity(db, inv)

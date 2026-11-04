@@ -3,13 +3,13 @@ import { publicEnv } from "@/lib/env";
 /**
  * Portal link SSOT for the marketing website.
  *
- * Platform Clerk (retail): website `/login` + `/sign-up` for customer + merchant only.
- * Admin → staff IdP at admin portal. Driver → Driver Clerk at driver portal.
+ * Keycloak (retail): website `/login` + `/sign-up` for customer + merchant only.
+ * Admin → staff IdP at admin portal. Driver → Keycloak at driver portal.
  */
 
-/** Platform Clerk sign-in on the public website (customer / merchant). */
+/** Keycloak sign-in on the public website (customer / merchant). */
 export const unifiedSignInPath = "/login";
-/** Platform Clerk open SignUp (customer / merchant). */
+/** Keycloak open SignUp (customer / merchant). */
 export const unifiedSignUpPath = "/sign-up";
 
 /** Retail customer app (:3004) — sole authenticated customer surface. */
@@ -18,7 +18,7 @@ export const customerPortalDashboardUrl = `${publicEnv.customerPortalUrl}/dashbo
 /** Authenticated quote / book surface after Platform sign-up. */
 export const customerPortalBookUrl = `${publicEnv.customerPortalUrl}/book`;
 
-/** Marketing “Get a quote” → Clerk sign-up (then customer portal book). */
+/** Marketing “Get a quote” → Keycloak sign-up (then customer portal book). */
 export function quoteSignUpPath(query?: { from?: string; vehicle?: string; ref?: string }): string {
   const params = new URLSearchParams();
   if (query?.from) params.set("from", query.from);
@@ -29,9 +29,9 @@ export function quoteSignUpPath(query?: { from?: string; vehicle?: string; ref?:
   return q ? `${unifiedSignUpPath}?${q}` : unifiedSignUpPath;
 }
 
-/** Admin staff IdP (not Platform Clerk). */
+/** Admin staff IdP (not Keycloak). */
 export const adminSignInUrl = `${publicEnv.adminPortalUrl}/sign-in`;
-/** Driver Clerk invite-only portal. */
+/** Keycloak invite-only portal. */
 export const driverSignInUrl = `${publicEnv.driverPortalUrl}/login`;
 
 export const merchantPortalUrl = publicEnv.merchantPortalUrl;

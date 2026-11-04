@@ -30,11 +30,21 @@ import { DocumentsPage } from "./DocumentsPage";
 import { SettingsPage } from "./SettingsPage";
 import { AvailabilityPage } from "./AvailabilityPage";
 import { HelpPage } from "./HelpPage";
+import { BatchesPage } from "./BatchesPage";
 import { InboxPage } from "./InboxPage";
 import { PayPage } from "./PayPage";
 import { ProfilePage } from "./ProfilePage";
 
-type Page = null | "settings" | "documents" | "profile" | "pay" | "availability" | "inbox" | "help";
+type Page =
+  | null
+  | "settings"
+  | "documents"
+  | "profile"
+  | "pay"
+  | "availability"
+  | "inbox"
+  | "help"
+  | "batches";
 
 type Props = {
   field: FieldSession;
@@ -177,6 +187,12 @@ export function MeScreen(props: Props) {
           testID="me-settings"
         />
         <Row
+          label="Batches"
+          sub="Bulk pickups, handovers, building drops"
+          onPress={() => setPage("batches")}
+          testID="me-batches"
+        />
+        <Row
           label="Help"
           sub="Dispatch, tickets"
           onPress={() => setPage("help")}
@@ -235,6 +251,7 @@ export function MeScreen(props: Props) {
       <AvailabilityPage visible={page === "availability"} onClose={() => setPage(null)} />
       <InboxPage visible={page === "inbox"} onClose={() => setPage(null)} />
       <HelpPage visible={page === "help"} onClose={() => setPage(null)} />
+      <BatchesPage visible={page === "batches"} onClose={() => setPage(null)} />
       <SettingsPage
         visible={page === "settings"}
         onClose={() => setPage(null)}

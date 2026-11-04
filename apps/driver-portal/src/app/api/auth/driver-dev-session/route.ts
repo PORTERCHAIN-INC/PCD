@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { DRIVER_DEV_COOKIE } from "@/lib/driver-dev-cookie";
 
-const API_BASE = (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localhost:8001").replace(
-  /\/$/,
-  ""
-);
+const API_BASE = (
+  process.env.PORTERCHAIN_API_INTERNAL_URL ??
+  process.env.PORTERCHAIN_API_URL ??
+  process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ??
+  "http://localhost:8001"
+).replace(/\/$/, "");
 
 function isDevLoginEnabled(): boolean {
   if (process.env.NEXT_PUBLIC_DRIVER_DEV_LOGIN === "false") return false;

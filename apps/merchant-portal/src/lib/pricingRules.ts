@@ -26,7 +26,7 @@ export const PRICING_RULES: { title: string; body: string }[] = [
   },
   {
     title: "Driver safety",
-    body: 'Drivers lift each box on its own: a box over 50 lb is flagged for two-person handling, and a box over 65 lb or 36" × 36" needs handling equipment at pickup (Term 05). This does not change the price.',
+    body: 'Drivers lift each box on its own: a box over 50 lb is flagged for dolly handling (one driver), and a box over 65 lb or 36" × 36" needs handling equipment at pickup (Term 05). This does not change the price.',
   },
 ];
 

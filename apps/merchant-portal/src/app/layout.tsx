@@ -9,6 +9,7 @@ import MerchantQueryProvider from "@/components/providers/MerchantQueryProvider"
 import { publicEnv } from "@/lib/env";
 import { merchantOrgId, merchantServerFetch } from "@/lib/server-api";
 import SignupAttributionCapture from "@/components/SignupAttributionCapture";
+import { I18N_HEAD_SCRIPT, I18nRoot } from "@/i18n/I18nRoot";
 import "./globals.css";
 
 const brand = Carlito({
@@ -25,7 +26,9 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const initialOrgId = (await merchantOrgId()) ?? undefined;
-  const impersonating = (await cookies()).get(PC_IMP_FLAG)?.value === "1";
+  const jar = await cookies();
+  const impersonating = jar.get(PC_IMP_FLAG)?.value === "1";
+  const uiFr = jar.get("pc_locale")?.value === "fr";
   const client = new QueryClient();
   if (initialOrgId && !impersonating) {
     const inbox = await merchantServerFetch<unknown>(
@@ -36,25 +39,31 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
   return (
     <html
-      lang="en"
+      lang={uiFr ? "fr-CA" : "en"}
+      {...(uiFr ? { "data-i18n-pending": "" } : {})}
       className={brand.variable}
       suppressHydrationWarning
       style={{ colorScheme: "light" }}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: I18N_HEAD_SCRIPT }} />
+      </head>
       <body className={`${brand.className} min-h-dvh bg-gray-bg text-primary antialiased`}>
-        <AppAuthProvider>
-          <MerchantAuthProvider initialOrgId={initialOrgId}>
-            <MerchantQueryProvider>
-              <HydrationBoundary state={dehydrate(client)}>
-                <SessionContextProvider>
-                  <SignupAttributionCapture />
-                  <ImpersonationBanner portal="merchant" active={impersonating} />
-                  {children}
-                </SessionContextProvider>
-              </HydrationBoundary>
-            </MerchantQueryProvider>
-          </MerchantAuthProvider>
-        </AppAuthProvider>
+        <I18nRoot>
+          <AppAuthProvider>
+            <MerchantAuthProvider initialOrgId={initialOrgId}>
+              <MerchantQueryProvider>
+                <HydrationBoundary state={dehydrate(client)}>
+                  <SessionContextProvider>
+                    <SignupAttributionCapture />
+                    <ImpersonationBanner portal="merchant" active={impersonating} />
+                    {children}
+                  </SessionContextProvider>
+                </HydrationBoundary>
+              </MerchantQueryProvider>
+            </MerchantAuthProvider>
+          </AppAuthProvider>
+        </I18nRoot>
       </body>
     </html>
   );

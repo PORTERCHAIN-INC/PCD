@@ -20,7 +20,7 @@ from porterchain_api.merchant_models import Merchant, MerchantUser
 from porterchain_api.user_models import PorterchainUser as _PorterchainUser  # noqa: F401
 
 DEV_ORG = "dev_merchant_org"
-DEV_CLERK_USER = "dev_merchant_user"
+DEV_IDP_USER = "dev_merchant_user"
 DEV_MERCHANT_EMAIL = "merchant@porterchain.com"
 
 SEED_COMPLIANCE_DOCS = {
@@ -125,13 +125,13 @@ def _ensure_merchant_user(db, merchant: Merchant) -> MerchantUser:
     user = (
         db.query(MerchantUser)
         .filter(
-            MerchantUser.auth_subject.in_((DEV_CLERK_USER, "dev_clerk_user")),
+            MerchantUser.auth_subject.in_((DEV_IDP_USER, "dev_idp_user")),
             MerchantUser.merchant_id == merchant.id,
         )
         .first()
     )
     if user:
-        user.auth_subject = DEV_CLERK_USER
+        user.auth_subject = DEV_IDP_USER
         user.email = DEV_MERCHANT_EMAIL
         user.merchant_id = merchant.id
         user.role = "merchant_owner"
@@ -141,7 +141,7 @@ def _ensure_merchant_user(db, merchant: Merchant) -> MerchantUser:
         return user
     user = MerchantUser(
         merchant_id=merchant.id,
-        auth_subject=DEV_CLERK_USER,
+        auth_subject=DEV_IDP_USER,
         email=DEV_MERCHANT_EMAIL,
         role="merchant_owner",
     )
@@ -203,7 +203,7 @@ def main() -> None:
         print()
         print("MERCHANT PORTAL (http://localhost:3001)")
         print("  Dev mode: open /dashboard directly — no password")
-        print("  Clerk mode: sign in at /sign-in, org auto: dev_merchant_org")
+        print("  Keycloak mode: sign in at /sign-in, org auto: dev_merchant_org")
         print(f"  Merchant ID: {merchant.id}")
         print(f"  Org ID:      {DEV_ORG}")
         print(f"  User email:  {user.email}")

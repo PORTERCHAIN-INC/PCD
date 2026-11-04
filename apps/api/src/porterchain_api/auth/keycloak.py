@@ -109,7 +109,7 @@ def claims_from_keycloak_payload(payload: dict[str, Any]) -> IdentityClaims:
         org_role=None,
         public_metadata=metadata,
         session_id=payload.get("sid"),
-        clerk_app=CLIENT_PORTAL.get(azp or ""),
+        idp_app=CLIENT_PORTAL.get(azp or ""),
         issuer=str(payload["iss"]) if payload.get("iss") else None,
         authorized_party=azp,
         auth_time=int(payload["auth_time"]) if payload.get("auth_time") is not None else None,

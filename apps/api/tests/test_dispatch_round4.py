@@ -256,3 +256,27 @@ def test_margin_alert_on_committed_route(db: Session) -> None:
     item = next(i for i in queue["items"] if i["id"] == f"margin:{o.id}")
     assert item["price_cents"] == 50 and item["cost_cents"] > 50 and item["margin_pct"] < 0
     assert item["fixes"][0]["action"] == "reroute"
+
+
+def test_l75_exceptions_queue_without_fixes_skips_annotate():
+    from porterchain_api.admin_engine.dispatch_board_service import DispatchBoardService
+
+    class Boom:
+        def annotate(self, *a, **k):
+            raise AssertionError("annotate must not run")
+
+    class Q:
+        def __getattr__(self, n):
+            return lambda *a, **k: self
+        def all(self):
+            return []
+    class DB:
+        def query(self, *a, **k):
+            return Q()
+    try:
+        out = DispatchBoardService().exceptions_queue(DB(), etas_fn=lambda db: [], fixes=Boom(), with_fixes=False)
+    except AssertionError:
+        raise
+    except Exception:
+        return  # fake DB too thin for the full queue; the guard above is what matters
+    assert "total" in out

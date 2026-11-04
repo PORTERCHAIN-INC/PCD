@@ -3,12 +3,14 @@
  * Establishes / clears the HttpOnly impersonation cookie used by the portal BFFs.
  * Uses the Web Response API so this package does not depend on `next`.
  */
+import { cookieSecure } from "./cookieSecure";
 import { PC_IMP_COOKIE } from "./impersonation";
 
-const API_BASE = (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localhost:8001").replace(
-  /\/$/,
-  ""
-);
+const API_BASE = (
+  (typeof window === "undefined" ? process.env.PORTERCHAIN_API_INTERNAL_URL : undefined) ||
+  process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ||
+  "http://localhost:8001"
+).replace(/\/$/, "");
 
 function setCookie(token: string, maxAge: number): string {
   const parts = [
@@ -18,7 +20,7 @@ function setCookie(token: string, maxAge: number): string {
     "HttpOnly",
     "SameSite=Lax",
   ];
-  if (process.env.NODE_ENV === "production") parts.push("Secure");
+  if (cookieSecure()) parts.push("Secure");
   return parts.join("; ");
 }
 

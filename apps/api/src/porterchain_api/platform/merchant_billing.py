@@ -26,7 +26,7 @@ def order_tax_split(db: Session, order: Any) -> Any:
 
 
 def charged_tax_split(db: Session, order: Any, charged_cents: int) -> Any:
-    """Tax contained in an amount already charged (Stripe)."""
+    """Tax contained in an amount already charged (tax-inclusive total)."""
     from porterchain_api.billing_engine.tax import charged_tax_split as _f
 
     return _f(db, order, charged_cents)

@@ -59,6 +59,10 @@ export type DateTimePickerSeparateProps = {
   maxTime?: string;
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   disabledDates?: (date: Date) => boolean;
+  /** Reporting periods: past times are valid (booking pickers keep them blocked). */
+  allowPast?: boolean;
+  /** Initial time when no value, as [hours, minutes] (default 9:00). */
+  defaultTime?: [number, number];
   name?: string;
   className?: string;
 };
@@ -228,6 +232,8 @@ export const DateTimePickerSeparate = forwardRef(function DateTimePickerSeparate
     maxTime,
     weekStartsOn = 0,
     disabledDates: disabledDatesFn,
+    allowPast = false,
+    defaultTime,
     name,
     className,
   }: DateTimePickerSeparateProps,
@@ -248,7 +254,7 @@ export const DateTimePickerSeparate = forwardRef(function DateTimePickerSeparate
   const [time, setTime] = useState(() =>
     value
       ? formatTime(value.getHours(), value.getMinutes(), hourFormat)
-      : formatTime(9, 0, hourFormat)
+      : formatTime(defaultTime?.[0] ?? 9, defaultTime?.[1] ?? 0, hourFormat)
   );
   const [selectedTimezone, setSelectedTimezone] = useState(timezone ?? "America/Toronto");
 
@@ -310,6 +316,7 @@ export const DateTimePickerSeparate = forwardRef(function DateTimePickerSeparate
   }, [timeOpen, time, timeSlots]);
 
   const isTimePast = (timeValue: string): boolean => {
+    if (allowPast) return false;
     const dateToCheck = selectedDate || new Date();
     const now = new Date();
     if (!isSameDay(dateToCheck, now)) return false;

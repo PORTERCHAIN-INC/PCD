@@ -30,7 +30,7 @@ def test_company_status_words_are_english() -> None:
 
 def test_onboarding_and_seat_words() -> None:
     assert onboarding_phase_label("needs_invite") == "Needs invite"
-    assert onboarding_phase_label("awaiting_clerk") == "Awaiting sign-in"
+    assert onboarding_phase_label("awaiting_idp") == "Awaiting sign-in"
     assert onboarding_phase_label("needs_approval") == "Needs approval"
     assert seat_status_label("pending") == "Pending"
     assert seat_status_label("active") == "Active"
@@ -57,7 +57,7 @@ def test_onboarding_payload_uses_same_words(db, settings, merchant_ctx) -> None:
     claims = IdentityClaims(
         auth_subject=merchant_ctx.user.auth_subject,
         email=merchant_ctx.user.email,
-        clerk_app="merchant",
+        idp_app="merchant",
     )
     settings.auth_dev_bypass = False
     result = evaluate_merchant_onboarding(db, claims, settings=settings)

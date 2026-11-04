@@ -35,13 +35,237 @@ class SmartAwarePricingService(PricingService):
     def calculate_merchant_legacy(self, request: PricingRequest) -> PriceBreakdown:
         return super().calculate_merchant(request)
 
+    def _standard_live(self) -> bool:
+        from porterchain_api.config import get_settings
+
+        return bool(get_settings().pricing_standard_card_live)
+
+    def calculate_retail(self, request: PricingRequest) -> PriceBreakdown:
+        # Ravi 2026-10-31: customers get the parcel model only ($6/$9 + size/weight table).
+        # Whole-vehicle hourly is merchants only, so a customer vehicle request is priced as parcels.
+        from porterchain_pricing.three_models import parcel_price
+
+        return _stamp(self._db, _hst_on(request, parcel_price(request), self._db))
+
     def calculate_merchant(self, request: PricingRequest) -> PriceBreakdown:
+        # Model 3: an admin-set merchant price (pricing_config, contract schedule, custom org card) wins.
+        if _has_custom_pricing(self._db, request.merchant_id):
+            from porterchain_api.pricing_engine.standard_live import org_id_for_merchant, org_pricing
+
+            org_id = org_id_for_merchant(self._db, request.merchant_id)
+            org = org_pricing(self._db, org_id)
+            if org is not None:  # admin custom org price on top of models 1/2
+                return _stamp(self._db, _hst_on(request, _org_custom(request, org, org_id), self._db))
+            return _vehicle_hst(request, PricingService.calculate_merchant(self, request), self._db)
+        from porterchain_pricing.three_models import hourly_price, parcel_price
+
+        if getattr(request, "booking_mode", "parcels") == "vehicle":
+            return _stamp(self._db, _hst_on(request, hourly_price(request), self._db))  # model 2
+        return _stamp(self._db, _hst_on(request, parcel_price(request), self._db))  # model 1
+
+    def _retail(self, request: PricingRequest) -> PriceBreakdown:
+        if self._standard_live():
+            from porterchain_api.pricing_engine.standard_live import standard_breakdown
+
+            bd = standard_breakdown(self._db, request)
+            if bd is not None:
+                return bd
+        return super().calculate_retail(request)
+
+    def _merchant(self, request: PricingRequest) -> PriceBreakdown:
+        if self._standard_live():
+            from porterchain_api.pricing_engine.standard_live import standard_breakdown
+
+            bd = standard_breakdown(self._db, request)
+            if bd is not None:
+                return bd
         base = super().calculate_merchant(request)
         try:
             return apply_smart(self._db, request, base)
         except Exception:  # noqa: BLE001 - never break booking on the new engine
             logger.exception("smart route pricing failed; using existing price")
             return base
+
+
+def _org_custom(request: PricingRequest, org: Any, org_id: str | None) -> PriceBreakdown:
+    """Model 3 (admin custom merchant price): a flat price per stop, else a % on the model 1/2 price."""
+    from porterchain_pricing.three_models import hourly_price, parcel_price
+    from porterchain_pricing.types import PriceLineItem
+
+    vehicle = getattr(request, "booking_mode", "parcels") == "vehicle"
+    base = hourly_price(request) if vehicle else parcel_price(request)
+    meta = {**(base.metadata or {})}
+    if meta.get("custom_quote"):
+        return base
+    flat = getattr(org, "flat_parcel_cents", None)
+    if flat and not vehicle:
+        # Flat price per parcel, any size (no $6/$9 split, no handling tiers). % / per-stop do not stack on it.
+        n = int(meta.get("small_parcels") or 0) + int(meta.get("van_parcels") or 0) or 1
+        bd = PriceBreakdown(
+            items=[PriceLineItem(code="custom_flat_parcel", label=f"Custom price x{n} (${flat / 100:.2f} per parcel)",
+                                 amount_cents=int(flat) * n)],
+            currency="CAD",
+            metadata={**meta, "pricing": "custom_org", "price_rule": "custom_flat_parcel", "base_model": meta.get("pricing"),
+                      "org_id": org_id, "flat_parcel_cents": int(flat)},
+        )
+        bd.finalize()
+        bd.base_cents = bd.subtotal_cents
+        return bd
+    per_stop = getattr(org, "preset_per_stop_cents", None)
+    pct = getattr(org, "preset_pct", None)
+    items = list(base.items)
+    rule = "custom_org"
+    if pct:
+        adj = int(round(base.subtotal_cents * float(pct) / 100))
+        items.append(PriceLineItem(code="custom_adjustment", label=f"Custom contract price ({float(pct):+g}%)", amount_cents=adj))
+    if per_stop:
+        stops = 1 + len(request.additional_stops or [])
+        sign = "+" if per_stop > 0 else "-"
+        items.append(PriceLineItem(code="custom_per_stop", label=f"Custom contract per stop x{stops} ({sign}${abs(per_stop) / 100:.2f} each)",
+                                   amount_cents=int(per_stop) * stops))
+    bd = PriceBreakdown(items=items, currency="CAD", metadata={**meta, "pricing": "custom_org", "price_rule": rule,
+                                                                "base_model": meta.get("pricing"), "org_id": org_id})
+    bd.finalize()
+    bd.base_cents = bd.subtotal_cents
+    return bd
+
+
+def three_model_preview(org: Any) -> list[dict[str, Any]]:
+    """Admin org pricing preview on the 2026-10-31 models (standard vs this org's custom price)."""
+    from porterchain_pricing import GeoPoint
+    from porterchain_pricing.three_models import hourly_price, parcel_price
+
+    def req(**kw: Any) -> PricingRequest:
+        return PricingRequest(pickup=GeoPoint(lat=43.65, lng=-79.38), dropoff=GeoPoint(lat=43.7, lng=-79.4),
+                              vehicle_class=kw.pop("vehicle_class", "cargo_van"), channel="merchant", **kw)
+
+    samples = {
+        "small_parcel_(fits_20x14x14_in)": req(weight_kg=4, dimensions={"length": 40, "width": 30, "height": 20}),
+        "van_parcel": req(weight_kg=20, dimensions={"length": 70, "width": 45, "height": 40}),
+        "handling_+30_(101-125_lb)": req(weight_kg=52, dimensions={"length": 70, "width": 45, "height": 40}),
+        "cargo_van_3_h": req(booking_mode="vehicle", dedicated_hours=3),
+        "16_ft_box_4_h": req(booking_mode="vehicle", dedicated_hours=4, vehicle_class="box_16"),
+    }
+    rows = []
+    for name, r in samples.items():
+        std = (hourly_price(r) if r.booking_mode == "vehicle" else parcel_price(r)).subtotal_cents
+        cus = _org_custom(r, org, None).subtotal_cents if getattr(org, "mode", "standard") == "custom" else std
+        rows.append({"sample": name, "standard_cents": std, "custom_cents": cus, "hst_cents": int(round(cus * 0.13))})
+    return rows
+
+
+def _stamp(db: Session, bd: PriceBreakdown) -> PriceBreakdown:
+    """Every quote carries the admin price version (audit trail), same as the legacy engine."""
+    try:
+        from porterchain_api.pricing_engine.repository import current_price_version
+
+        bd.metadata = {**(bd.metadata or {}), "price_version": current_price_version(db)}
+    except Exception:  # noqa: BLE001
+        logger.exception("price version lookup failed")
+    return bd
+
+
+def _has_custom_pricing(db: Session, merchant_id: str | None) -> bool:
+    """A merchant with its own negotiated pricing (pricing_config rate card / price book, or a
+    custom org card) keeps it; the class-rate floor is for standard-priced merchants only."""
+    if not merchant_id or db is None:
+        return False
+    try:
+        from porterchain_api.merchant_models import Merchant
+        from porterchain_api.pricing_engine.standard_live import org_id_for_merchant, org_pricing
+
+        m = db.get(Merchant, merchant_id)
+        if m is not None and (m.pricing_config or {}):
+            return True
+        return org_pricing(db, org_id_for_merchant(db, merchant_id)) is not None
+    except Exception:  # noqa: BLE001
+        logger.exception("custom pricing lookup failed")
+        return False
+
+
+def apply_vehicle_class_rate(request: PricingRequest, bd: PriceBreakdown) -> PriceBreakdown:
+    """Merchant-channel parcel minimum (merchant portal, admin New order, API).
+    Ravi 2026-10-31 correction (replaces L85/L92 class-rate floor): price = max(quote, minimum),
+    minimum $6 for a small parcel (fits 20x14x14 in) and $9 for anything larger (van).
+    Whole-vehicle bookings keep the gta_rate matrix; manual/refused quotes and contracts are untouched."""
+    from porterchain_pricing.vehicle_class_rate import parcel_minimum_cents
+
+    if not isinstance(bd, PriceBreakdown) or getattr(request, "booking_mode", "parcels") == "vehicle":
+        return bd
+    meta = bd.metadata or {}
+    if meta.get("manual_quote") or meta.get("fsa_refused") or bd.contract_id or meta.get("contract_id"):
+        return bd
+    # Ravi 2026-10-31 correction: the vehicle class (e.g. the cargo-van merchant default) no longer
+    # sets the floor. Small parcel (fits 20x14x14 in) minimum $6, anything larger van minimum $9.
+    rate, size_class = parcel_minimum_cents(request)
+    meta.update({"parcel_minimum_cents": rate, "parcel_size_class": size_class})
+    bd.metadata = meta
+    from porterchain_pricing.standard_card import STANDARD_V1_LINES, _hst
+
+    if bd.subtotal_cents >= rate:
+        meta.setdefault("price_rule", "parcel_card")
+        return bd
+    top_up = rate - int(bd.subtotal_cents)
+    label = "Small parcel minimum" if size_class == "small_parcel" else "Van minimum"
+    bd.items.append(PriceLineItem(code="parcel_minimum", label=label, amount_cents=top_up))
+    meta["price_rule"] = f"{size_class}_minimum"
+    hst_rate = float(STANDARD_V1_LINES["hst_rate"]) if bd.tax_cents else 0.0
+    bd.subtotal_cents = rate
+    bd.tax_cents = _hst(rate, hst_rate) if hst_rate else 0
+    bd.final_cents = rate + bd.tax_cents
+    return bd
+
+
+def _exempt_merchant_ids(db: Session | None) -> set[str]:
+    """pricing_tax.exempt_merchant_ids (same list TaxCalculator honours). Read even when collects_tax is off."""
+    if db is None:
+        return set()
+    try:
+        from porterchain_api.admin_models import SystemConfig
+
+        row = db.query(SystemConfig).filter(SystemConfig.key == "pricing_tax").first()
+    except Exception:  # noqa: BLE001 - missing table in minimal test DBs
+        db.rollback()
+        return set()
+    ids = (row.value or {}).get("exempt_merchant_ids") if row else None
+    return {str(i) for i in ids or []}
+
+
+def _vehicle_hst(request: PricingRequest, bd: PriceBreakdown, db: Session | None = None) -> PriceBreakdown:
+    """Doc 72: whole-vehicle (gta_rate card) quotes carry the same 13 % HST as the Standard card.
+    Only fills HST when the legacy engine left it at 0 (no double tax if system_config sets hst_percent)."""
+    if not isinstance(bd, PriceBreakdown):  # stubs / non-standard engines: leave untouched
+        return bd
+    if getattr(request, "booking_mode", "parcels") != "vehicle" or bd.tax_cents or bd.subtotal_cents <= 0:
+        return bd
+    if (bd.metadata or {}).get("tax_exempt"):
+        return bd
+    mid = getattr(request, "merchant_id", None)
+    if mid and str(mid) in _exempt_merchant_ids(db):
+        bd.metadata["hst_source"] = "exempt_merchant"
+        return bd
+    from porterchain_pricing.standard_card import STANDARD_V1_LINES, _hst
+
+    bd.tax_cents = _hst(int(bd.subtotal_cents), float(STANDARD_V1_LINES["hst_rate"]))
+    bd.final_cents = bd.subtotal_cents + bd.tax_cents
+    bd.metadata["hst_source"] = "doc72_standard_rate"
+    return bd
+
+
+def _hst_on(request: PricingRequest, bd: PriceBreakdown, db: Session | None = None) -> PriceBreakdown:
+    """13 % Ontario HST on top of the three-model prices (all quoted before HST); exempt merchants skipped."""
+    if (bd.metadata or {}).get("custom_quote") or bd.subtotal_cents <= 0:
+        return bd
+    mid = getattr(request, "merchant_id", None)
+    if mid and str(mid) in _exempt_merchant_ids(db):
+        bd.metadata["hst_source"] = "exempt_merchant"
+        return bd
+    from porterchain_pricing.standard_card import _hst
+
+    bd.tax_cents = _hst(int(bd.subtotal_cents), 0.13)
+    bd.final_cents = bd.subtotal_cents + bd.tax_cents
+    bd.metadata["hst_source"] = "on_13"
+    return bd
 
 
 def _points(request: PricingRequest) -> tuple[list[Any], list[Any]] | None:

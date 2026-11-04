@@ -72,7 +72,23 @@ test("?app= picks a listed custom-distribution key, anything else falls back", (
 });
 
 test("linked view explains how the checkout rate is priced and links the rules", () => {
-  assert.match(html, /How your checkout rate is worked out/);
-  assert.match(html, /Boxes of the same item are combined into one parcel/);
-  assert.match(html, /\/pricing\/how-we-price/);
+  assert.match(html, /How your delivery price is worked out/);
+  assert.match(html, /CA\$6 for a small parcel or CA\$9 for a van-size parcel/);
+  // review: no link to a page behind the PorterChain login from inside Shopify admin
+  assert.doesNotMatch(html, /\/pricing\/how-we-price/);
+});
+
+test("139170: no off-platform payment wording; Shopify billing approval + orders list", () => {
+  assert.doesNotMatch(html, /Interac|e-Transfer|invoiced monthly|Invoices are emailed/i);
+  assert.match(html, /Review and approve plan/);
+  assert.match(html, /Booking is blocked/);
+  assert.match(html, /\/v1\/integrations\/shopify\/orders/);
+  assert.match(html, /Book with PorterChain/);
+});
+
+test("139170 1.2.3: merchant can change the spending limit in the app; table scrolls on mobile", () => {
+  assert.match(html, /\/v1\/integrations\/shopify\/billing\/cap/);
+  assert.match(html, /Change limit/);
+  assert.match(html, /Booking is paused/);
+  assert.match(html, /overflow-x:auto/);
 });

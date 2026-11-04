@@ -48,6 +48,8 @@ export interface CustomerInvoiceLine {
 }
 
 export interface CustomerInvoiceDetail extends CustomerInvoiceSummary {
+  supplier_legal_name?: string | null;
+  supplier_gst_hst_number?: string | null;
   receipt_number?: string | null;
   tax_cents: number;
   fees_cents: number;

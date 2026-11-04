@@ -36,10 +36,10 @@ def _pricing() -> WebsitePricingSnapshot:
 
 def test_settings_all_platform_user_types(db, settings) -> None:
     svc = AdminSettingsService()
-    # Staff is Staff IdP — no Clerk fetch.
+    # Staff is Staff IdP — no Keycloak fetch.
     staff_resp = svc.list_platform_users(db, settings, "staff", limit=5)
     assert staff_resp.total >= 0
-    assert staff_resp.clerk_synced is False
+    assert staff_resp.idp_synced is False
     for user_type in ("merchant", "driver", "customer"):
         with patch("porterchain_api.admin_engine.settings_service.fetch_directory_snapshots", return_value={}):
             resp = svc.list_platform_users(db, settings, user_type, limit=5)
@@ -101,7 +101,7 @@ def test_booking_quote_customer_payment_tracking(db, settings) -> None:
     )
     customer = CustomerService().upsert(
         db,
-        auth_subject="clerk_cov_test",
+        auth_subject="idp_cov_test",
         email="cov@test.porterchain.com",
         phone="+1 416-555-0111",
         visitor_session_id=session,
@@ -152,5 +152,5 @@ def test_notification_delivery(monkeypatch) -> None:
     assert log.status == "deferred"
 
 
-def test_user_sync_get_by_clerk(db) -> None:
-    assert UserSyncService().get_by_subject(db, "missing-clerk-id") is None
+def test_user_sync_get_by_idp(db) -> None:
+    assert UserSyncService().get_by_subject(db, "missing-keycloak-id") is None

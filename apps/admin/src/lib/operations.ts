@@ -221,12 +221,12 @@ export type AiOps = {
   risk_orders: OpsOrder[];
   suggested_drivers: AssignableDriver[];
   recommendation: string;
-  /** NVIDIA NIM health (ops LLM — not on pay path). */
+  /** LLM gate status (FEATURE_AI off in Phase 0; not on pay path). */
   llm?: {
     configured: boolean;
     provider: string;
-    model: string;
-    api_base: string;
+    model: string | null;
+    feature_ai?: boolean;
     circuit_open: boolean;
     fail_streak: number;
   };

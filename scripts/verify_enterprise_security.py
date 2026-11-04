@@ -88,10 +88,12 @@ def main() -> int:
         failures.append("event catalog missing PRIVACY_DELETE_REQUESTED")
 
     deploy = PATHS["deploy workflow"].read_text(encoding="utf-8")
-    if "DOPPLER_TOKEN" not in deploy or "sync-secrets.sh" not in deploy:
-        failures.append("deploy.yml missing Doppler sync-secrets path (§11.1.14)")
-    if 'echo "::error::DOPPLER_TOKEN is required' not in deploy:
-        failures.append("deploy.yml must fail when DOPPLER_TOKEN missing")
+    if "stage-sops-env" not in deploy or "sync-secrets.sh" not in deploy:
+        failures.append("deploy.yml missing SOPS sync-secrets path (§11.1.14, doc 37)")
+    if 'echo "::error::SOPS_AGE_KEY is required' not in deploy:
+        failures.append("deploy.yml must fail when SOPS_AGE_KEY missing")
+    if "DOPPLER" in deploy.upper():
+        failures.append("deploy.yml still references Doppler (retired, doc 37)")
 
     compose = PATHS["prod compose"].read_text(encoding="utf-8")
     if "JWT_SECRET: ${JWT_SECRET}" not in compose:

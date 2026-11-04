@@ -11,6 +11,24 @@ from porterchain_api.booking_models import Customer, Payment, Quote
 from porterchain_api.services.stripe_service import create_checkout_session
 
 
+def _is_merchant_quote(db: Session, quote: Quote) -> bool:
+    from porterchain_api.booking_models import Invoice, Order
+
+    if not getattr(quote, "id", None):
+        return False
+    order = db.query(Order).filter(Order.quote_id == quote.id).first()
+    if order is None:
+        return False
+    if order.merchant_id:
+        return True
+    return (
+        db.query(Invoice.id)
+        .filter(Invoice.order_id == order.id, Invoice.merchant_id.isnot(None))
+        .first()
+        is not None
+    )
+
+
 class PaymentService:
     def __init__(self) -> None:
         self._drafts = BookingDraftService()
@@ -28,6 +46,9 @@ class PaymentService:
 
         from porterchain_api.platform.invoice_checkout import checkout_amount_cents
 
+        if _is_merchant_quote(db, quote):
+            # G11 (doc 60 R9): merchants pay by Interac e-Transfer only; card checkout is retail.
+            raise ValueError("merchant_pays_by_interac")
         quote = revalidate_quote_for_payment(db, quote)
         # Once an invoice exists (e.g. credited before payment) charge its balance, not the quote.
         charge_cents = checkout_amount_cents(db, quote)
@@ -83,11 +104,9 @@ class PaymentService:
                 payment_method="promo",
                 transaction_id=f"promo_free_{payment.id}",
             )
-            success_base = (
-                settings.customer_checkout_success_url
-                if checkout_channel == "customer"
-                else settings.retail_checkout_success_url
-            )
+            from porterchain_api.services.stripe_service import checkout_success_base
+
+            success_base = checkout_success_base(settings, checkout_channel)
             checkout_url = f"{success_base}?quote_id={quote.id}&free=1"
             db.commit()
             db.refresh(payment)
@@ -228,7 +247,7 @@ class PaymentService:
             db.commit()
         return self.start_payment(db, settings, quote, customer, checkout_channel=checkout_channel)
 
-    def retry_payment_for_clerk(
+    def retry_payment_for_idp(
         self,
         db: Session,
         settings: Settings,

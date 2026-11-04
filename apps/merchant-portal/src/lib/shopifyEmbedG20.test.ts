@@ -13,10 +13,10 @@ const g20 = embeddedAppHtml({
   autoProvision: true,
 });
 
-test("A-SHR-01: no sign-in, Clerk, OTP or CAPTCHA anywhere in the embedded page", () => {
+test("A-SHR-01: no sign-in, Keycloak, OTP or CAPTCHA anywhere in the embedded page", () => {
   assert.doesNotMatch(
     g20,
-    /clerk|captcha|turnstile|one-time code|verification code|\/sign-in|\/sign-up/i
+    /keycloak|captcha|turnstile|one-time code|verification code|\/sign-in|\/sign-up/i
   );
   assert.doesNotMatch(g20, /sign in to the PorterChain portal/i);
 });

@@ -35,7 +35,7 @@ class CurrentPrincipal:
     organization_ids: frozenset[str] = field(default_factory=frozenset)
     auth_subject: str | None = None
     auth_issuer: str | None = None
-    auth_provider: str = "clerk"
+    auth_provider: str = "keycloak"
     legacy_profile_ids: dict[str, str] = field(default_factory=dict)
 
     def is_active(self) -> bool:

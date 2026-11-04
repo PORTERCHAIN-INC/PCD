@@ -1,3 +1,4 @@
+import { uuid } from "@/lib/uuid";
 import { driverApi } from "@/lib/api";
 
 const LOCAL_QUEUE_KEY = "porterchain_driver_offline_queue";
@@ -30,7 +31,7 @@ export function enqueueOfflineAction(action_type: string, payload: Record<string
   queue.push({
     action_type,
     payload,
-    client_id: crypto.randomUUID(),
+    client_id: uuid(),
     created_at: new Date().toISOString(),
   });
   writeQueue(queue);

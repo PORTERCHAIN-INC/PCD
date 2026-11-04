@@ -25,8 +25,8 @@ const COPY: Record<string, string> = {
   driver_not_found: "No driver profile is linked to this sign-in. Call dispatch.",
   driver_not_active: "This driver account is not active yet. Call dispatch.",
   email_identity_mismatch: "This email does not match your driver profile. Call dispatch.",
-  clerk_email_required: "Add a verified email to your account, then try again.",
-  clerk_email_unverified: "Verify your email, then try again.",
+  idp_email_required: "Add a verified email to your account, then try again.",
+  idp_email_unverified: "Verify your email, then try again.",
   sign_in_failed: "Sign-in failed. Try again.",
   // network
   network_unavailable: "No connection. Try again when you have signal.",
@@ -60,8 +60,8 @@ const SWITCH_ACCOUNT_CODES = [
   "driver_not_active",
   "driver_suspended",
   "email_identity_mismatch",
-  "clerk_email_required",
-  "clerk_email_unverified",
+  "idp_email_required",
+  "idp_email_unverified",
 ];
 
 /** True when the sign-in worked but this account cannot use the driver app: offer Sign out. */

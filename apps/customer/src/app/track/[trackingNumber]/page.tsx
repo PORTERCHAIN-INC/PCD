@@ -1,4 +1,6 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { readLocaleCookie } from "@/i18n/core";
 import { publicEnv } from "@/lib/env";
 import { customerServerFetch } from "@/lib/server-api";
 
@@ -15,9 +17,10 @@ export default async function TrackOrderRedirect({
   const signed = await customerServerFetch<{ url?: string }>(
     `/v1/customers/me/track-link/${encodeURIComponent(trackingNumber)}`
   );
+  const locale = readLocaleCookie((await cookies()).toString());
   const url =
     signed?.url && signed.url.startsWith(publicEnv.websiteUrl)
       ? signed.url
-      : `${publicEnv.websiteUrl}/en/track/${encodeURIComponent(trackingNumber)}`;
+      : `${publicEnv.websiteUrl}/${locale}/track/${encodeURIComponent(trackingNumber)}`;
   redirect(url);
 }

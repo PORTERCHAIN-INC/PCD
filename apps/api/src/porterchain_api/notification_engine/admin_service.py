@@ -129,13 +129,13 @@ class NotificationAdminService:
         issues: list[str] = []
         if not push_enabled:
             tone = "warn"
-            issues.append("Push disabled (PORTERCHAIN_PUSH_ENABLED)")
+            issues.append("Push notifications are turned off on the server")
         elif not creds_ok:
             tone = "warn" if settings.app_env in ("local", "development", "test") else "danger"
             issues.append(reason or "FCM credentials missing — push is log-only")
         elif not push_send:
             tone = "warn"
-            issues.append("Push dry-run (PORTERCHAIN_PUSH_SEND=false)")
+            issues.append("Push notifications are in test mode and are not delivered")
         if admin_users_with_devices == 0:
             tone = "danger" if tone != "ok" else "warn"
             issues.append("No admin browsers registered — staff risk alerts email-only")

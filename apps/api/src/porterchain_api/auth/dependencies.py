@@ -36,7 +36,7 @@ def _claims_for_sync(identity: AuthenticatedIdentity) -> IdentityClaims:
         auth_subject=identity.subject,
         email=identity.email,
         session_id=identity.session_id,
-        clerk_app=(identity.adapter_context or {}).get("clerk_app"),
+        idp_app=(identity.adapter_context or {}).get("idp_app"),
         issuer=identity.issuer,
         authorized_party=identity.authorized_party,
         auth_time=identity.auth_time,
@@ -319,7 +319,7 @@ def resolve_principal_for_claims(db: Session, claims: IdentityClaims) -> Current
         return resolve_principal_cached(
             db,
             AuthenticatedIdentity(
-                provider="clerk",
+                provider="keycloak",
                 issuer=claims.issuer,
                 subject=claims.auth_subject,
                 email=claims.email,

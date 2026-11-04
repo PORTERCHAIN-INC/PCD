@@ -4,7 +4,7 @@ import { test, expect, playwrightCases, tcId } from "./fixtures";
 const pageCases = playwrightCases("skeleton").filter((c) => c.id.startsWith("UI-"));
 
 const ROUTE_HINT: Record<string, string> = {
-  "UI-DASH-001": "/dashboard",
+  "UI-DASH-001": "/today",
   "UI-OPS-001": "/operations",
   "UI-OPS-002": "/operations",
   "UI-OPS-003": "/operations",
@@ -35,7 +35,7 @@ const ROUTE_HINT: Record<string, string> = {
 for (const c of pageCases) {
   test.describe(`${c.id} ${tcId(c.id)} @p0`, () => {
     test(c.title, () => {
-      const route = ROUTE_HINT[c.id] ?? "/dashboard";
+      const route = ROUTE_HINT[c.id] ?? "/today";
       expect(c.id).toMatch(/^UI-/);
       expect(route).toMatch(/^\//);
       expect(c.title.length).toBeGreaterThan(0);

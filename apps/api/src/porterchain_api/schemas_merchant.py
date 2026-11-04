@@ -22,7 +22,16 @@ class MerchantBookDeliveryRequest(BaseModel):
     pickup: AddressInput
     dropoff: AddressInput
     additional_stops: list[AddressInput] | None = None
+    #: L201: per-drop parcels for multi-stop routes (stop_index 0 = dropoff, n = additional_stops[n-1]).
+    #: Each: {stop_index, weight_kg, length_cm, width_cm, height_cm}. Without it a 117-drop route priced 1 parcel.
+    route_parcels: list[dict[str, Any]] | None = None
     vehicle_class: str = "cargo_van"
+    #: Ravi 2026-10-31: "parcels" = $6/$9 per parcel + size/weight table; "vehicle" = hourly vehicle.
+    booking_mode: Literal["parcels", "vehicle"] = "parcels"
+    #: Vehicle hourly: hours requested (3 h minimum); empty = route estimate.
+    dedicated_hours: float | None = Field(default=None, ge=0, le=24)
+    #: Vehicle hourly: load/unload help at the pickup (+$30). Drops use delivery_options.load_help.
+    help_at_pickup: bool = False
     package_type: str = "looseParcel"
     weight_kg: float | None = None
     dimensions: str | None = None
@@ -43,7 +52,7 @@ class MerchantBookDeliveryRequest(BaseModel):
     )
     declared_value_cents: int | None = Field(default=None, ge=0, description="Declared value of the goods (cents)")
     coverage_upgrade: bool | None = Field(
-        default=None, description="Upgrade cover to $25,000 (+$10). None = merchant default."
+        default=None, description="Buy declared-value cover: 1.5% of declared value, $3 min, max $2,500 per parcel (off until G-INS)."
     )
     item_category: str | None = Field(default=None, description="Item category, e.g. electronics")
     delivery_point: str | None = Field(
@@ -51,6 +60,11 @@ class MerchantBookDeliveryRequest(BaseModel):
     )
     dangerous_goods: bool = Field(default=False, description="Sender declares dangerous goods (needs approval)")
     dangerous_goods_description: str | None = None
+    dg_limited_quantity: dict[str, Any] | None = Field(
+        default=None,
+        description="TDG limited quantity (perfume/aerosol only): {items:[{kind,inner_l}], package_gross_kg, lq_mark_photo}",
+    )
+    contains_alcohol: bool = Field(default=False, description="Alcohol is not carried; true is refused")
     prohibited_articles: list[str] | None = Field(
         default=None, description="Declared prohibited articles (firearms, cannabis, …) — refused"
     )
@@ -245,7 +259,6 @@ class DashboardInvoiceLink(BaseModel):
     invoice_id: str
     invoice_number: str
     pdf_url: str | None = None
-    stripe_receipt_url: str | None = None
 
 
 class MerchantDashboardResponse(BaseModel):
@@ -667,6 +680,8 @@ class InvoiceListItem(BaseModel):
     amount_cents: int
     tax_cents: int = 0
     fees_cents: int = 0
+    penalty_cents: int = 0
+    penalty_label: str | None = None
     outstanding_cents: int = 0
     currency: str
     status: str = "sent"
@@ -675,7 +690,6 @@ class InvoiceListItem(BaseModel):
     last_reminded_at: str | None = None
     created_at: datetime
     pdf_url: str | None = None
-    stripe_receipt_url: str | None = None
 
 
 class InvoiceDetailLine(BaseModel):
@@ -695,6 +709,12 @@ class InvoiceDetailLine(BaseModel):
 
 class InvoiceDetailResponse(BaseModel):
     invoice_id: str
+    card_payment_available: bool = False
+    # Merchants pay by Interac e-Transfer only (Ravi 2026-11-03); admin setting etransfer_email.
+    etransfer_email: str | None = None
+    payment_reference: str | None = None  # put in the e-Transfer message
+    supplier_legal_name: str | None = None
+    supplier_gst_hst_number: str | None = None
     invoice_number: str
     status: str
     payment_terms: str
@@ -703,6 +723,8 @@ class InvoiceDetailResponse(BaseModel):
     amount_cents: int
     tax_cents: int = 0
     fees_cents: int = 0
+    penalty_cents: int = 0
+    penalty_label: str | None = None
     outstanding_cents: int
     currency: str
     created_at: datetime
@@ -803,6 +825,11 @@ class MerchantRateCardResponse(BaseModel):
     fsa_rate_count: int = 0
     platform_fsa_rate_count: int = 0
     currency: str = "cad"
+    #: 2026-10-31: an admin custom merchant price overrides the $6/$9 parcel and hourly models.
+    custom_price: bool = False
+    custom_pct: float | None = None
+    custom_per_stop_cents: int | None = None
+    custom_flat_parcel_cents: int | None = None
 
 
 class BillingStatementResponse(BaseModel):

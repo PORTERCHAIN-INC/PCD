@@ -223,7 +223,7 @@ def map_shopify_order(
         # Shopper's order note + delivery cart attributes -> shared delivery options.
         delivery_options=from_shopify_delivery_options(payload),
     )
-    contact = " ".join(
+    contact = ", ".join(
         p
         for p in [
             _as_str(address.get("name")),
@@ -231,7 +231,8 @@ def map_shopify_order(
         ]
         if p
     )
-    notes = contact or None
+    # L122: label it so the driver does not read the buyer as the pickup contact.
+    notes = f"Recipient: {contact}" if contact else None
     return MerchantBookDeliveryRequest(
         pickup=pickup,
         dropoff=dropoff,

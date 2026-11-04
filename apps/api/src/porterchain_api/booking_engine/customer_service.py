@@ -33,7 +33,7 @@ class CustomerService:
 
         conflict = subject_staff_portal(db, auth_subject)
         if conflict:
-            raise ValueError(f"identity_conflict:clerk_user_is_{conflict}")
+            raise ValueError(f"identity_conflict:idp_user_is_{conflict}")
 
         identity_email = normalize_email(email)
         if not identity_email:
@@ -43,7 +43,7 @@ class CustomerService:
         is_new = customer is None
 
         if customer:
-            # C-15: never silently overwrite a bound email when Clerk disagrees.
+            # C-15: never silently overwrite a bound email when Keycloak disagrees.
             if customer.email and not emails_match(customer.email, identity_email):
                 raise ValueError(EMAIL_IDENTITY_MISMATCH)
             if not customer.email:
@@ -63,8 +63,8 @@ class CustomerService:
                 .first()
             )
             if orphan:
-                orphan_clerk = orphan.auth_subject or ""
-                if orphan_clerk and not orphan_clerk.startswith("pending") and orphan_clerk != auth_subject:
+                orphan_idp = orphan.auth_subject or ""
+                if orphan_idp and not orphan_idp.startswith("pending") and orphan_idp != auth_subject:
                     raise ValueError(EMAIL_IDENTITY_MISMATCH)
                 customer = orphan
                 customer.auth_subject = auth_subject
@@ -115,7 +115,7 @@ class CustomerService:
     ) -> Customer:
         """Create or reuse a retail Customer for Admin create / merchant convert (flush only)."""
         from porterchain_api.auth.email_identity import normalize_email
-        from porterchain_api.auth.invitation_service import pending_clerk_id
+        from porterchain_api.auth.invitation_service import pending_idp_id
         from porterchain_api.booking_engine.numbers import generate_customer_reference
 
         normalized = normalize_email(email)
@@ -133,7 +133,7 @@ class CustomerService:
             if full_name and not existing.full_name:
                 existing.full_name = full_name.strip()[:255]
             return existing
-        pending = pending_clerk_id(normalized)
+        pending = pending_idp_id(normalized)
         clash = db.query(Customer).filter(Customer.auth_subject == pending).first()
         if clash:
             if phone and not clash.phone:
@@ -249,10 +249,10 @@ class CustomerService:
         db.commit()
         return lead
 
-    def get_by_clerk(self, db: Session, auth_subject: str) -> Customer | None:
+    def get_by_idp(self, db: Session, auth_subject: str) -> Customer | None:
         return db.query(Customer).filter(Customer.auth_subject == auth_subject).first()
 
-    def get_or_create_from_clerk(
+    def get_or_create_from_idp(
         self,
         db: Session,
         *,
@@ -260,20 +260,20 @@ class CustomerService:
         email: str | None,
         phone: str | None = None,
     ) -> Customer:
-        """Ensure a retail Customer row exists for a signed-in Clerk user."""
+        """Ensure a retail Customer row exists for a signed-in Keycloak user."""
         from porterchain_api.auth.portal_guard import subject_staff_portal
 
         conflict = subject_staff_portal(db, auth_subject)
         if conflict:
-            raise ValueError(f"identity_conflict:clerk_user_is_{conflict}")
+            raise ValueError(f"identity_conflict:idp_user_is_{conflict}")
 
         from porterchain_api.auth.email_identity import EMAIL_IDENTITY_MISMATCH, emails_match, normalize_email
 
-        existing = self.get_by_clerk(db, auth_subject)
+        existing = self.get_by_idp(db, auth_subject)
         if existing:
             identity_email = normalize_email(email)
             if identity_email and not emails_match(existing.email, identity_email):
-                # Never keep a Clerk id bound to a different system email.
+                # Never keep a Keycloak id bound to a different system email.
                 raise ValueError(EMAIL_IDENTITY_MISMATCH)
             if phone and existing.phone != phone:
                 existing.phone = phone
@@ -282,12 +282,23 @@ class CustomerService:
             return existing
         if not email:
             raise ValueError("email_required")
-        return self.upsert(
-            db,
-            auth_subject=auth_subject,
-            email=email,
-            phone=phone,
-        )
+        from sqlalchemy.exc import IntegrityError
+
+        try:
+            return self.upsert(
+                db,
+                auth_subject=auth_subject,
+                email=email,
+                phone=phone,
+            )
+        except IntegrityError:
+            # L165: first sign-in fires several session calls at once; the losing insert
+            # hits ix_customers_auth_subject. Use the row the other request created.
+            db.rollback()
+            existing = self.get_by_idp(db, auth_subject)
+            if existing is None:
+                raise
+            return existing
 
     def get_dashboard(self, db: Session, customer_id: str) -> dict:
         from porterchain_api.booking_engine.tracking_service import TrackingService

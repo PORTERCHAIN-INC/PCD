@@ -268,7 +268,7 @@ export type PlanExplanation = {
 export type LogisticsPartner = {
   id?: string;
   name: string;
-  kind: "warehouse" | "ftl" | "ltl" | "3pl";
+  kind: "warehouse" | "ftl" | "ltl" | "3pl" | "courier" | "cha";
   lat: number | null;
   lng: number | null;
   fsa_coverage: string[];
@@ -278,6 +278,13 @@ export type LogisticsPartner = {
   cutoff_local: string | null;
   contact_email?: string | null;
   active: boolean;
+};
+
+export type PartnerStats = {
+  open_legs: number;
+  delivered_recent: number;
+  cost_recent_cents: number;
+  last_leg_at: string | null;
 };
 
 export type Retention = { gps_days: number; pod_days: number; enabled: boolean };
@@ -300,7 +307,7 @@ export type PartnerLeg = {
   order_id: string;
   order_number: string | null;
   seq: number;
-  mode: "warehouse" | "ftl" | "ltl" | "3pl" | "local";
+  mode: "warehouse" | "ftl" | "ltl" | "3pl" | "local" | "courier";
   status: LegStatus;
   partner_id: string | null;
   partner_name: string | null;
@@ -310,6 +317,8 @@ export type PartnerLeg = {
   next: LegStatus[];
   history: { from: LegStatus; to: LegStatus; at: string; note: string | null }[];
   has_draft: boolean;
+  order_state?: string;
+  order_needs_sync?: boolean;
 };
 
 export type PartnerEmailDraft = {
@@ -494,6 +503,9 @@ export const dispatch = {
   metrics: (t: string, days = 7) => adminFetch<DispatchMetrics>(`${B}/metrics?days=${days}`, t),
   exceptions: (t: string, offset = 0) =>
     adminFetch<DispatchExceptions>(`${B}/exceptions?offset=${offset}&limit=${EXCEPTIONS_PAGE}`, t),
+  /** L75: count/badge only — skips suggested fixes, so it never waits on routing. */
+  exceptionsCount: (t: string) =>
+    adminFetch<DispatchExceptions>(`${B}/exceptions?offset=0&limit=1&fixes=false`, t),
   applyFix: (t: string, item: DispatchExceptionItem, fix: ExceptionFix) =>
     adminFetch<{ ok: boolean; action: string; result: Record<string, unknown> }>(
       `${B}/exceptions/apply`,
@@ -548,6 +560,33 @@ export const dispatch = {
       method: "POST",
     }),
   partners: (t: string) => adminFetch<{ items: LogisticsPartner[] }>(`${B}/partners`, t),
+  partnerStats: (t: string, days = 30) =>
+    adminFetch<{ days: number; items: Record<string, PartnerStats> }>(
+      `${B}/partners/stats?days=${days}`,
+      t
+    ),
+  partnersBulkActive: (t: string, ids: string[], active: boolean) =>
+    adminFetch<{ updated: number; active: boolean }>(`${B}/partners/bulk-active`, t, {
+      method: "POST",
+      body: JSON.stringify({ ids, active }),
+      headers: J,
+    }),
+  fleetContracts: (t: string) => adminFetch<{ items: FleetContract[] }>(`${B}/fleet-contracts`, t),
+  saveFleetContract: (t: string, body: FleetContract) =>
+    adminFetch<FleetContract>(
+      body.id ? `${B}/fleet-contracts/${encodeURIComponent(body.id)}` : `${B}/fleet-contracts`,
+      t,
+      { method: body.id ? "PUT" : "POST", body: JSON.stringify(body), headers: J }
+    ),
+  deleteFleetContract: (t: string, id: string) =>
+    adminFetch<{ deleted: string }>(`${B}/fleet-contracts/${encodeURIComponent(id)}`, t, {
+      method: "DELETE",
+    }),
+  payableStatement: (t: string, partnerId: string, start: string, end: string) =>
+    adminFetch<PayableStatement>(
+      `${B}/partners/${encodeURIComponent(partnerId)}/payable-statement?start=${start}&end=${end}`,
+      t
+    ),
   savePartner: (t: string, body: LogisticsPartner) =>
     adminFetch<LogisticsPartner>(
       body.id ? `${B}/partners/${encodeURIComponent(body.id)}` : `${B}/partners`,
@@ -558,6 +597,13 @@ export const dispatch = {
         headers: J,
       }
     ),
+  /** L97: hand the order to a courier / contractor fleet partner (one pickup → drop leg). */
+  assignPartnerLeg: (t: string, orderId: string, body: { partner_id: string; note?: string }) =>
+    adminFetch<PartnerLeg>(`${B}/orders/${encodeURIComponent(orderId)}/partner-leg`, t, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: J,
+    }),
   partnerLegs: (t: string, status?: LegStatus) =>
     adminFetch<{ items: PartnerLeg[] }>(`${B}/partner-legs${status ? `?status=${status}` : ""}`, t),
   draftPartnerLeg: (t: string, id: string) =>
@@ -569,6 +615,10 @@ export const dispatch = {
       method: "POST",
       body: JSON.stringify({ status, note }),
       headers: J,
+    }),
+  syncPartnerLegOrder: (t: string, id: string) =>
+    adminFetch<PartnerLeg>(`${B}/partner-legs/${encodeURIComponent(id)}/sync-order`, t, {
+      method: "POST",
     }),
   /** BFF path for the PDF (opened in a new tab). */
   partnerLegPdfPath: (id: string) => `${B}/partner-legs/${encodeURIComponent(id)}/job-sheet.pdf`,
@@ -586,4 +636,45 @@ export const dispatch = {
 export function money(cents: number | null | undefined): string {
   if (cents == null) return "—";
   return `$${(cents / 100).toFixed(2)}`;
+}
+
+export type FleetRateBasis = "stop" | "parcel" | "route" | "hour";
+export interface FleetContract {
+  id?: string;
+  partner_id: string;
+  partner_name?: string | null;
+  effective_from: string;
+  effective_to: string | null;
+  rate_basis: FleetRateBasis;
+  rate_cents: number;
+  min_charge_cents: number;
+  currency?: string;
+  document_ref: string | null;
+  notes: string | null;
+  is_dummy: boolean;
+}
+export interface PayableJob {
+  leg_id: string;
+  order_id: string;
+  order_number: string | null;
+  completed_at: string;
+  from: string;
+  to: string;
+  rate_basis: FleetRateBasis;
+  units: number;
+  rate_cents: number;
+  min_charge_cents: number;
+  charge_cents: number;
+  min_applied: boolean;
+  is_dummy_contract: boolean;
+}
+export interface PayableStatement {
+  partner_id: string;
+  partner_name: string;
+  period_start: string;
+  period_end: string;
+  currency: string;
+  jobs: PayableJob[];
+  unpriced: { leg_id: string; order_number: string | null; completed_at: string; reason: string }[];
+  total_cents: number;
 }

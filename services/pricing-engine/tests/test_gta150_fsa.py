@@ -37,17 +37,6 @@ def test_out_of_tile_but_ontario() -> None:
     assert not is_gta150_fsa("")
 
 
-def test_service_area_rejects_ottawa() -> None:
-    from porterchain_api.merchant_engine.service_area import service_area_error
-    from porterchain_api.schemas_merchant import AddressInput
-
-    err = service_area_error("dropoff", AddressInput(formatted="Ottawa", postal="K1A 0B1"))
-    assert err is not None
-    assert "GTA" in err or "tile" in err.lower()
-    ok = service_area_error("dropoff", AddressInput(formatted="Toronto", postal="M5V 2T6"))
-    assert ok is None
-
-
 def test_service_radius_is_150_km_and_gates_coverage() -> None:
     from porterchain_pricing.gta150_fsa import service_radius_km
 

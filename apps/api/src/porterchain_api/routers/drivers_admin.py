@@ -137,7 +137,7 @@ def invite_driver(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
-    """Resend Clerk invitation for an existing driver."""
+    """Resend Keycloak invitation for an existing driver."""
     driver = _invoke(ctx, "drivers", _drivers.get_driver, db, driver_id)
     if not driver:
         raise HTTPException(status_code=404, detail="driver_not_found")

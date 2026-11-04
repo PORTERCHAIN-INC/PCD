@@ -273,10 +273,32 @@ def deliver(db: "Session", driver: Any, order: Any, stop_id: str, *, pod_overrid
             from porterchain_driver.pod_policy import PodMissing
 
             raise PodMissing(["photo_or_signature"])
+        if not pod_override:
+            _assert_stop_parcels_scanned(db, order.id, key)
         _start_delivery_chain(db, order, driver.id)
     _save(db, order, driver.id, key, "arrived_at")
     _save(db, order, driver.id, key, "completed_at")
     return _refresh(db, order, stop_id)
+
+
+_OPEN_PARCEL = {"manifested", "picked_up", "loaded", "out_for_delivery"}
+
+
+def _assert_stop_parcels_scanned(db: Any, order_id: str, key: str) -> None:
+    """L204: a middle drop is done only once each of its parcels is scanned (or reported)."""
+    try:
+        from porterchain_api.booking_models import Package
+    except Exception:  # pragma: no cover - driver platform without the API models
+        return
+    rows = db.query(Package).filter(Package.order_id == order_id).all()
+    open_rows = [
+        r for r in rows
+        if getattr(r, "deleted_at", None) is None
+        and _KEY_RE.sub("_", str(r.stop_key or "")).strip("_")[:40] == key
+        and str(r.status or "").lower() in _OPEN_PARCEL
+    ]
+    if open_rows:
+        raise ValueError("stop_parcels_unscanned")
 
 
 def _has_stop_proof(db: Any, order_id: str, key: str) -> bool:

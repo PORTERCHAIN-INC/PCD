@@ -3,10 +3,12 @@ import { auth } from "@porterchain/auth/oidc/next";
 import { NextRequest, NextResponse } from "next/server";
 import { DRIVER_DEV_COOKIE } from "@/lib/driver-dev-cookie";
 
-const API_BASE = (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localhost:8001").replace(
-  /\/$/,
-  ""
-);
+const API_BASE = (
+  process.env.PORTERCHAIN_API_INTERNAL_URL ??
+  process.env.PORTERCHAIN_API_URL ??
+  process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ??
+  "http://localhost:8001"
+).replace(/\/$/, "");
 const IMP_COOKIE = "pc_imp_bearer";
 
 type RouteContext = { params: Promise<{ path: string[] }> };

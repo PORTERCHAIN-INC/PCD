@@ -35,8 +35,8 @@ class BookingService:
         full_name: str | None = None,
     ) -> tuple[Quote, Customer, str | None]:
         """Start checkout. ``auth_subject=None`` is guest (express) checkout: the customer
-        row is created/reused by email with a ``pending`` Clerk id and is merged on first
-        Clerk sign-in (C-14), so no account step blocks payment."""
+        row is created/reused by email with a ``pending`` Keycloak id and is merged on first
+        Keycloak sign-in (C-14), so no account step blocks payment."""
         quote = db.query(Quote).filter(Quote.id == quote_id).first()
         if not quote:
             raise LookupError("quote_not_found")

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import AppClerkProvider from "@/components/providers/AppClerkProvider";
+import AuthShellProvider from "@/components/providers/AuthShellProvider";
 import { buildPageMetadata } from "@/lib/seo/page-helpers";
 
 type Props = {
@@ -9,9 +9,9 @@ type Props = {
 };
 
 /**
- * Clerk (~300 KB of JS from the Clerk CDN) loads only on auth routes. Marketing pages render
+ * The Keycloak session provider loads only on auth routes. Marketing pages render
  * without it — readiness audit #2 (mobile LCP/TBT). The navbar already shows a plain
- * "Log in" link outside these routes (SiteNavbarAuth / isClerkClientShellPath).
+ * "Log in" link outside these routes (SiteNavbarAuth / isAuthShellPath).
  */
 /**
  * Account pages: self-canonical + noindex,follow. Without this they inherited the locale
@@ -37,5 +37,5 @@ export async function generateMetadata({
 
 export default async function AuthRouteLayout({ children, params }: Props) {
   const { locale } = await params;
-  return <AppClerkProvider locale={locale}>{children}</AppClerkProvider>;
+  return <AuthShellProvider locale={locale}>{children}</AuthShellProvider>;
 }

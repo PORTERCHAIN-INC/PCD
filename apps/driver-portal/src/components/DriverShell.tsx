@@ -18,15 +18,24 @@ import {
   activeNavLabel,
   isNavActive,
 } from "@/lib/driver-nav";
-import { isPendingDriverPath } from "@/lib/onboarding";
+import { fetchDriverOnboarding, isPendingDriverPath } from "@/lib/onboarding";
 
 const DriverShellContext = createContext(false);
 
 export default function DriverShell({ children }: { children: React.ReactNode }) {
   const nested = useContext(DriverShellContext);
   const pathname = usePathname();
+  const onPendingPath = isPendingDriverPath(pathname);
+  // L186: approved drivers opening /profile get the normal app chrome, not the activation-only shell.
+  const { data: onboarding } = useQuery({
+    queryKey: ["driver-onboarding"],
+    queryFn: fetchDriverOnboarding,
+    enabled: !nested && onPendingPath && pathname !== "/onboarding",
+    staleTime: 60_000,
+  });
   if (nested) return children;
-  const pendingOnly = isPendingDriverPath(pathname);
+  const pendingOnly =
+    onPendingPath && (pathname === "/onboarding" || !(onboarding?.can_access_portal ?? false));
 
   if (pendingOnly) {
     return (

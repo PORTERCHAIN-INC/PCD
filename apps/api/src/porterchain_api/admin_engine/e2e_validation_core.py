@@ -116,7 +116,7 @@ class E2EValidationCoreMixin:
             if not is_identity_configured(settings) and not settings.auth_dev_bypass:
                 fixes.append(
                     {
-                        "fix": "clerk_dev_bypass_recommended",
+                        "fix": "idp_dev_bypass_recommended",
                         "action": "Enable AUTH_DEV_BYPASS=true for local validation",
                         "applied": "documented",
                     }
@@ -272,7 +272,7 @@ class E2EValidationCoreMixin:
         mapping = {
             "stripe_webhook_failure": "billing_engine",
             "day_plan_offline": "dispatch_engine",
-            "google_maps_failure": "integrations",
+            "maps_failure": "integrations",
             "authentication_failed": "auth",
             "notification_failure": "notification_engine",
         }

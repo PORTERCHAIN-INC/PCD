@@ -8,7 +8,7 @@ Admin surfaces (from Graphify):
   /leads/[id]             detail, convert, assist, conversations, identities, delete
   Settings → LeadIngestPanel   secrets / territory / SLA / CAPI
 
-Real handshakes: Clerk module gates, public webhooks, nurture email queue,
+Real handshakes: Keycloak module gates, public webhooks, nurture email queue,
 referral credits, Meta/LinkedIn CAPI on convert.
 
 Intentional NON-touch (charter + Fleetbase-first): Valhalla, OSRM, VROOM,
@@ -140,7 +140,7 @@ def admin_client(db, monkeypatch):
 
     pc = PorterchainUser(
         id="user-matrix",
-        auth_subject="clerk-leads-matrix",
+        auth_subject="keycloak-leads-matrix",
         email="leads-matrix@porterchain.com",
         role="super_admin",
         status="active",
@@ -150,7 +150,7 @@ def admin_client(db, monkeypatch):
 
     admin = AdminContext(
         user=AdminUser(
-            auth_subject="clerk-leads-matrix",
+            auth_subject="keycloak-leads-matrix",
             email="leads-matrix@porterchain.com",
             role="super_admin",
             porterchain_user_id="user-matrix",
@@ -273,7 +273,7 @@ class TestAdminLeadsFilesystem:
         ):
             text = (ADMIN_SRC / rel).read_text(encoding="utf-8")
             assert "leadsApi" in text
-            assert "useAdminAuth" in text  # Clerk session handshake
+            assert "useAdminAuth" in text  # Keycloak session handshake
 
 
 # =========================================================================== #
@@ -306,7 +306,7 @@ class TestAdminLeadsRouteRegistry:
         missing = [r for r in required if r not in paths]
         assert not missing, f"unmounted lead routes: {missing}\nknown={sorted(p for p in paths if 'lead' in p)}"
 
-    def test_clerk_module_keys_registered(self) -> None:
+    def test_idp_module_keys_registered(self) -> None:
         assert "crm" in ADMIN_MODULE_TO_PERMISSION
         assert "crm_read" in ADMIN_MODULE_TO_PERMISSION
         assert "settings" in ADMIN_MODULE_TO_PERMISSION
@@ -385,7 +385,7 @@ class TestLeadsArchitectureFirewall:
                 # TS: no maps / firebase / fleet / shopify / routing clients on leads pages
                 text = path.read_text(encoding="utf-8").lower()
                 for bad in (
-                    "@vis.gl/react-google-maps",
+                    "@vis.gl/react-" + "google-maps",
                     "@porterchain/maps",
                     "firebase/",
                     "from \"firebase",
@@ -595,7 +595,7 @@ class TestLeadIngestSettingsPanelApi:
         status = lead_ingest_settings_status(get_settings())
         assert "secrets" in status
         assert "visible" in status
-        assert "doppler" in status
+        assert status["secrets_store"]["kind"] == "sops"
         assert "META_APP_SECRET" in status["secrets"] or any(
             "META" in k for k in status["secrets"]
         )

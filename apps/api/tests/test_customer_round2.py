@@ -258,7 +258,7 @@ def test_deletion_reject_releases_hold(db: Session, settings: Settings) -> None:
 def test_pending_guest_adopted_on_first_sign_in(db: Session, settings: Settings) -> None:
     order, customer = _paid_guest_order(db, settings)
     subject_ref = f"user_{uuid4().hex[:10]}"
-    adopted = CustomerService().get_or_create_from_clerk(db, auth_subject=subject_ref, email=customer.email, phone=None)
+    adopted = CustomerService().get_or_create_from_idp(db, auth_subject=subject_ref, email=customer.email, phone=None)
     assert adopted.id == customer.id and adopted.auth_subject == subject_ref
 
 
@@ -275,15 +275,15 @@ def test_french_emails(db: Session, settings: Settings) -> None:
 def test_signed_in_orders_and_addresses_routes(db: Session, settings: Settings) -> None:
     # Local dev-bypass subject (no SpiceDB tuples by design); bind it to a fresh guest for the test.
     order, customer = _paid_guest_order(db, settings)
-    dev = db.query(Customer).filter(Customer.auth_subject == "dev_clerk_user").first()
+    dev = db.query(Customer).filter(Customer.auth_subject == "dev_idp_user").first()
     parked = f"parked:{uuid4().hex[:8]}"
     if dev is not None:
         dev.auth_subject = parked
         db.flush()
     original = customer.auth_subject
-    customer.auth_subject = "dev_clerk_user"
+    customer.auth_subject = "dev_idp_user"
     db.commit()
-    claims = IdentityClaims(auth_subject="dev_clerk_user", email=customer.email, phone=None, clerk_app="customer")
+    claims = IdentityClaims(auth_subject="dev_idp_user", email=customer.email, phone=None, idp_app="customer")
 
     async def _claims() -> IdentityClaims:
         return claims
@@ -307,5 +307,5 @@ def test_signed_in_orders_and_addresses_routes(db: Session, settings: Settings) 
         customer.auth_subject = original
         db.flush()
         if dev is not None:
-            dev.auth_subject = "dev_clerk_user"
+            dev.auth_subject = "dev_idp_user"
         db.commit()

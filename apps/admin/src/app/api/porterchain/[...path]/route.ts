@@ -5,10 +5,13 @@ import { auth } from "@porterchain/auth/oidc/next";
  * Admin BFF — attach the Keycloak `pc-admin` access token from the HttpOnly session.
  * The browser never holds the token for HTTP calls.
  */
-const API_BASE = (process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ?? "http://localhost:8001").replace(
-  /\/$/,
-  ""
-);
+// Server-side BFF: prefer the in-cluster URL (containers may not reach the public/LAN host).
+const API_BASE = (
+  process.env.PORTERCHAIN_API_INTERNAL_URL ??
+  process.env.PORTERCHAIN_API_URL ??
+  process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL ??
+  "http://localhost:8001"
+).replace(/\/$/, "");
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 

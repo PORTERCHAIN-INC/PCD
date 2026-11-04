@@ -104,7 +104,7 @@ def _make_customer(
 ) -> Customer:
     tag = f"{suffix or 'c'}-{uuid4().hex[:10]}"
     customer = Customer(
-        auth_subject=auth_subject or f"customer_clerk_{tag}",
+        auth_subject=auth_subject or f"customer_idp_{tag}",
         email=email or f"customer-{tag}@p0.test",
         phone="+14165550100",
     )
@@ -228,7 +228,7 @@ def test_arch_no_google_distance_matrix_on_customer_quote_path() -> None:
         elif t.is_dir():
             blob += _read_globs(t, "*.py") + _read_globs(t, "*.ts") + _read_globs(t, "*.tsx")
     lowered = blob.lower()
-    for needle in ("distancematrix", "distance_matrix", "maps.googleapis.com/maps/api/distancematrix"):
+    for needle in ("distancematrix", "distance_matrix", "googleapis.com/maps/api/distancematrix"):
         assert needle not in lowered, f"Google Distance Matrix on customer quote path: {needle}"
 
 
@@ -402,7 +402,7 @@ def test_api_b_quote_equals_book_amount_cents(db: Session, settings: Settings) -
         quote_id=quote.id,
         email=f"qeqb-{uuid4().hex[:6]}@p0.test",
         phone="+14165550999",
-        auth_subject=f"clerk_qeqb_{uuid4().hex[:8]}",
+        auth_subject=f"idp_qeqb_{uuid4().hex[:8]}",
         anonymous_session_id=session_id,
         consent={
             "terms_accepted": True,
@@ -551,7 +551,7 @@ def test_http_admin_create_customer_orphan(admin_client, db: Session, monkeypatc
 def test_http_admin_create_customer_conflict_when_linked(
     admin_client, db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """API-A-014: 409 when email already Clerk-linked."""
+    """API-A-014: 409 when email already Keycloak-linked."""
     monkeypatch.setattr(
         "porterchain_api.admin_engine.customer_admin_mutations.is_directory_configured",
         lambda *a, **k: False,
@@ -569,10 +569,10 @@ def test_http_admin_create_customer_conflict_when_linked(
     assert resp.json()["detail"] == "customer_email_exists"
 
 
-def test_http_admin_create_customer_invite_requires_clerk(
+def test_http_admin_create_customer_invite_requires_idp(
     admin_client, db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """API-A-014: send_invite without Clerk secrets → 400 identity_not_configured."""
+    """API-A-014: send_invite without Keycloak secrets → 400 identity_not_configured."""
     monkeypatch.setattr(
         "porterchain_api.admin_engine.customer_admin_mutations.is_directory_configured",
         lambda *a, **k: False,
@@ -605,7 +605,7 @@ def test_http_admin_invite_orphan_customer(admin_client, db: Session, monkeypatc
     customer = _make_customer(db, suffix="inv", auth_subject=f"pending:inv-{uuid4().hex[:6]}@p0.test")
     db.commit()
 
-    class _FakeClerk:
+    class _FakeIdp:
         def invite_user(self, email, *, redirect_url, metadata):
             return InviteResult(action="invited", invitation_id="inv_test")
 
@@ -615,7 +615,7 @@ def test_http_admin_invite_orphan_customer(admin_client, db: Session, monkeypatc
     )
     monkeypatch.setattr(
         "porterchain_api.auth.invitation_service.directory_for_kind",
-        lambda *a, **k: _FakeClerk(),
+        lambda *a, **k: _FakeIdp(),
     )
     monkeypatch.setattr(
         "porterchain_api.admin_engine.customer_admin_mutations.is_directory_configured",
@@ -634,17 +634,17 @@ def customer_client(db: Session):
     settings = _customer_settings()
     email = "dev-customer@p0.test"
     claims = IdentityClaims(
-        auth_subject="dev_clerk_user",
+        auth_subject="dev_idp_user",
         email=email,
         phone="+14165550001",
-        clerk_app="customer",
+        idp_app="customer",
     )
-    # Keep email aligned with claims — seed DBs often already bind dev_clerk_user.
-    existing = db.query(Customer).filter(Customer.auth_subject == "dev_clerk_user").first()
+    # Keep email aligned with claims — seed DBs often already bind dev_idp_user.
+    existing = db.query(Customer).filter(Customer.auth_subject == "dev_idp_user").first()
     if existing is None:
         db.add(
             Customer(
-                auth_subject="dev_clerk_user",
+                auth_subject="dev_idp_user",
                 email=email,
                 phone="+14165550001",
             )
@@ -667,7 +667,7 @@ def customer_client(db: Session):
 def test_http_customer_dashboard_support_rebook_privacy(customer_client, db: Session) -> None:
     """API-C-001/004/005/007/009/010 HTTP happy path."""
     client, _settings = customer_client
-    customer = db.query(Customer).filter(Customer.auth_subject == "dev_clerk_user").one()
+    customer = db.query(Customer).filter(Customer.auth_subject == "dev_idp_user").one()
     order = _make_order(db, customer_id=customer.id)
     db.commit()
 

@@ -17,6 +17,7 @@ const SEGMENTS: [string, string][] = [
   ["warehouse_3pl", "Warehouse & 3PL"],
   ["trader", "Traders & wholesale"],
   ["food", "Food & beverage"],
+  ["retail_specialty", "Retail & specialty"],
   ["other", "Other"],
 ];
 

@@ -30,12 +30,12 @@ export function ManageDriverModal({
     actions_taken: string[];
   } | null>(null);
 
-  const hasClerk = Boolean(user.auth_subject && !user.auth_subject.startsWith("pending:"));
+  const hasIdp = Boolean(user.auth_subject && !user.auth_subject.startsWith("pending:"));
   const canAuthorize = user.access_status !== "authorized" || !user.provisioned;
   const platformId =
-    user.provisioned && !user.id.startsWith("clerk:")
+    user.provisioned && !user.id.startsWith("keycloak:")
       ? user.id
-      : user.id.startsWith("clerk:")
+      : user.id.startsWith("keycloak:")
         ? user.id
         : undefined;
 
@@ -48,7 +48,7 @@ export function ManageDriverModal({
       const result = await withStaffStepUp(token, () =>
         settingsApi.authorizeUser(token, "driver", {
           platform_user_id: platformId,
-          auth_subject: hasClerk ? (user.auth_subject ?? undefined) : undefined,
+          auth_subject: hasIdp ? (user.auth_subject ?? undefined) : undefined,
           email: user.email,
           name: name.trim() || user.name || undefined,
         })
@@ -66,7 +66,7 @@ export function ManageDriverModal({
   }
 
   async function sendInvite() {
-    if (!platformId || platformId.startsWith("clerk:")) {
+    if (!platformId || platformId.startsWith("keycloak:")) {
       setInviteError("Create a PorterChain driver row before inviting.");
       return;
     }
@@ -76,7 +76,7 @@ export function ManageDriverModal({
     try {
       const token = await requireApiToken(getApiToken);
       await withStaffStepUp(token, () => settingsApi.inviteUser(token, "driver", platformId));
-      setInviteOk("Clerk invitation sent.");
+      setInviteOk("Keycloak invitation sent.");
       onSaved();
     } catch (e) {
       setInviteError(e instanceof Error ? e.message : "Invite failed");
@@ -86,10 +86,10 @@ export function ManageDriverModal({
   }
 
   async function save(patch: { password?: string; banned?: boolean }) {
-    if (!hasClerk || !user.auth_subject) return;
+    if (!hasIdp || !user.auth_subject) return;
     setBusy(true);
     try {
-      await settingsApi.updateDriverClerk(await requireApiToken(getApiToken), {
+      await settingsApi.updateDriverIdp(await requireApiToken(getApiToken), {
         auth_subject: user.auth_subject,
         name: name.trim() || undefined,
         password: patch.password,
@@ -106,9 +106,9 @@ export function ManageDriverModal({
     if (!confirm(`Remove driver ${user.email}? This cannot be undone.`)) return;
     setBusy(true);
     try {
-      const id = user.provisioned && !user.id.startsWith("clerk:") ? user.id : undefined;
+      const id = user.provisioned && !user.id.startsWith("keycloak:") ? user.id : undefined;
       await settingsApi.deleteDriver(await requireApiToken(getApiToken), {
-        auth_subject: hasClerk ? (user.auth_subject ?? undefined) : undefined,
+        auth_subject: hasIdp ? (user.auth_subject ?? undefined) : undefined,
         platform_user_id: id,
       });
       onSaved();
@@ -136,7 +136,7 @@ export function ManageDriverModal({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          {hasClerk && (
+          {hasIdp && (
             <Button disabled={busy} onClick={() => void save({ password: password || undefined })}>
               {busy ? "Saving…" : "Save"}
             </Button>
@@ -146,14 +146,14 @@ export function ManageDriverModal({
     >
       <div className="space-y-4 text-sm">
         <p className="text-muted">
-          {hasClerk ? (
+          {hasIdp ? (
             <>
-              Clerk ID: <code className="rounded bg-gray-bg px-1">{user.auth_subject}</code>
+              Keycloak ID: <code className="rounded bg-gray-bg px-1">{user.auth_subject}</code>
             </>
           ) : (
             <>
-              No Clerk link yet — authorize for dispatch, then send a Clerk invite when they need
-              portal/mobile login.
+              No Keycloak link yet — authorize for dispatch, then send a Keycloak invite when they
+              need portal/mobile login.
             </>
           )}
         </p>
@@ -161,7 +161,7 @@ export function ManageDriverModal({
           <span className="text-muted">Portal access:</span>
           <Badge tone={accessTone(user.access_status)}>{accessLabel(user.access_status)}</Badge>
           {!user.provisioned && <Badge tone="amber">Not provisioned in Porterchain</Badge>}
-          {!hasClerk && <Badge tone="red">Not in Clerk</Badge>}
+          {!hasIdp && <Badge tone="red">Not in Keycloak</Badge>}
         </div>
 
         <div className="rounded-xl border border-secondary/20 bg-secondary/5 p-4">
@@ -171,7 +171,7 @@ export function ManageDriverModal({
               <div>
                 <p className="font-semibold text-primary">Authorize driver</p>
                 <p className="mt-1 text-muted">
-                  Approves the driver for dispatch and portal access. Does not require Clerk —
+                  Approves the driver for dispatch and portal access. Does not require Keycloak —
                   invite separately for login.
                 </p>
               </div>
@@ -183,9 +183,13 @@ export function ManageDriverModal({
                       ? "Authorize driver"
                       : "Re-check authorization"}
                 </Button>
-                {platformId && !platformId.startsWith("clerk:") && (
+                {platformId && !platformId.startsWith("keycloak:") && (
                   <Button variant="outline" disabled={busy} onClick={() => void sendInvite()}>
-                    {busy ? "Sending…" : hasClerk ? "Re-send Clerk invite" : "Send Clerk invite"}
+                    {busy
+                      ? "Sending…"
+                      : hasIdp
+                        ? "Re-send Keycloak invite"
+                        : "Send Keycloak invite"}
                   </Button>
                 )}
               </div>
@@ -207,14 +211,14 @@ export function ManageDriverModal({
         <Field label="Display name">
           <Input value={name} onChange={(e) => setName(e.target.value)} />
         </Field>
-        {hasClerk && (
+        {hasIdp && (
           <>
             <Field label="New password">
               <Input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Resets password in Clerk"
+                placeholder="Resets password in Keycloak"
                 autoComplete="new-password"
               />
             </Field>
@@ -233,7 +237,7 @@ export function ManageDriverModal({
                   disabled={busy}
                   onClick={() => void save({ banned: true })}
                 >
-                  Ban in Clerk
+                  Ban in Keycloak
                 </Button>
               )}
             </div>

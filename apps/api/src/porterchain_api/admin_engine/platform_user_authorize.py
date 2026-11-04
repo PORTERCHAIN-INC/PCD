@@ -1,7 +1,7 @@
 """Authorize platform users for portal access (Settings → Users).
 
 Staff: activate existing AdminUser only via Staff IdP — never promote to
-super_admin, never create staff from a Clerk signup (enroll first).
+super_admin, never create staff from a Keycloak signup (enroll first).
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ from porterchain_api.merchant_engine.lookups import (
     get_merchant_by_email,
     get_merchant_user,
     get_merchant_user_by_email,
-    seats_for_clerk,
+    seats_for_idp,
 )
 from porterchain_api.merchant_engine.provision import create_onboarding_merchant
 from porterchain_api.merchant_engine.team_service import bind_seat_subject, ensure_merchant_seat
@@ -51,12 +51,12 @@ def authorize_platform_user(
     if user_type == "customer":
         raise ValueError("customer_self_signup_only")
     if not platform_user_id and not auth_subject and not email:
-        raise ValueError("platform_user_id_clerk_user_id_or_email_required")
+        raise ValueError("platform_user_id_idp_user_id_or_email_required")
 
-    resolved_clerk_id = auth_subject
+    resolved_idp_id = auth_subject
     resolved_platform_id = platform_user_id
-    if resolved_platform_id and resolved_platform_id.startswith("clerk:"):
-        resolved_clerk_id = resolved_clerk_id or resolved_platform_id.removeprefix("clerk:")
+    if resolved_platform_id and resolved_platform_id.startswith("keycloak:"):
+        resolved_idp_id = resolved_idp_id or resolved_platform_id.removeprefix("keycloak:")
         resolved_platform_id = None
 
     actions: list[str] = []
@@ -66,7 +66,7 @@ def authorize_platform_user(
             db,
             ctx,
             platform_user_id=resolved_platform_id,
-            auth_subject=resolved_clerk_id,
+            auth_subject=resolved_idp_id,
             email=email,
             name=name,
             reason=reason,
@@ -78,7 +78,7 @@ def authorize_platform_user(
             ctx,
             settings,
             platform_user_id=resolved_platform_id,
-            auth_subject=resolved_clerk_id,
+            auth_subject=resolved_idp_id,
             email=email,
             name=name,
             reason=reason,
@@ -88,7 +88,7 @@ def authorize_platform_user(
         db,
         ctx,
         platform_user_id=resolved_platform_id,
-        auth_subject=resolved_clerk_id,
+        auth_subject=resolved_idp_id,
         email=email,
         name=name,
         reason=reason,
@@ -104,7 +104,7 @@ def _merchant_modules_for_role(role: MerchantRole) -> list[str]:
     return sorted(m for m, allowed in MERCHANT_MODULE_PERMISSIONS.items() if role in allowed)
 
 
-def _sync_authz_for_clerk(db: Session, auth_subject: str | None) -> None:
+def _sync_authz_for_idp(db: Session, auth_subject: str | None) -> None:
     """Activate registry user + push SpiceDB tuples after authorize mutations."""
     from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
@@ -124,14 +124,14 @@ def _authorize_staff(
 ) -> PlatformUserAuthorizeResponse:
     """Activate an enrolled AdminUser. Never creates staff; never forces super_admin.
 
-    Staff IdP owns identity — Clerk ``user_…`` link/promote paths are retired.
+    Staff IdP owns identity — Keycloak ``user_…`` link/promote paths are retired.
     """
     _ = name  # display-only; role comes from enroll / role PATCH
     user = _find_staff(db, platform_user_id, auth_subject, email)
     if not user:
         raise LookupError("staff_not_found_invite_first")
     if auth_subject and auth_subject.startswith("user_"):
-        raise ValueError("staff_clerk_retired_use_staff_idp")
+        raise ValueError("staff_idp_retired_use_staff_idp")
     if not user.is_active:
         user.is_active = True
         actions.append("activated")
@@ -150,7 +150,7 @@ def _authorize_staff(
     )
     db.commit()
     db.refresh(user)
-    _sync_authz_for_clerk(db, user.auth_subject)
+    _sync_authz_for_idp(db, user.auth_subject)
     role = parse_admin_role(user.role)
     return PlatformUserAuthorizeResponse(
         platform_user_id=user.id,
@@ -191,7 +191,7 @@ def _authorize_driver(
         actions.append("created_driver_row")
     elif auth_subject and driver.auth_subject != auth_subject:
         driver.auth_subject = auth_subject
-        actions.append("linked_clerk_id")
+        actions.append("linked_idp_id")
 
     if driver.status != DriverStatus.APPROVED.value:
         AdminDriverService().approve_driver(db, ctx, driver.id, settings)
@@ -210,7 +210,7 @@ def _authorize_driver(
     )
     db.commit()
     db.refresh(driver)
-    _sync_authz_for_clerk(db, driver.auth_subject)
+    _sync_authz_for_idp(db, driver.auth_subject)
     return PlatformUserAuthorizeResponse(
         platform_user_id=driver.id,
         user_type="driver",
@@ -269,7 +269,7 @@ def _authorize_merchant(
     else:
         if auth_subject and merchant_user.auth_subject != auth_subject:
             bind_seat_subject(db, merchant_user.id, auth_subject)
-            actions.append("linked_clerk_id")
+            actions.append("linked_idp_id")
 
     merchant = get_merchant(db, merchant_user.merchant_id)
     if not merchant:
@@ -305,7 +305,7 @@ def _authorize_merchant(
     )
     db.commit()
     db.refresh(merchant_user)
-    _sync_authz_for_clerk(db, merchant_user.auth_subject)
+    _sync_authz_for_idp(db, merchant_user.auth_subject)
     role = (
         MerchantRole(merchant_user.role)
         if merchant_user.role in {r.value for r in MerchantRole}
@@ -371,7 +371,7 @@ def _find_merchant_user(
         if row:
             return row
     if auth_subject:
-        seats = seats_for_clerk(db, auth_subject)
+        seats = seats_for_idp(db, auth_subject)
         if seats:
             return seats[0]
     if email:

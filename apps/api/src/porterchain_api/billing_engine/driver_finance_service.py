@@ -26,6 +26,8 @@ TX_DELIVERY = frozenset({"delivery"})
 TX_ADJUSTMENT = frozenset({"adjustment", "correction", "credit"})
 TX_INCENTIVE = frozenset({"incentive"})
 TX_DEDUCTION = frozenset({"deduction", "fee", "tax"})
+# L145: payouts move earned money out of the wallet; they are not negative earnings.
+TX_PAYOUT = frozenset({"payout", "payout_reversal"})
 
 DEFAULT_TAX_RATE_PERCENT = 13.0  # fallback when SystemConfig finance row is missing
 DEFAULT_PAYMENT_SCHEDULE = {
@@ -97,7 +99,7 @@ class DriverFinanceService:
             stmt_id = f"{year:04d}-{month:02d}"
             txs = self._transactions_between(db, driver_id, start, end)
             gross = sum(t.amount_cents for t in txs if t.amount_cents > 0)
-            deductions = abs(sum(t.amount_cents for t in txs if t.amount_cents < 0))
+            deductions = abs(sum(t.amount_cents for t in txs if t.amount_cents < 0 and t.tx_type not in TX_PAYOUT))
             statements.append(
                 {
                     "id": stmt_id,
@@ -124,8 +126,8 @@ class DriverFinanceService:
             "period_start": start.date().isoformat(),
             "period_end": (end - timedelta(days=1)).date().isoformat(),
             "gross_cents": sum(t.amount_cents for t in txs if t.amount_cents > 0),
-            "deductions_cents": abs(sum(t.amount_cents for t in txs if t.amount_cents < 0)),
-            "net_cents": sum(t.amount_cents for t in txs),
+            "deductions_cents": abs(sum(t.amount_cents for t in txs if t.amount_cents < 0 and t.tx_type not in TX_PAYOUT)),
+            "net_cents": sum(t.amount_cents for t in txs if t.tx_type not in TX_PAYOUT),
             "deliveries": self._completed_deliveries(db, driver_id, start, end),
             "line_items": [self._serialize_tx(t) for t in txs],
             "payouts": [
@@ -200,7 +202,7 @@ class DriverFinanceService:
             if not t.created_at:
                 continue
             created = t.created_at if t.created_at.tzinfo else t.created_at.replace(tzinfo=UTC)
-            if start <= created <= end:
+            if start <= created <= end and t.tx_type not in TX_PAYOUT:
                 total += t.amount_cents
         return total
 
@@ -254,7 +256,7 @@ class DriverFinanceService:
     def _filter_deductions(self, txs: list[DriverWalletTransaction], *, limit: int) -> list[dict[str, Any]]:
         out: list[dict[str, Any]] = []
         for t in txs:
-            if t.tx_type in TX_DEDUCTION or t.amount_cents < 0:
+            if t.tx_type not in TX_PAYOUT and (t.tx_type in TX_DEDUCTION or t.amount_cents < 0):
                 row = self._serialize_tx(t)
                 row["amount_cents"] = abs(t.amount_cents)
                 out.append(row)
@@ -354,7 +356,8 @@ class DriverFinanceService:
         withheld = sum(
             abs(t.amount_cents)
             for t in txs
-            if t.created_at and t.created_at >= ytd_start and (t.tx_type in TX_DEDUCTION or t.amount_cents < 0)
+            if t.created_at and t.created_at >= ytd_start and t.tx_type not in TX_PAYOUT
+            and (t.tx_type in TX_DEDUCTION or t.amount_cents < 0)
         )
         month_gross = sum(
             t.amount_cents

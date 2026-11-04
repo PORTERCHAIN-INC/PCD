@@ -53,7 +53,7 @@ export function useDriverCommunications() {
     let retryTimer: number | undefined;
 
     // Reconnect with backoff after any close (deploy, Wi-Fi blip, sleep). Each attempt fetches a
-    // fresh ws token: Clerk session tokens expire in ~60 s, so reusing one would fail.
+    // fresh ws token: Keycloak session tokens expire in ~60 s, so reusing one would fail.
     const scheduleReconnect = () => {
       if (cancelled) return;
       const delay = Math.min(30_000, 1_000 * 2 ** attempt) + Math.floor(Math.random() * 500);

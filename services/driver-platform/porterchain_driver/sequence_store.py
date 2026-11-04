@@ -184,6 +184,13 @@ def apply_run_to_driver(
     return waypoints
 
 
+def can_undo(plan: dict[str, Any] | None) -> bool:
+    """True when rollback_sequence would restore something (L120: survives a page reload)."""
+    if not plan or plan.get("source") != "day_plan_optimize" or not plan.get("waypoints"):
+        return False
+    return True
+
+
 def rollback_sequence(driver_id: str) -> dict[str, Any] | None:
     """Restore previous sequence snapshot (undo optimize). Returns restored plan."""
     current = read_sequence(driver_id)
@@ -191,7 +198,11 @@ def rollback_sequence(driver_id: str) -> dict[str, Any] | None:
         return None
     previous = current.get("previous")
     if not isinstance(previous, dict) or not previous.get("waypoints"):
-        return None
+        # L120: the first Accept had no plan before it. Undo restores "no plan"
+        # (empty waypoints -> next stop falls back to route order / nearest).
+        if current.get("source") != "day_plan_optimize" or not current.get("waypoints"):
+            return None
+        previous = {"run_id": None, "engine": None, "waypoints": [], "metrics": {}}
     restored = {
         **previous,
         "version": int(current.get("version") or 0) + 1,

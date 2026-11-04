@@ -46,7 +46,7 @@ def run_admin_driver_action(
         DriverPlatform().push.notify_driver(
             db,
             driver,
-            title="Message from Porterchain",
+            title="Message from PorterChain",
             body=text,
         )
     elif action_type == "email" and driver.email:
@@ -55,7 +55,7 @@ def run_admin_driver_action(
         get_notification_engine().dispatch(
             db,
             event_type="admin.driver_action",
-            template_key="delivery_update",
+            template_key="driver_admin_message",
             channel="email",
             recipient_type="driver",
             recipient_id=driver.id,
@@ -74,7 +74,7 @@ def run_admin_driver_action(
         get_notification_engine().dispatch(
             db,
             event_type="admin.driver_action",
-            template_key="delivery_update",
+            template_key="driver_admin_message",
             channel="sms",
             recipient_type="driver",
             recipient_id=driver.id,

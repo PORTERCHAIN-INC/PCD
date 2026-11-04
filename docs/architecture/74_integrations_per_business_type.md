@@ -71,3 +71,28 @@ EDI-lite = fixed-column CSV (orders in, status out) over SFTP or email attachmen
 ## 7. Delta vs doc 44
 
 Adds `org.*`, `integration.*`, `external_ref` (44 lists `merchant_api_keys`/`merchant_webhooks` → replaced); adds `PC-Signature`; Shopify routes unchanged except removal of the link-token step.
+
+## Implementation status (branch phase0/keycloak, 29 Oct 2026)
+
+Clerk is removed from runtime code, infra, workflows and env templates (L36). Keycloak (realm
+`porterchain`) is the only identity provider for the website, the four portals (admin on
+`pc-admin` with TOTP for admin and super admin), both mobile apps and the API. The database
+column `clerk_user_id` is renamed `auth_subject` (revision `kc8authsubject0008`, backfilled from
+`subject-remap.csv`). Production cutover is manual: `docs/runbooks/KEYCLOAK_CUTOVER.md`.
+
+| Gate / ID            | Test                                                                                                                                                                    |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| G20 A-SHR-01         | `apps/api/tests/test_g20_shopify_reviewer_onboarding.py`, `apps/merchant-portal/src/lib/shopifyEmbedG20.test.ts`                                                        |
+| G20 A-SHR-02, 05, 07 | `apps/api/tests/test_g20_g21_acceptance.py`                                                                                                                             |
+| G20 A-SHR-03, 04     | `test_g20_shopify_reviewer_onboarding.py::test_reinstall_reuses_same_org`, `test_shopify_e2e_personas.py::test_install_rate_order_fulfil_track_return_uninstall_redact` |
+| G20 A-SHR-06         | `apps/api/tests/test_g20_pcdc_seed.py`                                                                                                                                  |
+| G21 A-APR-01         | Maestro `g21-reviewer-login.yaml`, `g21-reviewer-driver.yaml`; `keycloakAuth.test.ts` (both apps)                                                                       |
+| G21 A-APR-02         | `apps/api/tests/test_g21_reviewer_sandbox.py`                                                                                                                           |
+| G21 A-APR-03, 07, 08 | `apps/api/tests/test_g20_g21_acceptance.py` (web deletion page, realm OTP/brute force, no Clerk in runtime code)                                                        |
+| G21 A-APR-04         | `apps/mobile-customer/src/auth/IdpButtons.tsx` + Maestro                                                                                                                |
+| G21 A-APR-05, 06     | Manual release checklist (non-Canadian IP; Play Console app-access credentials)                                                                                         |
+
+Still needs Ravi: SOPS secrets (`KEYCLOAK_ADMIN_CLIENT_SECRET`, `AUTH_SESSION_SECRET`), realm
+SMTP and re-import, staff users, `migrate_clerk_users.py` then `alembic upgrade` with
+`PCD_SUBJECT_REMAP_CSV`, and the store resubmissions (human-run). Sign-up attribution (UTM)
+that Clerk stored in `unsafeMetadata` is no longer captured at sign-up.

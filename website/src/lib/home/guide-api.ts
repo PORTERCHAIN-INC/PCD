@@ -2,7 +2,7 @@
  * Server-only helpers for Capacity Guide → Porterchain public guide API.
  */
 
-import { getPorterchainApiBase } from "@/lib/api-base";
+import { getPorterchainFetchBase } from "@/lib/api-base";
 
 function ingestHeaders(): HeadersInit {
   const apiKey = (process.env.PUBLIC_INGEST_API_KEY ?? "").trim();
@@ -17,7 +17,7 @@ async function guideFetch<T>(
   init?: RequestInit
 ): Promise<{ ok: true; data: T } | { ok: false; error: string; status: number }> {
   try {
-    const res = await fetch(`${getPorterchainApiBase()}${path}`, {
+    const res = await fetch(`${getPorterchainFetchBase()}${path}`, {
       ...init,
       headers: {
         ...ingestHeaders(),

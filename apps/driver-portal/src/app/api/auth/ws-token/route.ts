@@ -1,7 +1,7 @@
 import { auth } from "@porterchain/auth/oidc/next";
 import { NextResponse } from "next/server";
 
-/** Return Clerk JWT for websocket clients — no Porterchain cookie JWT. */
+/** Return Keycloak JWT for websocket clients — no Porterchain cookie JWT. */
 export async function GET() {
   const { getToken, userId } = await auth();
   if (!userId) {

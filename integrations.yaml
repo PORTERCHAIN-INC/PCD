@@ -33,15 +33,15 @@ integrations:
     code:
       - apps/api/src/porterchain_api/dispatch_engine/
 
-  google_maps:
+  maps:
     status: implemented
-    package: "@vis.gl/react-google-maps@1.8.3"
+    package: "maplibre-gl + pmtiles (self-hosted tiles), Photon geocoder"
     env:
-      - NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-      - GOOGLE_MAPS_SERVER_API_KEY
+      - NEXT_PUBLIC_MAP_TILES_URL
+      - PHOTON_URL
     code:
-      - website/src/lib/maps.ts
       - packages/maps/
+      - apps/api/src/porterchain_api/routers/geo.py
 
   valhalla:
     status: docker
@@ -65,10 +65,10 @@ integrations:
     env_template: env/api.env.example
     note: Server-only — frozen config
 
-  clerk:
-    status: external
-    env_template: env/clerk.env
-    note: Sole authentication provider
+  keycloak:
+    status: self_hosted
+    env_template: env/api.env.example
+    note: Sole authentication provider (realm porterchain; infrastructure/keycloak)
 
   firebase_fcm:
     status: partial

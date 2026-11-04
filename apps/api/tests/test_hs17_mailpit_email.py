@@ -96,3 +96,32 @@ def test_local_smtp_target(host, port, expected) -> None:
             from_addr="f@example.test", from_name="PC", settings=settings,
         )
     assert smtp.call_args.args[:2] == expected
+
+
+def test_local_docker_mailpit_host_is_honoured(monkeypatch) -> None:
+    """Containerised local stack: MAIL_HOST=pcd-ls-mailpit must not be rewritten to localhost."""
+    from types import SimpleNamespace
+    from porterchain_api.notification_engine import delivery_service as ds
+
+    seen = {}
+
+    class FakeSMTP:
+        def __init__(self, host, port, *a, **k):
+            seen["hp"] = (host, port)
+        def __enter__(self):
+            return self
+        def __exit__(self, *a):
+            return False
+        def send_message(self, msg):
+            seen["sent"] = True
+        def starttls(self, *a, **k):
+            pass
+        def login(self, *a):
+            pass
+
+    monkeypatch.setattr(ds.smtplib, "SMTP", FakeSMTP)
+    st = SimpleNamespace(smtp_host="pcd-ls-mailpit", smtp_port=1025, app_env="local", smtp_user="", smtp_password="")
+    ds.DeliveryService()._send_email_smtp(
+        recipient="a@b.c", subject="s", text_body="t", html_body="<p>t</p>", from_addr="n@local.test", from_name="P", settings=st
+    )
+    assert seen["hp"] == ("pcd-ls-mailpit", 1025) and seen["sent"]

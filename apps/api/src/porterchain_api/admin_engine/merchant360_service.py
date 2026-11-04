@@ -133,9 +133,9 @@ class Merchant360Service:
         return stats_payload(db, outstanding=delivery_ar_total_cents(db))
 
     def unprovisioned_signups(self, db: Session, settings: Settings) -> list[dict[str, Any]]:
-        """Clerk merchant-app users with no Porterchain merchant_users row.
+        """Keycloak merchant-app users with no Porterchain merchant_users row.
 
-        Raises on Clerk directory failure so Admin can surface the error (M-4).
+        Raises on Keycloak directory failure so Admin can surface the error (M-4).
         """
         from porterchain_api.admin_engine.identity_directory_service import fetch_directory_snapshots
 
@@ -144,7 +144,7 @@ class Merchant360Service:
         except Exception as exc:
             raise RuntimeError(f"identity_directory_unavailable: {exc}") from exc
 
-        linked_clerk_ids = {
+        linked_idp_ids = {
             u.auth_subject
             for u in db.query(MerchantUser).all()
             if u.auth_subject and not u.auth_subject.startswith("pending:")
@@ -153,7 +153,7 @@ class Merchant360Service:
 
         out: list[dict[str, Any]] = []
         for email, snap in snaps.items():
-            if email in linked_emails or snap.subject in linked_clerk_ids:
+            if email in linked_emails or snap.subject in linked_idp_ids:
                 continue
             name = " ".join(p for p in (snap.first_name, snap.last_name) if p) or email.split("@")[0]
             out.append(

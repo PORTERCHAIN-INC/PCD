@@ -16,7 +16,9 @@ STATE_KINDS = {
     "RETURN_TO_SENDER": ("return", "medium"),
     "CLAIM_OPEN": ("claim", "medium"),
 }
-EXCEPTION_SEVERITY = {
+from porterchain_api.ops_rules.codes import severity_map as _severity_map  # noqa: E402
+
+EXCEPTION_SEVERITY = {**_severity_map(),
     "PARCEL_LOST": "critical",
     "PARCEL_DAMAGED": "critical",
     "VEHICLE_BREAKDOWN": "critical",
@@ -64,6 +66,7 @@ class DispatchBoardService:
         fixes: Any = None,
         offset: int = 0,
         limit: int = PAGE_SIZE,
+        with_fixes: bool = True,
     ) -> dict[str, Any]:
         """Every open problem, worst then newest first; one page carries suggested fixes.
 
@@ -195,7 +198,8 @@ class DispatchBoardService:
             counts[i["severity"]] += 1
         offset, limit = max(offset, 0), min(max(limit, 1), MAX_PAGE)
         page = items[offset : offset + limit]
-        (fixes or ExceptionFixesService()).annotate(db, page, now=now)
+        if with_fixes:  # L75: badge/count callers skip the per-item driver ranking (Valhalla calls)
+            (fixes or ExceptionFixesService()).annotate(db, page, now=now)
         return {"items": page, "counts": dict(counts), "total": len(items), "offset": offset, "limit": limit,
                 "eta": eta_status}
 

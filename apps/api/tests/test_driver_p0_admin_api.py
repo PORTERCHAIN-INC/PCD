@@ -129,9 +129,9 @@ def test_api_a_04_driver360_board_envelopes() -> None:
 
 
 @pytest.mark.driver_p0
-def test_auth_06_invite_existing_driver_requires_clerk() -> None:
-    """AUTH-06 — invite_existing_driver fails closed when Clerk secret missing."""
-    settings = SimpleNamespace(clerk_driver_secret_key="", clerk_driver_jwks_url="")
+def test_auth_06_invite_existing_driver_requires_idp() -> None:
+    """AUTH-06 — invite_existing_driver fails closed when Keycloak secret missing."""
+    settings = SimpleNamespace(idp_driver_secret_key="", idp_driver_jwks_url="")
     driver = SimpleNamespace(id="d1", email="driver@example.com", full_name="D")
     with patch(
         "porterchain_api.auth.invitation_service.is_directory_configured",

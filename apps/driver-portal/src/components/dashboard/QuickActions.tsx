@@ -133,7 +133,7 @@ export function VehicleCard({
           </div>
           <div className="flex justify-between gap-4">
             <dt className="text-[var(--muted)]">Class</dt>
-            <dd className="capitalize">{vehicle.vehicle_class}</dd>
+            <dd className="capitalize">{String(vehicle.vehicle_class ?? "").replace(/_/g, " ")}</dd>
           </div>
           {vehicle.capacity_kg != null && (
             <div className="flex justify-between gap-4">

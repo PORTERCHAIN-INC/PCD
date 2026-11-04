@@ -127,7 +127,7 @@ _merchant_ar = __import__(
 ).MerchantArService()
 _support = AdminSupportService()
 _settings = AdminSettingsService()
-_clerk_directory = DirectoryUserService()
+_idp_directory = DirectoryUserService()
 _draft_admin = AdminBookingDraftService()
 _blog = BlogService()
 _data_moat = AdminDataMoatService()
@@ -311,7 +311,7 @@ __all__ = [
     "_audit_export",
     "_claims",
     "_data_moat",
-    "_clerk_directory",
+    "_idp_directory",
     "_dashboard",
     "_draft_admin",
     "_finance",

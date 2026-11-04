@@ -1,4 +1,4 @@
-"""Phase 8 — resolve clerk subject → porterchain_users.id; backfill profile FKs."""
+"""Phase 8 — resolve keycloak subject → porterchain_users.id; backfill profile FKs."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ PROFILE_TARGETS: tuple[ProfileKind, ...] = (
 )
 
 
-def _is_skippable_clerk_id(auth_subject: str | None) -> bool:
+def _is_skippable_idp_id(auth_subject: str | None) -> bool:
     if not auth_subject or not str(auth_subject).strip():
         return True
     cid = str(auth_subject).strip()
@@ -85,7 +85,7 @@ def resolve_porterchain_user_id(
 
     Methods: porterchain_users | identity_link | created | none
     """
-    if _is_skippable_clerk_id(auth_subject):
+    if _is_skippable_idp_id(auth_subject):
         return None, "skipped"
     assert auth_subject is not None
     cid = auth_subject.strip()

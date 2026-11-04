@@ -1,4 +1,4 @@
-"""Resolve customer context from Clerk JWT + Porterchain customers table."""
+"""Resolve customer context from Keycloak JWT + Porterchain customers table."""
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -21,15 +21,15 @@ def resolve_customer_contact(
     claims: IdentityClaims,
     settings: Settings,
 ) -> tuple[str | None, str | None]:
-    """Resolve Clerk-attested email (JWT / verified Backend). Phone may use DB fallback."""
-    from porterchain_api.auth.email_identity import normalize_email, resolve_verified_clerk_email
+    """Resolve Keycloak-attested email (JWT / verified Backend). Phone may use DB fallback."""
+    from porterchain_api.auth.email_identity import normalize_email, resolve_verified_idp_email
 
     email = normalize_email(claims.email)
     phone = claims.phone
 
     if not email:
         try:
-            email = resolve_verified_clerk_email(
+            email = resolve_verified_idp_email(
                 jwt_email=None,
                 auth_subject=claims.auth_subject,
                 settings=settings,
@@ -37,11 +37,11 @@ def resolve_customer_contact(
         except PermissionError:
             email = None
 
-    # Clerk Backend lookup happens BEFORE any query so the request never holds a
+    # Keycloak Backend lookup happens BEFORE any query so the request never holds a
     # transaction open while waiting on the network. DB phone still wins.
-    clerk_phone: str | None = None
+    idp_phone: str | None = None
     if not phone and is_directory_configured(settings):
-        clerk_phone = _clerk_phone_cached(settings, claims.auth_subject)
+        idp_phone = _idp_phone_cached(settings, claims.auth_subject)
 
     if not phone:
         user = (
@@ -52,12 +52,12 @@ def resolve_customer_contact(
         if user and user.phone:
             phone = user.phone
         if not phone:
-            customer = _customers.get_by_clerk(db, claims.auth_subject)
+            customer = _customers.get_by_idp(db, claims.auth_subject)
             if customer:
                 phone = customer.phone
 
     if not phone:
-        phone = clerk_phone
+        phone = idp_phone
 
     return email, phone
 
@@ -66,7 +66,7 @@ _PHONE_CACHE_TTL_S = 300.0
 _phone_cache: dict[str, tuple[float, str | None]] = {}
 
 
-def _clerk_phone_cached(settings: Settings, auth_subject: str) -> str | None:
+def _idp_phone_cached(settings: Settings, auth_subject: str) -> str | None:
     import time
 
     now = time.monotonic()
@@ -75,9 +75,9 @@ def _clerk_phone_cached(settings: Settings, auth_subject: str) -> str | None:
         return hit[1]
     phone = None
     try:
-        clerk_user, _kind = fetch_identity_user(settings, auth_subject)
-        if clerk_user:
-            phone = IdentityDirectory.primary_phone(clerk_user)
+        idp_user, _kind = fetch_identity_user(settings, auth_subject)
+        if idp_user:
+            phone = IdentityDirectory.primary_phone(idp_user)
     except Exception:  # noqa: BLE001
         phone = None
     if len(_phone_cache) > 10_000:
@@ -98,11 +98,11 @@ def require_customer(
             raise HTTPException(status_code=404, detail="customer_not_found")
         return customer
 
-    # Contact first: its Clerk lookups run before this request's first query.
+    # Contact first: its Keycloak lookups run before this request's first query.
     email, phone = resolve_customer_contact(db, claims, settings)
     assert_portal_provisioned(db, claims, portal="customer", settings=settings)
     try:
-        customer = _customers.get_or_create_from_clerk(
+        customer = _customers.get_or_create_from_idp(
             db,
             auth_subject=claims.auth_subject,
             email=email,
@@ -114,7 +114,7 @@ def require_customer(
             raise HTTPException(status_code=400, detail="email_required") from exc
         if detail == "email_identity_mismatch":
             raise HTTPException(status_code=403, detail="email_identity_mismatch") from exc
-        # C-23: staff/driver Clerk on customer portal must not 500.
+        # C-23: staff/driver Keycloak on customer portal must not 500.
         if detail.startswith("identity_conflict"):
             raise HTTPException(status_code=403, detail=detail) from exc
         raise

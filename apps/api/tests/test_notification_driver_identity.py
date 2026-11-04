@@ -1,6 +1,6 @@
 """Audit day 4 #1: driver identity in the notification API comes from the token only.
 
-A customer or merchant Clerk token with forged ``X-Porterchain-Portal: driver`` +
+A customer or merchant Keycloak token with forged ``X-Porterchain-Portal: driver`` +
 ``X-Driver-Id`` must be rejected (403) for inbox read, preferences update and push
 device registration. The real driver keeps working, and a driver cannot use the
 header to reach another driver's inbox.
@@ -29,10 +29,10 @@ OWN_DRIVER_ID = "drv-own"
 def _rows() -> dict:
     return {
         Driver: [
-            Driver(id=VICTIM_DRIVER_ID, auth_subject="clerk_victim", email="v@example.com", full_name="V"),
-            Driver(id=OWN_DRIVER_ID, auth_subject="clerk_driver", email="d@example.com", full_name="D"),
+            Driver(id=VICTIM_DRIVER_ID, auth_subject="idp_victim", email="v@example.com", full_name="V"),
+            Driver(id=OWN_DRIVER_ID, auth_subject="idp_driver", email="d@example.com", full_name="D"),
         ],
-        Customer: [Customer(id="cust-1", auth_subject="clerk_customer")],
+        Customer: [Customer(id="cust-1", auth_subject="idp_customer")],
         MerchantUser: [],
         Merchant: [],
         AdminUser: [],
@@ -120,7 +120,7 @@ CALLS = [
 ]
 
 
-@pytest.mark.parametrize("attacker", ["clerk_customer", "clerk_merchant_user"])
+@pytest.mark.parametrize("attacker", ["idp_customer", "idp_merchant_user"])
 @pytest.mark.parametrize("method,path,body", CALLS)
 def test_non_driver_with_forged_driver_header_is_403(client, attacker, method, path, body) -> None:
     with _as(attacker):
@@ -132,7 +132,7 @@ def test_non_driver_with_forged_driver_header_is_403(client, attacker, method, p
 
 @pytest.mark.parametrize("method,path,body", CALLS)
 def test_driver_cannot_target_another_driver(client, method, path, body) -> None:
-    with _as("clerk_driver"):
+    with _as("idp_driver"):
         res = client.request(method, path, headers=_forged(VICTIM_DRIVER_ID), json=body)
     assert res.status_code == 403
     client.upsert.assert_not_called()
@@ -145,7 +145,7 @@ def test_real_driver_still_works(client, with_header) -> None:
         "Authorization": "Bearer tok",
         "X-Porterchain-Portal": "driver",
     }
-    with _as("clerk_driver"):
+    with _as("idp_driver"):
         inbox = client.get("/v1/notifications/inbox", headers=headers)
         prefs = client.patch("/v1/notifications/preferences", headers=headers, json={"category": "jobs"})
         dev = client.post(
@@ -161,7 +161,7 @@ def test_real_driver_still_works(client, with_header) -> None:
 
 
 def test_customer_without_driver_header_still_gets_own_inbox(client) -> None:
-    with _as("clerk_customer"):
+    with _as("idp_customer"):
         res = client.get("/v1/notifications/inbox", headers={"Authorization": "Bearer tok"})
     assert res.status_code == 200
     assert res.json() == {"for": "cust-1", "role": "customer"}

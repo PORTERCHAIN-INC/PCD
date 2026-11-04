@@ -50,6 +50,7 @@ def _normalize_stops(stops: list[AdminOrderStopInput]) -> list[dict[str, Any]]:
                 "lat": s.lat,
                 "lng": s.lng,
                 "city": s.city,
+                "postal": s.postal,
                 "time_window_start": s.time_window_start.isoformat() if s.time_window_start else None,
                 "time_window_end": s.time_window_end.isoformat() if s.time_window_end else None,
                 "service_time_seconds": s.service_time_seconds,
@@ -67,6 +68,10 @@ def _validate_kind(kind: str, stops: list[dict[str, Any]]) -> None:
     dropoffs = [s for s in stops if s["type"] == "dropoff"]
     if not pickups or not dropoffs:
         raise ValueError("need_pickup_and_dropoff")
+    if kind == "collect_only":
+        from porterchain_api.services import collect_only as co
+
+        co.assert_enabled()
     if kind in ("single", "collect_only") and (len(pickups) != 1 or len(dropoffs) != 1):
         raise ValueError("single_requires_one_pickup_one_dropoff")
     if kind == "hub_spoke" and (len(pickups) != 1 or len(dropoffs) < 2):
@@ -81,7 +86,29 @@ def _stop_addr(stop: dict[str, Any]) -> dict[str, Any]:
         "lat": stop.get("lat"),
         "lng": stop.get("lng"),
         "city": stop.get("city"),
+        **({"postal": stop["postal"]} if stop.get("postal") else {}),
     }
+
+
+def _geocode_missing(stops: list[dict[str, Any]]) -> None:
+    """L92: a typed address (no suggestion picked) is geocoded like the merchant form, so the
+    order gets coordinates and a postal code and is priced by the same engine."""
+    from porterchain_api.merchant_engine.import_geocode import geocode_stop
+
+    for s in stops:
+        if s.get("lat") is not None and s.get("lng") is not None and s.get("postal"):
+            continue
+        try:
+            geo = geocode_stop(address=s["formatted"], province="ON", postal=s.get("postal"),
+                               lat=s.get("lat"), lng=s.get("lng"))
+        except Exception:  # noqa: BLE001 - geocoder down: keep the typed address
+            continue
+        if geo.lat is not None and geo.lng is not None:
+            s["lat"], s["lng"] = geo.lat, geo.lng
+        if geo.postal and not s.get("postal"):
+            s["postal"] = geo.postal
+        if geo.city and not s.get("city"):
+            s["city"] = geo.city
 
 
 
@@ -92,6 +119,8 @@ class OrderBuilderService:
         settings: Settings,
         ctx: AdminContext,
         body: AdminCreateOrderRequest,
+        *,
+        dry_run: bool = False,
     ) -> dict[str, Any]:
         del settings
         merchant = get_merchant(db, body.merchant_id)
@@ -100,6 +129,7 @@ class OrderBuilderService:
 
         stops = _normalize_stops(body.stops)
         _validate_kind(body.order_kind, stops)
+        _geocode_missing(stops)
 
         pickups = [s for s in stops if s["type"] == "pickup"]
         dropoffs = [s for s in stops if s["type"] == "dropoff"]
@@ -108,10 +138,11 @@ class OrderBuilderService:
         ends = {pickup["id"], dropoff["id"]}
         middles = [s for s in stops if s["id"] not in ends]
 
-        pickup_geo = GeoPoint(lat=pickup.get("lat"), lng=pickup.get("lng"), formatted=pickup["formatted"])
-        dropoff_geo = GeoPoint(lat=dropoff.get("lat"), lng=dropoff.get("lng"), formatted=dropoff["formatted"])
+        pickup_geo = GeoPoint(lat=pickup.get("lat"), lng=pickup.get("lng"), formatted=pickup["formatted"], postal=pickup.get("postal") or "")
+        dropoff_geo = GeoPoint(lat=dropoff.get("lat"), lng=dropoff.get("lng"), formatted=dropoff["formatted"], postal=dropoff.get("postal") or "")
         mid_geo = [
-            GeoPoint(lat=s.get("lat"), lng=s.get("lng"), formatted=s["formatted"]) for s in middles
+            GeoPoint(lat=s.get("lat"), lng=s.get("lng"), formatted=s["formatted"], postal=s.get("postal") or "")
+            for s in middles
         ]
         from porterchain_api.services import collect_only as co
 
@@ -129,7 +160,16 @@ class OrderBuilderService:
             vehicle_class=persist_vehicle_class(body.vehicle_class),
             package_type=body.package_type,
             service_type="scheduled" if schedule_mode == "later" else "same_day",
-            weight_kg=body.weight_kg,
+            weight_kg=(body.weight_lb * 0.45359237 * body.parcel_count) if body.weight_lb else body.weight_kg,  # lb per parcel
+            dimensions=(
+                {"length": body.length_in * 2.54, "width": body.width_in * 2.54, "height": body.height_in * 2.54}
+                if body.length_in and body.width_in and body.height_in
+                else None
+            ),
+            parcel_count=body.parcel_count,
+            booking_mode=body.booking_mode,
+            dedicated_hours=body.dedicated_hours,
+            help_stops=body.help_stops if body.booking_mode == "vehicle" else 0,
             schedule_mode=schedule_mode,
             scheduled_at=body.scheduled_at,
             additional_stops=mid_geo,
@@ -144,6 +184,20 @@ class OrderBuilderService:
         )
         breakdown = get_pricing_service(db).calculate_merchant(pricing_request)
         amount_cents = breakdown.final_cents
+        if dry_run:  # L128: admin sees the price before creating
+            out: dict[str, Any] = {
+                "amount_cents": int(amount_cents),
+                "subtotal_cents": int(breakdown.subtotal_cents),
+                "tax_cents": int(breakdown.tax_cents),
+                "pricing": (breakdown.metadata or {}).get("pricing"),
+                "lines": [{"label": i.label, "amount_cents": int(i.amount_cents)} for i in breakdown.items],
+                "custom_quote": None,
+            }
+            try:
+                assert_not_fsa_refused(breakdown)
+            except BookingValidationError as exc:
+                out["custom_quote"] = exc.message
+            return out
 
         try:
             assert_not_fsa_refused(breakdown)

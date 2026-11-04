@@ -16,14 +16,13 @@ PR / push → main
   Deploy (plan → parallel builds → scoped rollout) → GHCR → droplet
 ```
 
-| Workflow                | When                                | What                                                           |
-| ----------------------- | ----------------------------------- | -------------------------------------------------------------- |
-| `CI`                    | PR + push to `main`                 | Static gates, Admin Vitest, API Postgres tests                 |
-| `Deploy`                | After green CI on `main`, or manual | Plan from `deploy-rules.json` → parallel GHCR builds → droplet |
-| `Nightly E2E`           | Cron 11:00 UTC + manual             | D3 behavioral matrix (Postgres + Redis + Valhalla stub)        |
-| `Security`              | PR + push to `main`                 | Bandit + Trivy                                                 |
-| `CodeQL`                | PR + push + weekly                  | CodeQL analyze                                                 |
-| `Set Public Ingest Key` | Manual                              | Ensure `PUBLIC_INGEST_API_KEY` in Doppler; roll `api` + `web`  |
+| Workflow      | When                                | What                                                           |
+| ------------- | ----------------------------------- | -------------------------------------------------------------- |
+| `CI`          | PR + push to `main`                 | Static gates, Admin Vitest, API Postgres tests                 |
+| `Deploy`      | After green CI on `main`, or manual | Plan from `deploy-rules.json` → parallel GHCR builds → droplet |
+| `Nightly E2E` | Cron 11:00 UTC + manual             | D3 behavioral matrix (Postgres + Redis + Valhalla stub)        |
+| `Security`    | PR + push to `main`                 | Bandit + Trivy                                                 |
+| `CodeQL`      | PR + push + weekly                  | CodeQL analyze                                                 |
 
 Website-only: **Actions → Deploy → Run workflow → scope=`website`**. Do not use a separate workflow.
 
@@ -31,18 +30,17 @@ Git push from a laptop uses the deploy key documented in [`docs/GITHUB_SSH_KEYS.
 
 ## GitHub secrets / vars
 
-| Name                                 | Required   | Role                                                                                                                                                                |
-| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DEPLOY_HOST`                        | yes        | Droplet IP/hostname                                                                                                                                                 |
-| `DEPLOY_USER`                        | yes        | SSH user                                                                                                                                                            |
-| `DEPLOY_SSH_KEY`                     | yes        | Private key                                                                                                                                                         |
-| `DEPLOY_PORT`                        | no         | Default `22`                                                                                                                                                        |
-| `DOPPLER_TOKEN`                      | yes        | Service token for `pcd` / `prd` — used only on the **Actions runner** via [`.github/actions/stage-doppler-env`](../../.github/actions/stage-doppler-env/action.yml) |
-| `CLERK_*` / `NEXT_PUBLIC_*`          | build-time | Portal/website image build-args                                                                                                                                     |
-| `DOPPLER_PROJECT` / `DOPPLER_CONFIG` | vars       | Default `pcd` / `prd`                                                                                                                                               |
-| `API_REPLICAS`                       | var        | Passed into recover script                                                                                                                                          |
+| Name                      | Required   | Role                                                                                                                                                                               |
+| ------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DEPLOY_HOST`             | yes        | Droplet IP/hostname                                                                                                                                                                |
+| `DEPLOY_USER`             | yes        | SSH user                                                                                                                                                                           |
+| `DEPLOY_SSH_KEY`          | yes        | Private key                                                                                                                                                                        |
+| `DEPLOY_PORT`             | no         | Default `22`                                                                                                                                                                       |
+| `SOPS_AGE_KEY`            | yes        | age private key for the CI recipient in `.sops.yaml` — used only on the **Actions runner** via [`.github/actions/stage-sops-env`](../../.github/actions/stage-sops-env/action.yml) |
+| `IDP_*` / `NEXT_PUBLIC_*` | build-time | Portal/website image build-args                                                                                                                                                    |
+| `API_REPLICAS`            | var        | Passed into recover script                                                                                                                                                         |
 
-Runtime secrets live in **Doppler**, not GitHub. `stage-doppler-env` downloads once, validates keys, then SCPs `doppler.env`. Never forward `DOPPLER_TOKEN` through appleboy SSH env.
+Runtime secrets live in **`secrets/droplet.enc.yaml`** (SOPS + age), not GitHub. `stage-sops-env` decrypts once on the runner, checks the required keys, then SCPs `runtime.env`. Never forward `SOPS_AGE_KEY` through appleboy SSH env.
 
 ## Images (GHCR)
 
@@ -64,7 +62,7 @@ Org stays on **GitHub Free** (no Team). CI/Deploy/Packages work without Team; pr
 Host path: `/opt/porterchain`
 
 - `docker-compose.prod.yml`, `Caddyfile`, SSO HTML, Valhalla helpers
-- `doppler.yaml` + staged `doppler.env` → `sync-secrets.sh` → `.env`
+- staged `runtime.env` (or `SOPS_SECRETS_FILE` + host age key) → `sync-secrets.sh` → `.env`
 - Compose services: `api`, `web`, portals, `worker`, `caddy`, Postgres, Redis, Valhalla, …
 
 Bootstrap / harden: `bootstrap-droplet.sh`, `harden-droplet.sh`.
@@ -107,9 +105,9 @@ Migrations: full deploy runs `repair_and_migrate.py` inside `api` before smoke. 
 ## Local / break-glass
 
 ```bash
-# Dry-run secrets sync (needs DOPPLER_TOKEN)
-DOPPLER_TOKEN=… bash infrastructure/deploy/sync-secrets.sh /tmp/porterchain-test
+# Dry-run secrets sync (needs an age key that can decrypt the file)
+SOPS_SECRETS_FILE=secrets/droplet.enc.yaml bash infrastructure/deploy/sync-secrets.sh /tmp/porterchain-test
 
-# Upload helpers — see SECRETS.md
-bash infrastructure/deploy/scripts/upload-ingest-to-doppler.sh
+# Set keys — see SECRETS.md
+bash scripts/secrets/sops-set-from-env.sh droplet infrastructure/deploy/scripts/mail-keys.local.env
 ```

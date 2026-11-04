@@ -1,6 +1,6 @@
 const COPY: Record<string, string> = {
   signed_out: "Sign in to continue.",
-  email_required: "Add a verified email in Clerk, then try again.",
+  email_required: "Add a verified email in Keycloak, then try again.",
   email_identity_mismatch: "This email is linked to a different Porterchain account.",
   user_not_provisioned: "This account is not provisioned for the customer portal.",
   missing_portal_permission: "This account is not provisioned for the customer portal.",

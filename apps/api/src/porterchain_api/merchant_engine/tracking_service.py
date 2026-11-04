@@ -1,6 +1,6 @@
 """Merchant tracking — PorterChain order + Redis GPS + Valhalla ETA (masterrule §3).
 
-Google Maps renders only on the client. Live pin and status come from PorterChain.
+Maps render only on the client (MapLibre + self-hosted PMTiles). Live pin and status come from PorterChain.
 OSRM is a labeled ETA fallback when Valhalla is down. Valhalla provides route geometry.
 """
 
@@ -223,28 +223,7 @@ class MerchantTrackingService:
         return []
 
     def _local_pod_proofs(self, db: Session, order: Order) -> list[dict[str, Any]]:
-        from porterchain_api.driver_models import DriverStopMeta
-
-        meta_row = db.query(DriverStopMeta).filter(DriverStopMeta.order_id == order.id).first()
-        if not meta_row:
-            return []
-        mapped: list[dict[str, Any]] = []
-        for item in list((meta_row.meta or {}).get("proofs", [])):
-            if not isinstance(item, dict):
-                continue
-            ptype = str(item.get("type") or "")
-            value = str(item.get("value") or "")
-            proof: dict[str, Any] = {"type": ptype, "id": f"local-{order.id}-{ptype}"}
-            if ptype == "photo":
-                proof["url"] = value
-            elif ptype == "signature":
-                proof["signature"] = value
-            elif ptype in {"otp", "barcode"}:
-                proof["otp"] = value
-            elif value:
-                proof["url"] = value
-            mapped.append(proof)
-        return mapped
+        return local_pod_proofs(db, order)
 
     def _driver_location(
         self,
@@ -394,3 +373,29 @@ class MerchantTrackingService:
 
 # Re-exports kept for existing importers (integration).
 from porterchain_api.merchant_engine.tracking_views import tracking_error_message  # noqa: E402, F401
+
+
+def local_pod_proofs(db: Session, order: Order) -> list[dict[str, Any]]:
+    """POD captured by our own driver app (DriverStopMeta.proofs), shaped like live-tracking proofs."""
+    from porterchain_api.driver_models import DriverStopMeta
+
+    meta_row = db.query(DriverStopMeta).filter(DriverStopMeta.order_id == order.id).first()
+    if not meta_row:
+        return []
+    mapped: list[dict[str, Any]] = []
+    for item in list((meta_row.meta or {}).get("proofs", [])):
+        if not isinstance(item, dict):
+            continue
+        ptype = str(item.get("type") or "")
+        value = str(item.get("value") or "")
+        proof: dict[str, Any] = {"type": ptype, "id": f"local-{order.id}-{ptype}"}
+        if ptype == "photo":
+            proof["url"] = value
+        elif ptype == "signature":
+            proof["signature"] = value
+        elif ptype in {"otp", "barcode"}:
+            proof["otp"] = value
+        elif value:
+            proof["url"] = value
+        mapped.append(proof)
+    return mapped

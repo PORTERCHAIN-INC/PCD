@@ -47,7 +47,6 @@ export interface DashboardInvoiceLink {
   invoice_id: string;
   invoice_number: string;
   pdf_url?: string | null;
-  stripe_receipt_url?: string | null;
 }
 
 export interface MerchantDashboard {
@@ -125,6 +124,9 @@ export interface BookDeliveryPayload {
   dropoff: AddressPayload;
   additional_stops?: AddressPayload[];
   vehicle_class?: string;
+  booking_mode?: "parcels" | "vehicle";
+  dedicated_hours?: number;
+  help_at_pickup?: boolean;
   package_type?: string;
   weight_kg?: number;
   dimensions?: string;
@@ -209,7 +211,6 @@ export interface InvoiceItem {
   amount_cents: number;
   currency: string;
   created_at: string;
-  stripe_receipt_url?: string | null;
 }
 
 export interface ReportSummary {
@@ -229,7 +230,7 @@ export interface BillingStatement {
   monthly_spend_cents: number;
 }
 
-async function merchantFetch<T>(
+export async function merchantFetch<T>(
   path: string,
   token: string,
   init?: RequestInit & { orgId?: string; role?: string }
@@ -258,10 +259,36 @@ async function merchantFetch<T>(
         : Array.isArray(detail)
           ? detail.map((d: { msg?: string }) => d.msg || JSON.stringify(d)).join("; ")
           : `API error ${response.status}`;
-    throw new Error(message);
+    throw Object.assign(new Error(message), { status: response.status, detail });
   }
   if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
+}
+
+/** File download (e.g. EDI 214/856 for one of the merchant's own batches). Returns the blob + server filename. */
+export async function merchantDownload(
+  path: string,
+  token: string,
+  orgId?: string
+): Promise<{ blob: Blob; filename: string }> {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    "X-Porterchain-Portal": "merchant",
+  };
+  if (orgId) headers["X-Merchant-Id"] = orgId;
+  const response = await fetch(`${API_BASE}${path}`, { headers });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw Object.assign(
+      new Error(typeof body.detail === "string" ? body.detail : `API error ${response.status}`),
+      {
+        status: response.status,
+      }
+    );
+  }
+  const cd = response.headers.get("content-disposition") || "";
+  const filename = /filename=([^;]+)/.exec(cd)?.[1]?.trim() || "download.edi";
+  return { blob: await response.blob(), filename };
 }
 
 export type MerchantSession = {
@@ -271,6 +298,7 @@ export type MerchantSession = {
   role_label?: string;
   modules: string[];
   user_email: string;
+  display_name?: string | null;
   status?: string;
   status_label?: string;
   logo_url?: string | null;
@@ -291,6 +319,15 @@ export type MerchantMembership = {
 
 export function getMerchantSession(token: string, orgId?: string) {
   return merchantFetch<MerchantSession>("/v1/merchant/session", token, { orgId });
+}
+
+export function setMyDisplayName(token: string, displayName: string, orgId?: string) {
+  return merchantFetch<{ display_name: string | null }>("/v1/merchant/me/display-name", token, {
+    orgId,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ display_name: displayName }),
+  });
 }
 
 export async function getMerchantMemberships(token: string, orgId?: string) {
@@ -664,4 +701,56 @@ export async function listShopifyOrdersForDelivery(token: string, orgId?: string
     { orgId }
   );
   return data.orders ?? [];
+}
+
+/** Review 139170: every Shopify order we received, booked or not (with the reason). */
+export type ShopifyOrderSyncRow = {
+  id: string;
+  shop_domain: string;
+  shopify_order_id: string;
+  order_name: string | null;
+  status: "booked" | "not_booked" | "cancelled" | "error";
+  reason_code: string | null;
+  reason: string | null;
+  is_test: boolean;
+  financial_status: string | null;
+  shipping_title: string | null;
+  ship_to: string | null;
+  customer_name: string | null;
+  line_items: { title?: string; quantity?: number; sku?: string | null }[];
+  currency: string | null;
+  total_cents: number | null;
+  porterchain_order_id: string | null;
+  can_book: boolean;
+  shopify_created_at: string | null;
+};
+
+export async function listShopifyOrderSyncs(token: string, orgId?: string, q?: string) {
+  const qs = q?.trim() ? `?q=${encodeURIComponent(q.trim())}` : "";
+  const data = await merchantFetch<{ orders: ShopifyOrderSyncRow[] }>(
+    `/v1/merchant/shopify/syncs${qs}`,
+    token,
+    { orgId }
+  );
+  return data.orders ?? [];
+}
+
+export async function refreshShopifyOrderSyncs(token: string, orgId?: string) {
+  return merchantFetch<{ ok: boolean; found?: number; new?: number }>(
+    "/v1/merchant/shopify/syncs/refresh",
+    token,
+    { method: "POST", orgId }
+  );
+}
+
+export async function bookShopifyOrderSync(token: string, syncId: string, orgId?: string) {
+  return merchantFetch<{
+    ok: boolean;
+    order_id?: string;
+    skipped?: string;
+    tracking_number?: string;
+  }>(`/v1/merchant/shopify/syncs/${encodeURIComponent(syncId)}/book`, token, {
+    method: "POST",
+    orgId,
+  });
 }

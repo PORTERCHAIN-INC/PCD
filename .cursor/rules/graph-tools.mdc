@@ -48,7 +48,7 @@ Activate **before** extracting Pydantic/ORM or moving routing logic.
 - If MCP is not in this session: `npx -y @colbymchenry/codegraph explore "<query>" --path .`
 - VROOM stays behind the Fleetbase orchestrator — do not invent a PorterChain VROOM client
 
-## Moment C — Ripwire (thin routers, Stripe/Clerk adapters, client views)
+## Moment C — Ripwire (thin routers, Stripe/Keycloak adapters, client views)
 
 CLI first. Skip Ripwire MCP.
 

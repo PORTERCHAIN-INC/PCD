@@ -121,6 +121,21 @@ def merchant_rate_card(db: Session, merchant: Merchant) -> dict[str, Any]:
         "fsa_rate_count": own,
         "platform_fsa_rate_count": platform,
         "currency": "cad",
+        **_live_pricing(db, merchant),
+    }
+
+
+def _live_pricing(db: Session, merchant: Merchant) -> dict[str, Any]:
+    """2026-10-31 models: which one applies to this merchant (custom price overrides)."""
+    from porterchain_api.pricing_engine.smart_apply import _has_custom_pricing
+    from porterchain_api.pricing_engine.standard_live import org_id_for_merchant, org_pricing
+
+    org = org_pricing(db, org_id_for_merchant(db, merchant.id))
+    return {
+        "custom_price": bool(_has_custom_pricing(db, merchant.id)),
+        "custom_pct": float(org.preset_pct) if org and org.preset_pct else None,
+        "custom_per_stop_cents": int(org.preset_per_stop_cents) if org and org.preset_per_stop_cents else None,
+        "custom_flat_parcel_cents": int(org.flat_parcel_cents) if org and getattr(org, "flat_parcel_cents", None) else None,
     }
 
 

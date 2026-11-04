@@ -17,7 +17,7 @@ def get_order_by_tracking(
     db: Session = Depends(get_db),
     viewer: str | None = Depends(get_optional_auth_subject),
 ) -> OrderResponse:
-    result = _tracking.get_order_response_by_tracking(db, tracking_number, viewer_clerk_user_id=viewer)
+    result = _tracking.get_order_response_by_tracking(db, tracking_number, viewer_idp_user_id=viewer)
     if not result:
         raise HTTPException(status_code=404, detail="order_not_found")
     return result
@@ -36,7 +36,7 @@ def get_order_live_tracking(
     from porterchain_api.booking_engine.public_tracking_limit import enforce_public_tracking_limit
 
     enforce_public_tracking_limit(request, tracking_number, app_env=settings.app_env)
-    result = _tracking.get_order_tracking_response(db, settings, tracking_number, viewer_clerk_user_id=viewer)
+    result = _tracking.get_order_tracking_response(db, settings, tracking_number, viewer_idp_user_id=viewer)
     if not result:
         raise HTTPException(status_code=404, detail="order_not_found")
     response.headers["Cache-Control"] = "no-store"

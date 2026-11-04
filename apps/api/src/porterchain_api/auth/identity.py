@@ -8,7 +8,7 @@ from typing import Any
 
 @dataclass(frozen=True)
 class AuthenticatedIdentity:
-    """Minimum claims needed for PorterChain identity resolution — no Clerk types."""
+    """Minimum claims needed for PorterChain identity resolution — no Keycloak types."""
 
     provider: str
     issuer: str | None
@@ -18,5 +18,5 @@ class AuthenticatedIdentity:
     email_verified: bool | None = None
     auth_time: int | None = None
     authorized_party: str | None = None
-    # Opaque adapter hints (e.g. which Clerk app JWKS matched) — never used for authz
+    # Opaque adapter hints (e.g. which Keycloak app JWKS matched) — never used for authz
     adapter_context: dict[str, Any] | None = None

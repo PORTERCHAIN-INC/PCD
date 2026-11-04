@@ -55,7 +55,9 @@ export function OverviewTab({ overview }: { overview: BillingOverview }) {
               {formatCents(credit)} credit applies to your next invoice
             </span>
           ) : null}
-          <span className="text-muted">Net {overview.net_terms_days} days</span>
+          <span className="text-muted">
+            {overview.net_terms_days ? `Net ${overview.net_terms_days} days` : "Due on receipt"}
+          </span>
         </div>
         <div className="mt-8 grid divide-y divide-primary/10 border-t border-primary/10 pt-6 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
           <Stat

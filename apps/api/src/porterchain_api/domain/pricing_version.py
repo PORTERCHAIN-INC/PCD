@@ -31,7 +31,8 @@ PRICING_STORAGE_KEYS = frozenset(
 )
 
 #: Super-admin-only settings that do not change prices (no price-version bump).
-SUPER_ADMIN_SETTING_KEYS = frozenset({"delivery_promise"})
+# cargo_insurance = the G-INS gate for declared-value cover (Ravi 2026-10-29): super admin only.
+SUPER_ADMIN_SETTING_KEYS = frozenset({"delivery_promise", "cargo_insurance"})
 
 SUPER_ADMIN_ONLY = "pricing_super_admin_only"
 

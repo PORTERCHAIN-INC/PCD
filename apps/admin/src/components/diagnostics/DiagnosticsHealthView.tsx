@@ -10,6 +10,7 @@ import {
   HealthSummaryBar,
   MasterruleCompliancePanel,
   ProgressRing,
+  statusLabel,
 } from "@/components/diagnostics/DiagnosticsPrimitives";
 import { Button } from "@/components/crm/primitives";
 import { SettingsCard, SettingsPageHeader } from "@/components/settings/ui/SettingsPrimitives";
@@ -201,7 +202,9 @@ export function DiagnosticsHealthView({
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
                     <div>
                       <span className="font-medium">{c.name}</span>
-                      <span className="ml-2 text-xs uppercase text-amber-800">{c.status}</span>
+                      <span className="ml-2 text-xs uppercase text-amber-800">
+                        {statusLabel(c)}
+                      </span>
                       {(c.errors[0] || c.warnings[0]) && (
                         <p className="mt-0.5 text-xs text-muted">{c.errors[0] || c.warnings[0]}</p>
                       )}

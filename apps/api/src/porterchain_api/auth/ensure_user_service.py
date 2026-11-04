@@ -1,4 +1,4 @@
-"""Ensure internal user + SpiceDB tuple sync — never elevate from Clerk metadata."""
+"""Ensure internal user + SpiceDB tuple sync — never elevate from Keycloak metadata."""
 
 from __future__ import annotations
 
@@ -42,9 +42,9 @@ class EnsureUserService:
     Synchronous ensure-internal-user used after authentication and by webhooks.
 
     Rules:
-    - Never grant invite-only / admin roles from Clerk metadata or email domain.
-    - Dual-write role assignments only from legacy profiles whose email matches Clerk.
-    - System profile email must equal Clerk verified email (mismatch → unlink, no authz).
+    - Never grant invite-only / admin roles from Keycloak metadata or email domain.
+    - Dual-write role assignments only from legacy profiles whose email matches Keycloak.
+    - System profile email must equal Keycloak verified email (mismatch → unlink, no authz).
     """
 
     def ensure_from_identity(
@@ -90,7 +90,7 @@ class EnsureUserService:
             pass
         return user
 
-    def ensure_from_clerk_user_payload(
+    def ensure_from_idp_user_payload(
         self,
         db: Session,
         *,
@@ -102,7 +102,7 @@ class EnsureUserService:
         commit: bool = True,
     ) -> PorterchainUser:
         identity = AuthenticatedIdentity(
-            provider=AuthProvider.CLERK.value,
+            provider=AuthProvider.KEYCLOAK.value,
             issuer=issuer,
             subject=auth_subject,
             email=normalize_email(email),
@@ -118,7 +118,7 @@ class EnsureUserService:
             db.flush()
         return user
 
-    def deactivate_clerk_user(self, db: Session, *, auth_subject: str, commit: bool = True) -> None:
+    def deactivate_idp_user(self, db: Session, *, auth_subject: str, commit: bool = True) -> None:
         """Deactivate auth identity + account. Never cascade-delete operational data."""
         now = datetime.now(UTC)
         user = db.query(PorterchainUser).filter(PorterchainUser.auth_subject == auth_subject).first()
@@ -140,7 +140,7 @@ class EnsureUserService:
         ):
             link.is_current = False
             link.deactivated_at = now
-        logger.info("clerk_user_deactivated")
+        logger.info("idp_user_deactivated")
         if commit:
             db.commit()
         else:
@@ -156,7 +156,7 @@ class EnsureUserService:
             link = (
                 db.query(IdentityLink)
                 .filter(
-                    IdentityLink.provider == (identity.provider or AuthProvider.CLERK.value),
+                    IdentityLink.provider == (identity.provider or AuthProvider.KEYCLOAK.value),
                     IdentityLink.issuer == identity.issuer,
                     IdentityLink.subject == identity.subject,
                     IdentityLink.deactivated_at.is_(None),
@@ -239,7 +239,7 @@ class EnsureUserService:
                     normalized_email=normalized,
                     is_verified=verified,
                     is_primary=True,
-                    source="clerk",
+                    source="keycloak",
                 )
             )
         elif verified:
@@ -260,7 +260,7 @@ class EnsureUserService:
                     email=normalize_email(identity.email) or user.email,
                     user_type="unprovisioned",
                     platform_user_id=user.id,
-                    provider=identity.provider or AuthProvider.CLERK.value,
+                    provider=identity.provider or AuthProvider.KEYCLOAK.value,
                     issuer=identity.issuer,
                     subject=identity.subject,
                     is_current=True,
@@ -274,7 +274,7 @@ class EnsureUserService:
         # Always bind IdentityLink to porterchain_users.id (never a persona PK).
         if not existing or link.platform_user_id != user.id:
             link.platform_user_id = user.id
-        link.provider = link.provider or identity.provider or AuthProvider.CLERK.value
+        link.provider = link.provider or identity.provider or AuthProvider.KEYCLOAK.value
         if identity.issuer:
             link.issuer = identity.issuer
         link.subject = identity.subject

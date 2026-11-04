@@ -189,6 +189,15 @@ export default function BillingClient() {
   return (
     <div className="mx-auto max-w-5xl space-y-8">
       <RoutePricingBanner getToken={getApiToken} orgId={orgId ?? undefined} setting />
+      {(overview as { shopify_billed?: boolean }).shopify_billed ? (
+        <p
+          role="status"
+          className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900"
+        >
+          Billed through Shopify. Each completed delivery is charged on your Shopify bill, so there
+          is nothing to pay here.
+        </p>
+      ) : null}
       {error ? (
         <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
           {error}
@@ -198,7 +207,9 @@ export default function BillingClient() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-primary">Billing</h1>
           <p className="mt-1 text-sm text-muted">
-            {formatTerms(overview.payment_terms)} · {formatCycle(overview.billing_cycle)} invoice
+            {overview.billing_terms_label
+              ? overview.billing_terms_label
+              : `${formatTerms(overview.payment_terms)} · ${formatCycle(overview.billing_cycle)} invoice`}
           </p>
         </div>
         <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
@@ -283,7 +294,12 @@ export default function BillingClient() {
       )}
       {tab === "statement" && statement && <StatementTab statement={statement} />}
       {tab === "statement" && !statement && statementQuery.isLoading && <PageSkeleton rows={3} />}
-      {tab === "payments" && <PaymentsTab payments={payments} />}
+      {tab === "payments" && (
+        <PaymentsTab
+          payments={payments}
+          shopifyBilled={Boolean((overview as { shopify_billed?: boolean }).shopify_billed)}
+        />
+      )}
       {tab === "credits" && <CreditsTab credits={credits} />}
       {tab === "history" && <HistoryTab history={history} />}
       {tab === "tax" && <TaxTab overview={overview} />}

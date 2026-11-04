@@ -146,3 +146,70 @@ def shopify_disconnect(
         shopify.disconnect_shop(db, ctx, shop_id)
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=integration_error_message(str(exc))) from None
+
+
+# --- Review 139170: every placed Shopify order is visible, searchable and bookable ---
+
+
+@router.get("/shopify/syncs")
+def shopify_order_syncs(
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+    q: str | None = None,
+    limit: int = 100,
+):
+    """Every Shopify order we received (booked or not, with the reason). ``q`` = #1374 etc."""
+    require_module(ctx, "orders")
+    from porterchain_api.merchant_engine.shopify_order_sync import list_for_merchant
+
+    return {"orders": list_for_merchant(db, ctx.merchant.id, q=q, limit=min(max(limit, 1), 500))}
+
+
+@router.post("/shopify/syncs/refresh")
+def shopify_order_syncs_refresh(
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """"Sync now": pull recent orders from Shopify (catches any missed webhook)."""
+    require_module(ctx, "orders")
+    from porterchain_api.merchant_engine.shopify_order_sync import reconcile_merchant
+
+    total = reconcile_merchant(db, settings, ctx.merchant.id, days=7)
+    if total is None:
+        raise HTTPException(status_code=404, detail="shop_not_connected")
+    return {"ok": True, **total}
+
+
+@router.post("/shopify/syncs/{sync_id}/book")
+def shopify_order_sync_book(
+    sync_id: str,
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """"Book with PorterChain" for an order that used another shipping rate."""
+    require_module(ctx, "orders")
+    from porterchain_api.merchant_engine.booking_validation import BookingValidationError
+    from porterchain_api.merchant_engine.shopify_order_sync import book_now
+
+    try:
+        return book_now(db, settings, ctx.merchant.id, sync_id)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from None
+    except BookingValidationError as exc:
+        db.rollback()
+        raise HTTPException(status_code=409, detail=exc.message) from None
+
+
+@router.get("/shopify/billing")
+def shopify_billing_status(
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """Is this organisation billed through Shopify (no Interac) and is the plan approved?"""
+    from porterchain_api.merchant_engine import shopify_billing
+
+    shop = shopify_billing.shopify_billed_shop(db, settings, ctx.merchant.id)
+    return shopify_billing.status_payload(db, settings, shop, create=False)

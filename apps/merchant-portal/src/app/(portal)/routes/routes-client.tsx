@@ -52,6 +52,19 @@ function RoutesPageInner() {
     }
   }, [searchParams, tab]);
 
+  // L200: an unconfirmed route import lives under the CSV tab — reopen it there.
+  useEffect(() => {
+    if (searchParams.get("tab") || searchParams.get("new") || typeof window === "undefined") return;
+    const ls = window.localStorage;
+    for (let i = 0; i < ls.length; i += 1) {
+      if (ls.key(i)?.startsWith("pc.routeImportDraft.")) {
+        setTab("csv");
+        return;
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function setTab(next: Tab) {
     const params = new URLSearchParams(searchParams.toString());
     if (next === "plan") params.delete("tab");

@@ -1,6 +1,7 @@
 """Drop reorder — one Valhalla/OSRM matrix + labeled nearest-neighbor.
 
-Pickup stays first. No 2-opt / TSP. Haversine only when the matrix is down.
+Pickup stays first. Nearest-neighbour start, then 2-opt on the open path (L197d).
+Haversine only when the matrix is down.
 Belongs in Maps helpers, not merchant/admin engines.
 """
 
@@ -27,6 +28,9 @@ def _hav(a: tuple[float, float], b: tuple[float, float]) -> float:
     return _EARTH_M * 2 * math.asin(min(1.0, math.sqrt(h)))
 
 
+_UNROUTED_DETOUR = 1.4
+
+
 def _road_costs(
     maps: Any, points: list[tuple[float, float]]
 ) -> tuple[list[list[float]] | None, str | None]:
@@ -45,6 +49,7 @@ def _road_costs(
     if not matrix or len(matrix) != n:
         return None, None
     out: list[list[float]] = []
+    unrouted = 0
     for i, row in enumerate(matrix):
         if not isinstance(row, list) or len(row) != n:
             return None, None
@@ -59,9 +64,16 @@ def _road_costs(
             elif seconds is not None:
                 parsed.append(float(seconds) * 8.33)
             else:
-                return None, None
+                # L197d: one pin the router cannot reach (e.g. 2 of 118) used to throw the whole
+                # road matrix away; estimate just that leg instead (straight line x detour).
+                parsed.append(_hav(points[i], points[j]) * _UNROUTED_DETOUR)
+                unrouted += 1
         out.append(parsed)
+    if unrouted * 2 > n * (n - 1):  # mostly unroutable -> not a road matrix any more
+        return None, None
     return out, source or "valhalla"
+
+
 
 
 def _nearest_neighbor(

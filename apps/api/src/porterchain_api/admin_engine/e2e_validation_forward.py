@@ -162,7 +162,7 @@ class E2EValidationForwardMixin:
             db.commit()
             return "PASS"
 
-        record("Clerk Authentication", do_auth, layer="auth")
+        record("Keycloak Authentication", do_auth, layer="auth")
 
         def do_restore():
             draft = db.get(__import__("porterchain_api.booking_draft_models", fromlist=["BookingDraft"]).BookingDraft, ctx["draft_id"])

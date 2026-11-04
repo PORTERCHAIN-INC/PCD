@@ -63,16 +63,12 @@ ROPA = [
 
 SUBPROCESSORS = [
     {"name": "DigitalOcean", "purpose": "Hosting: API, database, Redis, self-hosted maps (Toronto)", "location": "Canada (TOR1); EU option FRA1", "dpa": True},
-    {"name": "Clerk", "purpose": "Sign-in and user accounts", "location": "USA", "dpa": True},
+    {"name": "Keycloak", "purpose": "Sign-in and user accounts", "location": "USA", "dpa": True},
     {"name": "Stripe", "purpose": "Card payments, payouts", "location": "USA / Ireland", "dpa": True},
     {"name": "ZeptoMail (Zoho)", "purpose": "Transactional and opt-in email", "location": "USA / EU / India (account region)", "dpa": True},
-    {"name": "Twilio", "purpose": "SMS alerts (when enabled)", "location": "USA", "dpa": True},
     {"name": "Shopify", "purpose": "Merchant store integration (independent controller of shop data)", "location": "Canada / USA", "dpa": True},
-    {"name": "Sentry", "purpose": "Error monitoring (no intentional personal data)", "location": "USA", "dpa": True},
     {"name": "Cloudflare (R2 / DNS)", "purpose": "Blog media storage, DNS", "location": "Global", "dpa": True},
-    {"name": "Google Maps Platform", "purpose": "Address geocoding fallback (only if key set)", "location": "USA", "dpa": True},
     {"name": "Expo (EAS)", "purpose": "Driver app push notifications / builds", "location": "USA", "dpa": True},
-    {"name": "Doppler", "purpose": "Secrets management (no customer data)", "location": "USA", "dpa": True},
 ]
 
 DPIA_GPS = (

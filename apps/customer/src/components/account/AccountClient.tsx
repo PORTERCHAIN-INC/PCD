@@ -9,6 +9,14 @@ import AddressBook from "@/components/account/AddressBook";
 import { isAuthConfigured } from "@/lib/env";
 import { customerApi } from "@/lib/api";
 
+const TICKET_STATUS: Record<string, string> = {
+  open: "Open",
+  in_progress: "In progress",
+  waiting_customer: "Waiting for you",
+  resolved: "Resolved",
+  closed: "Closed",
+};
+
 export default function AccountClient() {
   if (!isAuthConfigured()) {
     return <AccountBody ready signedIn getToken={async () => "dev"} />;
@@ -184,7 +192,9 @@ function AccountBody({
                   className="flex items-center justify-between rounded-xl bg-gray-bg px-3 py-2 text-sm"
                 >
                   <span className="font-medium text-primary">{t.subject}</span>
-                  <span className="text-xs text-muted">{t.status}</span>
+                  <span className="text-xs text-muted">
+                    {TICKET_STATUS[t.status] ?? t.status.replace(/_/g, " ")}
+                  </span>
                 </li>
               ))}
             </ul>

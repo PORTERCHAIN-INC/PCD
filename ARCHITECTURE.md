@@ -13,9 +13,9 @@ charter (why we exist)
         │
 ARCHITECTURE.md + FastAPI :8001 + *_engine
         │
-adapters: MapsService · Stripe sdk.py · Clerk · FCM
+adapters: MapsService · Stripe sdk.py · Keycloak · FCM
         │
-Valhalla :8002 → OSRM :5000 (GTA ±150 km) │ Stripe │ Clerk │ Firebase FCM │ OR-Tools day plan
+Valhalla :8002 → OSRM :5000 (GTA ±150 km) │ Stripe │ Keycloak │ Firebase FCM │ OR-Tools day plan
         │
 admin :3002 · merchant :3001 · customer :3004 · website :3000
 driver web BFF :3003 · driver iOS/Android · customer iOS/Android
@@ -48,9 +48,9 @@ portal / website / mobile
         │
    engines (commercial / domain) including dispatch_engine
         │
-   adapters: MapsService · Stripe sdk.py · Clerk auth/ · FCM
+   adapters: MapsService · Stripe sdk.py · Keycloak auth/ · FCM
         │
-   Valhalla :8002 → OSRM :5000 │ Stripe │ Clerk │ Firebase
+   Valhalla :8002 → OSRM :5000 │ Stripe │ Keycloak │ Firebase
 ```
 
 Driver web uses a Next BFF (`/api/driver` → `/driver-api/v1`). Mobile driver uses Bearer directly. Do not unify those.
@@ -63,7 +63,7 @@ Driver web uses a Next BFF (`/api/driver` → `/driver-api/v1`). Mobile driver u
 | `pricing_engine`      | Quote bridge, SQLAlchemy pricing repo             | Dispatch assignment         |
 | `dispatch_engine`     | OR-Tools day plan, GPS board, optimize run store  | Multi-van fleet split       |
 | `driver_engine`       | Duty, accept, proof, Redis last-known GPS         | Day solver                  |
-| `auth` / `authz`      | Clerk verify, SpiceDB Check                       | Caching Check allows        |
+| `auth` / `authz`      | Keycloak verify, SpiceDB Check                    | Caching Check allows        |
 | `notification_engine` | FCM / email orchestration                         | Identity provider           |
 
 ORM: `*_models.py` under `apps/api/src/porterchain_api/`. Contracts: `schemas_*.py`. Import `booking_models` directly.
@@ -101,19 +101,19 @@ Engines may call public `route`, `route_with_source`, `route_distance_meters`, `
 
 ## Branch — identity and push
 
-| Vendor       | Interface                                                  | Not                                            |
-| ------------ | ---------------------------------------------------------- | ---------------------------------------------- |
-| **Clerk**    | `CLERK_<PORTAL>_*` via `env/clerk.env` + `pnpm clerk:sync` | Firebase Auth; ad-hoc `ADMIN_CLERK_SECRET_KEY` |
-| **Firebase** | FCM device tokens + `notification_engine`                  | Login, session, RBAC                           |
-| **SpiceDB**  | Check (no caching allows)                                  | Identity provider                              |
+| Vendor       | Interface                                                      | Not                                          |
+| ------------ | -------------------------------------------------------------- | -------------------------------------------- |
+| **Keycloak** | `IDP_<PORTAL>_*` via `env/keycloak.env` + `pnpm keycloak:sync` | Firebase Auth; ad-hoc `ADMIN_IDP_SECRET_KEY` |
+| **Firebase** | FCM device tokens + `notification_engine`                      | Login, session, RBAC                         |
+| **SpiceDB**  | Check (no caching allows)                                      | Identity provider                            |
 
-Local: `CLERK_DEV_BYPASS=true` on API; portals `NEXT_PUBLIC_CLERK_DEV_BYPASS`. No customer Clerk bypass as a product shortcut.
+Local: `IDP_DEV_BYPASS=true` on API; portals `NEXT_PUBLIC_IDP_DEV_BYPASS`. No customer Keycloak bypass as a product shortcut.
 
 |              |                                                                                                                                                                   |
 | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Finished** | Per-portal Clerk triad; FCM on Expo driver/customer; admin Clerk JWT retired                                                                                      |
+| **Finished** | Per-portal Keycloak triad; FCM on Expo driver/customer; admin Keycloak JWT retired                                                                                |
 | **Current**  | Keycloak (realm `porterchain`) for every login: `pc-admin` (TOTP for admin tiers) for staff, portal/mobile clients for merchant/driver/customer; FCM is push only |
-| **Required** | Mobile still hits `:8001` with Clerk Bearer (driver) / public track (customer); admin browser prefers BFF cookie → Bearer                                         |
+| **Required** | Mobile still hits `:8001` with Keycloak Bearer (driver) / public track (customer); admin browser prefers BFF cookie → Bearer                                      |
 
 ---
 
@@ -147,12 +147,12 @@ One public interface per persona. Guard: `scripts/openapi_census.py`.
 | Persona         | Prefix                         | Auth                                                  |
 | --------------- | ------------------------------ | ----------------------------------------------------- |
 | Staff           | `/v1/admin`                    | Keycloak `pc-admin` access token (BFF session cookie) |
-| Merchant portal | `/v1/merchant`                 | Clerk org                                             |
+| Merchant portal | `/v1/merchant`                 | Keycloak org                                          |
 | Partner API     | `/v1/merchant-api`             | API key + idempotency                                 |
-| Driver mobile   | `/driver-api/v1`               | Clerk Bearer                                          |
+| Driver mobile   | `/driver-api/v1`               | Keycloak Bearer                                       |
 | Retail book     | `/v1/quotes` `/v1/bookings`    | session / checkout                                    |
 | Public track    | `/v1/orders/{tracking_number}` | none                                                  |
-| Vendors         | `/webhooks/clerk\|stripe`      | signatures                                            |
+| Vendors         | `/webhooks/keycloak\|stripe`   | signatures                                            |
 
 Cut (must stay gone): `POST /driver/location`, `GET /v1/merchant/tracking/orders/{id}`, `POST .../invoices/{id}/resend`.
 
@@ -196,14 +196,14 @@ Expo **SDK 57** / RN **0.86**. EAS projects exist. Wave 4 contracts the API surf
 | App      | Bundle                     | API                                              |
 | -------- | -------------------------- | ------------------------------------------------ |
 | Driver   | `com.porterchain.PCD`      | `EXPO_PUBLIC_API_URL` → `:8001` `/driver-api/v1` |
-| Customer | `com.porterchain.customer` | same host; public `/v1/orders/{n}` + Clerk       |
+| Customer | `com.porterchain.customer` | same host; public `/v1/orders/{n}` + Keycloak    |
 
-FCM: `google-services.json` / `GoogleService-Info.plist` on each app. Clerk: `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`.
+FCM: `google-services.json` / `GoogleService-Info.plist` on each app. Keycloak: `EXPO_PUBLIC_IDP_PUBLISHABLE_KEY`.
 
 |              |                                                                              |
 | ------------ | ---------------------------------------------------------------------------- |
 | **Finished** | Handshake probes `:8001`; driver fetch prefix `/driver-api/v1`               |
-| **Current**  | Shells with Clerk + FCM + location (driver)                                  |
+| **Current**  | Shells with Keycloak + FCM + location (driver)                               |
 | **Required** | CI: no `:8000`, no `fleetbase` HTTP, no SocketCluster in `apps/mobile-*/src` |
 
 ---
@@ -230,7 +230,7 @@ FCM: `google-services.json` / `GoogleService-Info.plist` on each app. Clerk: `EX
 
 **Wave 8 allowlist shrink (2026-09-15):** Gateway usage logs, portal signup, privacy DSR, and Settings authorize go through `merchant_engine`. Staff WebAuthn, dev admin, invitations, and SSO reads go through `admin_engine`. Merchant legacy 9→3, admin 9→3. Remaining: `merchant_service`, identity `user_sync` / `identity_fk_backfill`, billing driver payouts.
 
-**Wave 9 allowlist shrink (2026-09-15):** Identity Clerk rebind and profile FK stamps go through owner lookups. Driver payouts are created/marked in `admin_engine`; billing keeps the wallet ledger. Merchant legacy 3→1, admin 3→0. Remaining: `admin_engine/merchant_service.py`.
+**Wave 9 allowlist shrink (2026-09-15):** Identity Keycloak rebind and profile FK stamps go through owner lookups. Driver payouts are created/marked in `admin_engine`; billing keeps the wallet ledger. Merchant legacy 3→1, admin 3→0. Remaining: `admin_engine/merchant_service.py`.
 
 **Wave 10 allowlist shrink (2026-09-15):** Admin merchant lifecycle stays in `AdminMerchantService`; Merchant/MerchantUser writes go through `merchant_engine` provision, lookups, team seats, and lifecycle. Merchant legacy 1→0. Remaining driver ledger: `billing_engine/driver_finance_service.py`.
 
@@ -262,7 +262,7 @@ FCM: `google-services.json` / `GoogleService-Info.plist` on each app. Clerk: `EX
 
 **Wave 24 thin router (2026-09-15):** Ops Fleetbase sync retry/requeue and queue depths live in `AdminOperationsService`. Copilot `driver_id` and optimize `assignments` validation live in owning services. `routers/operations.py` is `_invoke` + one service call — dropped from `_LEGACY_ROUTER_LOC` (407→330, under 350). Do not vanity-split `routers/merchants.py`. Did not rebuild the dispatch board.
 
-**Wave 25 thin router (2026-09-15):** Settings write-key resolution lives in `settings_bindings.resolve_writable_config_key`. Platform user-type / Clerk directory rules live in `clerk_directory_service` and `platform_user_authorize`. `routers/admin/settings.py` is `_invoke` + one service call — dropped from `_LEGACY_ROUTER_LOC` (410→344, under 350). Do not vanity-split `settings_service.py` or `routers/merchants.py`.
+**Wave 25 thin router (2026-09-15):** Settings write-key resolution lives in `settings_bindings.resolve_writable_config_key`. Platform user-type / Keycloak directory rules live in `idp_directory_service` and `platform_user_authorize`. `routers/admin/settings.py` is `_invoke` + one service call — dropped from `_LEGACY_ROUTER_LOC` (410→344, under 350). Do not vanity-split `settings_service.py` or `routers/merchants.py`.
 
 **Wave 26 thin router (2026-09-15):** Merchant `/session` and `/me` payloads live in `MerchantProfileService`. Team seat mutations sync CRM contacts in `MerchantTeamService`. `routers/merchant/profile_team.py` is `_invoke` + one service call — dropped from `_LEGACY_ROUTER_LOC` (413→317, under 350). Do not vanity-split `routers/merchants.py`.
 
@@ -272,7 +272,7 @@ FCM: `google-services.json` / `GoogleService-Info.plist` on each app. Clerk: `EX
 
 **Wave 29 thin router (2026-09-15):** Merchant cancel/duplicate of an owned order lives in `MerchantOrdersService.cancel_owned` / `duplicate_owned`. Tracking/print/POD HTTP mapping lives in `_invoke`. `routers/merchant/orders_tracking.py` dropped from `_LEGACY_ROUTER_LOC` (492→334, under 350). Do not vanity-split `routers/merchants.py`. Did not grow `tracking_service.py`.
 
-**Wave 30 thin router (2026-09-15):** Admin driver push/SMS/email + CRM activity lives in `auth.driver_admin_action.run_admin_driver_action`. Existing-driver Clerk invite payload lives in `InvitationService.invite_existing_driver`. `routers/drivers_admin.py` dropped from `_LEGACY_ROUTER_LOC` (523→345, under 350). Do not vanity-split `routers/merchants.py`. Did not grow `driver_service.py` or `driver360_service.py`.
+**Wave 30 thin router (2026-09-15):** Admin driver push/SMS/email + CRM activity lives in `auth.driver_admin_action.run_admin_driver_action`. Existing-driver Keycloak invite payload lives in `InvitationService.invite_existing_driver`. `routers/drivers_admin.py` dropped from `_LEGACY_ROUTER_LOC` (523→345, under 350). Do not vanity-split `routers/merchants.py`. Did not grow `driver_service.py` or `driver360_service.py`.
 
 **Wave 31 thin router (2026-09-15):** Admin invoice generate/resend, assist decide/playbook body parse, and PDF required-or-404 live in `AdminOrdersService`. `routers/admin/orders.py` dropped from `_LEGACY_ROUTER_LOC` (581→329, under 350). Do not vanity-split `routers/merchants.py`. Did not grow `finance_service.py` or `order_assist_service.py`.
 
@@ -308,9 +308,9 @@ FCM: `google-services.json` / `GoogleService-Info.plist` on each app. Clerk: `EX
 
 **Wave 47 cross-engine shrink (2026-09-16):** Retail vehicle catalog lives in `domain/retail_vehicles.py` so quotes and CRM convert do not import `admin_engine`. Stale `profile_service` / `quote_service` upward rows dropped. CRM mixins type against `CrmActor` in `crm_helpers`; remaining CRM→admin edge is `crm_activity` audit. Driver/merchant lookups that still import `admin_engine` stay frozen (`auth_service`, `orders_service`, `privacy`). Did not zero the cross-engine freeze. Did not vanity-split `settings_service.py`, `shopify_service.py`, `schemas_admin.py`, or `routers/merchants.py`.
 
-**Wave 48 cross-engine shrink (2026-09-16):** Merchant activation reads `settings_merchant` via `merchant_engine/config_read` (no `AdminSettingsService`). Close/erasure guards live in `merchant_engine/offboard` so privacy does not import `admin_engine`. Merchant compliance PDFs load drivers via `platform/driver_reads` (writes stay on `admin_engine/driver_lookups`). Remaining upward-admin freeze is `driver_engine/auth_service` Clerk bind. Remaining CRM→admin freeze is `crm_activity` audit. Did not zero the freeze. Did not vanity-split `settings_service.py`, `shopify_service.py`, `schemas_admin.py`, or `routers/merchants.py`.
+**Wave 48 cross-engine shrink (2026-09-16):** Merchant activation reads `settings_merchant` via `merchant_engine/config_read` (no `AdminSettingsService`). Close/erasure guards live in `merchant_engine/offboard` so privacy does not import `admin_engine`. Merchant compliance PDFs load drivers via `platform/driver_reads` (writes stay on `admin_engine/driver_lookups`). Remaining upward-admin freeze is `driver_engine/auth_service` Keycloak bind. Remaining CRM→admin freeze is `crm_activity` audit. Did not zero the freeze. Did not vanity-split `settings_service.py`, `shopify_service.py`, `schemas_admin.py`, or `routers/merchants.py`.
 
-**Wave 49 cross-engine shrink (2026-09-16):** Driver Clerk bind reads live in `platform/driver_reads`; the write stays on `admin_engine/driver_lookups` (called directly; the `auth/driver_identity` façade was removed as unused). CRM staff audit lives in `platform/admin_audit` (write stays on `admin_engine.audit`). `_LEGACY_UPWARD_ADMIN_IMPORTS` is 0. Remaining composition freeze is admin/merchant/fleetbase/support wiring — not mash-up. Did not zero the freeze. Did not vanity-split `settings_service.py`, `shopify_service.py`, `schemas_admin.py`, or `routers/merchants.py`.
+**Wave 49 cross-engine shrink (2026-09-16):** Driver Keycloak bind reads live in `platform/driver_reads`; the write stays on `admin_engine/driver_lookups` (called directly; the `auth/driver_identity` façade was removed as unused). CRM staff audit lives in `platform/admin_audit` (write stays on `admin_engine.audit`). `_LEGACY_UPWARD_ADMIN_IMPORTS` is 0. Remaining composition freeze is admin/merchant/fleetbase/support wiring — not mash-up. Did not zero the freeze. Did not vanity-split `settings_service.py`, `shopify_service.py`, `schemas_admin.py`, or `routers/merchants.py`.
 
 **Wave 50 cross-engine shrink (2026-09-16):** Support mixins type against `SupportActor` (same Protocol shape as CRM). Audit goes through `platform/admin_audit`. Claim/ticket event names use `DomainEventType` (not `admin_engine.events`). Invoice status on the ticket row uses `platform/invoice_status` (write/status logic stays in `billing_engine`). `support_engine→admin_engine` is 0. Remaining into-admin freeze is Fleetbase/billing/compliance/notification/order composition. Did not zero the freeze. Did not vanity-split `settings_service.py`, `shopify_service.py`, `schemas_admin.py`, or `routers/merchants.py`.
 
@@ -326,7 +326,7 @@ FCM: `google-services.json` / `GoogleService-Info.plist` on each app. Clerk: `EX
 
 **Wave 52 website–admin bond (2026-09-18):** Blog rows are owned by `content_engine.BlogService`. `/v1/admin/blog` and `/v1/public/blog` are the only HTTP wires. The public router does not import `admin_engine`. The website reads `/v1/public/blog` only (no markdown merge). Retail booking leads go through `LeadIngestService.ingest`. Handshake: `scripts/verify_blog_cms.py`. Did not vanity-split `schemas_admin.py`, `settings_service.py`, or `routers/merchants.py`.
 
-**CI holes:** Stripe SDK is `sdk.py` only. Spatial math banned in ops. Census frozen. Vendor leaves (OSRM URL, VROOM, mobile Fleetbase) frozen in Wave 4. Model ownership frozen in Waves 5–13. Thin-router logic allowlist is 0 (Waves 14–21). Thin-router LOC allowlist shrinks in Waves 22–34. Engine-service LOC allowlist shrinks in Waves 35–46. Quote/CRM upward-admin mash-up shrinks in Wave 47. Merchant activation/privacy/orders upward-admin mash-up shrinks in Wave 48. Driver Clerk bind and CRM audit upward-admin mash-up shrinks in Wave 49 (`_LEGACY_UPWARD_ADMIN_IMPORTS` is 0). Support audit/actor/events upward-admin mash-up shrinks in Wave 50 (`support_engine→admin_engine` is 0). Notification admin center ownership moves to `notification_engine` in Wave 51. Inline router `db.query` is 0.
+**CI holes:** Stripe SDK is `sdk.py` only. Spatial math banned in ops. Census frozen. Vendor leaves (OSRM URL, VROOM, mobile Fleetbase) frozen in Wave 4. Model ownership frozen in Waves 5–13. Thin-router logic allowlist is 0 (Waves 14–21). Thin-router LOC allowlist shrinks in Waves 22–34. Engine-service LOC allowlist shrinks in Waves 35–46. Quote/CRM upward-admin mash-up shrinks in Wave 47. Merchant activation/privacy/orders upward-admin mash-up shrinks in Wave 48. Driver Keycloak bind and CRM audit upward-admin mash-up shrinks in Wave 49 (`_LEGACY_UPWARD_ADMIN_IMPORTS` is 0). Support audit/actor/events upward-admin mash-up shrinks in Wave 50 (`support_engine→admin_engine` is 0). Notification admin center ownership moves to `notification_engine` in Wave 51. Inline router `db.query` is 0.
 
 Fat-but-coherent (do not vanity-split): `schemas_admin.py`, `settings_service.py`, `shopify_service.py`, `routers/merchants.py` HTTP surface.
 
@@ -336,7 +336,7 @@ Graphify hubs (connectivity, not always the bug): `Settings`, `MerchantContext`,
 
 ## Folder law
 
-- Vendor I/O in adapters (`MapsService`, Stripe `sdk.py`, `auth/clerk_*`, FCM).
+- Vendor I/O in adapters (`MapsService`, Stripe `sdk.py`, `auth/idp_*`, FCM).
 - Commercial logic in `*_engine/*_service.py`.
 - Routers: auth + `require_module` + one service call. No new inline `BaseModel`.
 - Spatial math in admin ops is banned (`scripts/verify_no_ops_spatial_math.py`).
@@ -354,7 +354,7 @@ Do not create `core/`, `backend/`, or `personas/`. Those names already live unde
 | `core/domain/models.py`                        | `*_models.py` under `apps/api/src/porterchain_api/`                                  | Restore deleted `models.py`               |
 | `core/domain/types.ts`                         | Portal `lib/api.ts` + shared packages                                                | One TS dump across personas               |
 | `core/blackbox/fleetbase.py`                   | **Removed** — day plan is `dispatch_engine` (OR-Tools + Valhalla)                    | Restore Fleetbase adapter                 |
-| `core/blackbox/clerk.py`                       | `apps/api/src/porterchain_api/auth/clerk.py`                                         | Ad-hoc Clerk env names                    |
+| `core/blackbox/keycloak.py`                    | `apps/api/src/porterchain_api/auth/keycloak.py`                                      | Ad-hoc Keycloak env names                 |
 | `core/blackbox/firebase.py`                    | `notification_engine` (FCM only)                                                     | Firebase Auth                             |
 | `core/blackbox/routing.py`                     | `MapsService` + `dispatch_engine/sequencer.py`                                       | PorterChain VROOM client                  |
 | `core/blackbox/google_maps.py` Distance Matrix | **Illegal**                                                                          | Google distance / ETA / matrix / geometry |
@@ -382,7 +382,7 @@ mashed-up code
         │ Steps 2–3
    CODEGRAPH MCP (@colbymchenry/codegraph)    → Pydantic / ORM / Valhalla / OSRM
         │ Steps 4–6
-   RIPWIRE CLI   (redhat-et/ripwire)          → thin routers, Stripe/Clerk adapters
+   RIPWIRE CLI   (redhat-et/ripwire)          → thin routers, Stripe/Keycloak adapters
 ```
 
 Do not install `codegraph-ai/CodeGraph`. Do not wire Graphify or Ripwire into `.cursor/mcp.json`. After a folder-graph change: one `graphify update .`.

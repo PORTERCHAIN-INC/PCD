@@ -372,7 +372,7 @@ class BookingDraftService:
         session_id: str | None = None,
         auth_subject: str | None = None,
     ) -> None:
-        """Require visitor session or owning Clerk customer (masterrule §10, §15)."""
+        """Require visitor session or owning Keycloak customer (masterrule §10, §15)."""
         if auth_subject and draft.customer_id:
             customer = db.query(Customer).filter(Customer.id == draft.customer_id).first()
             if customer and customer.auth_subject == auth_subject:

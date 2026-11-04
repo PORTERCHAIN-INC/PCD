@@ -10,7 +10,7 @@ import {
 
 /**
  * Four merchant portal jobs — nav/module expectations from merchant-nav.ts.
- * Live UI asserts require MERCHANT_E2E_LIVE=1 + existing Clerk storage jar for that seat.
+ * Live UI asserts require MERCHANT_E2E_LIVE=1 + existing Keycloak storage jar for that seat.
  */
 
 type Job = "owner" | "dispatcher" | "accounting" | "viewer";

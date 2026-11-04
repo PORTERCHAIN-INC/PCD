@@ -171,7 +171,7 @@ body {
   flex-direction: column;
 }
 
-/* Google Places autocomplete (Add order / booking) */
+/* Address autocomplete via /v1/geo (Add order / booking) */
 .booking-address-autocomplete,
 .booking-address-fallback {
   display: block;

@@ -180,6 +180,8 @@ export default function PortalOnboardingView({
                   Operating name
                   <input
                     className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2"
+                    name="company_name"
+                    autoComplete="organization"
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
                   />
@@ -188,6 +190,8 @@ export default function PortalOnboardingView({
                   Legal name
                   <input
                     className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2"
+                    name="legal_name"
+                    autoComplete="organization"
                     value={legalName}
                     onChange={(e) => setLegalName(e.target.value)}
                   />
@@ -196,6 +200,9 @@ export default function PortalOnboardingView({
                   Phone
                   <input
                     className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2"
+                    name="phone"
+                    type="tel"
+                    autoComplete="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                   />
@@ -204,6 +211,8 @@ export default function PortalOnboardingView({
                   HST number
                   <input
                     className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2"
+                    name="hst_number"
+                    autoComplete="off"
                     value={hst}
                     onChange={(e) => setHst(e.target.value)}
                     placeholder="123456789RT0001"
@@ -328,7 +337,7 @@ export default function PortalOnboardingView({
               <a href={signupUrl} className="font-medium text-secondary underline">
                 {signupUrl}
               </a>{" "}
-              with the email you reserved. Password stays in Clerk. Status refreshes every 30
+              with the email you reserved. Password stays in Keycloak. Status refreshes every 30
               seconds.
             </p>
           )}

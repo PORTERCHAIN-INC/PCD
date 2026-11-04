@@ -100,7 +100,7 @@ export default function CustomerDetailClient({ id }: { id: string }) {
       const result = await customersApi.invite(token, id);
       setInviteOk(
         result.identity_action === "found"
-          ? "Existing Clerk user linked."
+          ? "Existing Keycloak user linked."
           : "Invite sent to customer portal SignUp."
       );
       setDetailVersion((v) => v + 1);
@@ -108,7 +108,7 @@ export default function CustomerDetailClient({ id }: { id: string }) {
       const msg = e instanceof Error ? e.message : "Invite failed";
       if (msg === "identity_not_configured") {
         setInviteError("Keycloak is not configured — cannot send invite.");
-      } else if (msg === "customer_already_clerk_linked") {
+      } else if (msg === "customer_already_idp_linked") {
         setInviteError("Already linked to a sign-in account.");
       } else {
         setInviteError(msg);
@@ -149,7 +149,7 @@ export default function CustomerDetailClient({ id }: { id: string }) {
               </h1>
               {c360 ? <SignalBadges c={c360} /> : null}
               <Badge tone={data.identity_linked ? "green" : "slate"}>
-                {data.identity_linked ? "Clerk linked" : "Orphan row"}
+                {data.identity_linked ? "Keycloak linked" : "Orphan row"}
               </Badge>
               {data.privacy_status === "deletion_hold" && (
                 <Badge tone="amber">
@@ -295,7 +295,7 @@ function OverviewTab({
       <SectionCard title="Identity">
         <dl className="grid gap-3 p-5 sm:grid-cols-2">
           <div>
-            <dt className="text-xs uppercase text-muted">Clerk user</dt>
+            <dt className="text-xs uppercase text-muted">Keycloak user</dt>
             <dd className="text-sm text-primary">{data.auth_subject ?? "—"}</dd>
           </div>
           <div>

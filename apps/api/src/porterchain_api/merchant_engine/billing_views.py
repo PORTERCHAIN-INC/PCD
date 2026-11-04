@@ -37,7 +37,7 @@ def list_payments(svc: Any, db: Session, ctx: MerchantContext) -> list[dict[str,
             "currency": pay.currency,
             "status": pay.status,
             "payment_method": pay.payment_method
-            or ("stripe" if pay.stripe_payment_intent_id else "net_terms"),
+            or "interac",
             "payment_reference": pay.payment_reference,
             "created_at": pay.created_at.isoformat() if pay.created_at else None,
         }

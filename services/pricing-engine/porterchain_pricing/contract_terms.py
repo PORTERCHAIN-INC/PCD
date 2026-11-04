@@ -32,7 +32,8 @@ DEFAULT_TERMS: dict[str, Any] = {
         "pickup_on_return": False,
         "handling_in_pct": False,
     },
-    # None = the ``parcel_coverage`` setting (B4 values live there).
+    # None = the ``parcel_coverage`` setting (declared-value cover, doc 72 §8; replaced B4 per Ravi 2026-10-29).
+    # A contract may tune it, but G-INS still applies: cover is on only once ``cargo_insurance`` is confirmed.
     "coverage": None,
     "concierge": {"available": True, "past_designated_point_cents": 3000},
     "claims": {

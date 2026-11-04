@@ -20,12 +20,19 @@ from porterchain_api.domain.states import OrderSource, OrderState
 from porterchain_api.merchant_engine.secrets import decrypt_signing_secret, encrypt_signing_secret
 from porterchain_api.merchant_engine.shopify_tokens import clear_tokens
 from porterchain_api.merchant_engine.shopify_urls import normalize_shop_domain
-from porterchain_api.merchant_models import ShopifyDataSubjectRequest, ShopifyIngressDlq, ShopifyShop
+from porterchain_api.merchant_models import (
+    ShopifyDataSubjectRequest,
+    ShopifyIngressDlq,
+    ShopifyOrderSync,
+    ShopifyShop,
+)
 
 logger = logging.getLogger(__name__)
 
 RETENTION_DAYS = 730
 DUE_DAYS = 30
+# Orders we never deliver: keep the buyer name/address only long enough to book them.
+SYNC_PII_DAYS = 90
 _STREET_KEYS = {
     "formatted",
     "name",
@@ -248,9 +255,23 @@ def run_retention(db: Session, settings: Settings, *, limit: int = 100) -> dict[
             continue
         _wipe_order(db, settings, order, hold=False)
         wiped += 1
-    if wiped:
+    sync_cutoff = datetime.now(UTC) - timedelta(days=SYNC_PII_DAYS)
+    stale = (
+        db.query(ShopifyOrderSync)
+        .filter(
+            ShopifyOrderSync.porterchain_order_id.is_(None),
+            ShopifyOrderSync.created_at < sync_cutoff,
+            (ShopifyOrderSync.ship_to.isnot(None)) | (ShopifyOrderSync.customer_name.isnot(None)),
+        )
+        .limit(limit)
+        .all()
+    )
+    for r in stale:
+        r.ship_to = None
+        r.customer_name = None
+    if wiped or stale:
         db.commit()
-    return {"wiped": wiped, "scanned": len(orders)}
+    return {"wiped": wiped, "scanned": len(orders), "sync_rows_minimised": len(stale)}
 
 
 def _public_row(row: ShopifyDataSubjectRequest) -> dict[str, Any]:
@@ -298,7 +319,18 @@ def _export_orders(
                 },
             }
         )
-    return {"orders": items}
+    syncs = [
+        {
+            "shopify_order_id": r.shopify_order_id,
+            "order_name": r.order_name,
+            "customer_name": r.customer_name,
+            "ship_to": r.ship_to,
+            "status": r.status,
+            "purpose": "list the order for the merchant",
+        }
+        for r in _sync_rows(db, row, shop, [o.id for o in orders])
+    ]
+    return {"orders": items, "order_sync": syncs}
 
 
 def _redact_orders(
@@ -318,7 +350,34 @@ def _redact_orders(
             reason = hold
         _wipe_order(db, settings, order, hold=bool(hold))
         _clear_dlq(db, _shopify_meta(order).get("order_id"))
-    return len(orders), reason
+    synced = _redact_syncs(db, row, shop, [o.id for o in orders])
+    return max(len(orders), synced), reason
+
+
+def _sync_rows(db: Session, row: ShopifyDataSubjectRequest, shop: ShopifyShop | None, pc_ids: list[str]) -> list[ShopifyOrderSync]:
+    """Order-sync ledger rows (review 139170) covered by a privacy request."""
+    if shop is None:
+        return []
+    q = db.query(ShopifyOrderSync).filter(ShopifyOrderSync.shop_domain == shop.shop_domain)
+    if row.topic == "shop/redact":
+        return q.all()
+    wanted = {str(x) for x in (row.orders_requested or [])}
+    pcs = set(pc_ids)
+    return [
+        r for r in q.all()
+        if r.shopify_order_id in wanted or (r.porterchain_order_id and r.porterchain_order_id in pcs)
+    ]
+
+
+def _redact_syncs(db: Session, row: ShopifyDataSubjectRequest, shop: ShopifyShop | None, pc_ids: list[str]) -> int:
+    rows = _sync_rows(db, row, shop, pc_ids)
+    for r in rows:
+        if row.topic == "shop/redact":
+            db.delete(r)
+        else:
+            r.customer_name = None
+            r.ship_to = None
+    return len(rows)
 
 
 def _matched_orders(

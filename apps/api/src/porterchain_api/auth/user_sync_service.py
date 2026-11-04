@@ -1,4 +1,4 @@
-"""Synchronize Clerk-authenticated users into porterchain_users (masterrule §15)."""
+"""Synchronize Keycloak-authenticated users into porterchain_users (masterrule §15)."""
 
 from __future__ import annotations
 
@@ -8,9 +8,9 @@ from typing import Any
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from porterchain_api.admin_engine.driver_lookups import get_driver, rebind_clerk_by_email as rebind_driver_clerk
+from porterchain_api.admin_engine.driver_lookups import get_driver, rebind_idp_by_email as rebind_driver_idp
 from porterchain_api.admin_engine.rbac import parse_admin_role
-from porterchain_api.admin_engine.staff_lookups import get_admin_user, rebind_clerk_by_email as rebind_admin_clerk
+from porterchain_api.admin_engine.staff_lookups import get_admin_user, rebind_idp_by_email as rebind_admin_idp
 from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.dev import is_dev_bypass_subject
 from porterchain_api.auth.email_identity import (
@@ -26,7 +26,7 @@ from porterchain_api.identity_models import IdentityLink
 from porterchain_api.merchant_engine.lookups import (
     get_merchant,
     get_merchant_user,
-    rebind_clerk_by_email as rebind_merchant_clerk,
+    rebind_idp_by_email as rebind_merchant_idp,
 )
 from porterchain_api.booking_models import Customer
 from porterchain_api.user_models import PorterchainUser
@@ -34,7 +34,7 @@ from porterchain_shared.auth.principal import AuthPrincipal
 from porterchain_shared.types.user_types import UserType
 
 
-def _is_pending_clerk_id(auth_subject: str | None) -> bool:
+def _is_pending_idp_id(auth_subject: str | None) -> bool:
     if not auth_subject:
         return True
     if is_dev_bypass_subject(auth_subject):
@@ -94,43 +94,43 @@ class UserSyncService:
         db.commit()
 
     def _link_pending_domain_records(self, db: Session, claims: IdentityClaims) -> None:
-        """Attach Clerk user id when invite email equals Clerk verified email.
+        """Attach Keycloak user id when invite email equals Keycloak verified email.
 
         Covers:
-        - pending:* / null clerk ids (first accept)
-        - stale clerk ids after Clerk account recreation (same verified email only)
+        - pending:* / null keycloak ids (first accept)
+        - stale keycloak ids after Keycloak account recreation (same verified email only)
         """
         email = normalize_email(claims.email)
         if not email or not claims.auth_subject:
             return
         subject_ref = claims.auth_subject
 
-        if self._clerk_id_bound_to_other_email(db, subject_ref, email):
+        if self._idp_id_bound_to_other_email(db, subject_ref, email):
             return
 
         from porterchain_api.auth.persona_bundle import invalidate_persona_bundle
 
-        if rebind_admin_clerk(db, email, subject_ref):
-            self._rebind_registry_clerk_id(db, email=email, new_clerk_id=subject_ref)
+        if rebind_admin_idp(db, email, subject_ref):
+            self._rebind_registry_idp_id(db, email=email, new_idp_id=subject_ref)
             invalidate_persona_bundle(db, subject_ref)
             return
 
-        if rebind_merchant_clerk(db, email, subject_ref):
-            self._rebind_registry_clerk_id(db, email=email, new_clerk_id=subject_ref)
+        if rebind_merchant_idp(db, email, subject_ref):
+            self._rebind_registry_idp_id(db, email=email, new_idp_id=subject_ref)
             invalidate_persona_bundle(db, subject_ref)
             return
 
-        if rebind_driver_clerk(db, email, subject_ref):
-            self._rebind_registry_clerk_id(db, email=email, new_clerk_id=subject_ref)
+        if rebind_driver_idp(db, email, subject_ref):
+            self._rebind_registry_idp_id(db, email=email, new_idp_id=subject_ref)
             invalidate_persona_bundle(db, subject_ref)
             return
 
-        if self._rebind_persona_clerk_id(db, Customer, email, subject_ref):
-            self._rebind_registry_clerk_id(db, email=email, new_clerk_id=subject_ref)
+        if self._rebind_persona_idp_id(db, Customer, email, subject_ref):
+            self._rebind_registry_idp_id(db, email=email, new_idp_id=subject_ref)
             invalidate_persona_bundle(db, subject_ref)
 
     @staticmethod
-    def _rebind_persona_clerk_id(db: Session, model: type, email: str, subject_ref: str) -> bool:
+    def _rebind_persona_idp_id(db: Session, model: type, email: str, subject_ref: str) -> bool:
         """Rebind a booking Customer row to subject_ref when email matches."""
         row = db.query(model).filter(model.email == email).first()
         if not row or not emails_match(getattr(row, "email", None), email):
@@ -146,8 +146,8 @@ class UserSyncService:
         return True
 
     @staticmethod
-    def _rebind_registry_clerk_id(db: Session, *, email: str, new_clerk_id: str) -> None:
-        """Move porterchain_users + identity_links to the new Clerk subject for this email."""
+    def _rebind_registry_idp_id(db: Session, *, email: str, new_idp_id: str) -> None:
+        """Move porterchain_users + identity_links to the new Keycloak subject for this email."""
         user = (
             db.query(PorterchainUser)
             .filter(PorterchainUser.email == email)
@@ -156,42 +156,42 @@ class UserSyncService:
         )
         if not user:
             return
-        if user.auth_subject == new_clerk_id:
+        if user.auth_subject == new_idp_id:
             return
 
         shell = (
             db.query(PorterchainUser)
-            .filter(PorterchainUser.auth_subject == new_clerk_id, PorterchainUser.id != user.id)
+            .filter(PorterchainUser.auth_subject == new_idp_id, PorterchainUser.id != user.id)
             .first()
         )
         if shell:
-            # Drop empty auto-provisioned shell for the new Clerk id.
+            # Drop empty auto-provisioned shell for the new Keycloak id.
             db.query(IdentityLink).filter(IdentityLink.platform_user_id == shell.id).delete(
                 synchronize_session=False
             )
             db.delete(shell)
             db.flush()
 
-        old_clerk_id = user.auth_subject
-        user.auth_subject = new_clerk_id
+        old_idp_id = user.auth_subject
+        user.auth_subject = new_idp_id
         for link in (
             db.query(IdentityLink)
             .filter(
                 or_(
                     IdentityLink.platform_user_id == user.id,
-                    IdentityLink.auth_subject == old_clerk_id,
+                    IdentityLink.auth_subject == old_idp_id,
                 )
             )
             .all()
         ):
-            link.auth_subject = new_clerk_id
-            link.subject = new_clerk_id
+            link.auth_subject = new_idp_id
+            link.subject = new_idp_id
             link.email = email
             link.is_current = True
 
     @staticmethod
-    def _clerk_id_bound_to_other_email(db: Session, auth_subject: str, email: str) -> bool:
-        """True when this Clerk id is already linked to a different email in any user class."""
+    def _idp_id_bound_to_other_email(db: Session, auth_subject: str, email: str) -> bool:
+        """True when this Keycloak id is already linked to a different email in any user class."""
         from porterchain_api.auth.persona_bundle import load_persona_bundle
 
         bundle = load_persona_bundle(db, auth_subject)
@@ -213,7 +213,7 @@ class UserSyncService:
         principal: AuthPrincipal | None,
     ) -> dict[str, Any]:
         if not principal:
-            # Never promote Clerk metadata into an elevated registry role
+            # Never promote Keycloak metadata into an elevated registry role
             return {
                 "role": "unprovisioned",
                 "status": "pending",
@@ -336,7 +336,7 @@ class UserSyncService:
                 user_type=principal.user_type.value,
                 platform_user_id=user.id,
                 platform_org_id=principal.org_id,
-                provider="clerk",
+                provider="keycloak",
                 issuer=claims.issuer,
                 subject=claims.auth_subject,
                 is_current=True,
@@ -353,7 +353,7 @@ class UserSyncService:
             if claims.issuer:
                 link.issuer = claims.issuer
             link.subject = claims.auth_subject
-            link.provider = link.provider or "clerk"
+            link.provider = link.provider or "keycloak"
 
         return link
 

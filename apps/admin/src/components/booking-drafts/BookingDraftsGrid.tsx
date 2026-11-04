@@ -104,13 +104,13 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
         header: "Type",
         size: 100,
         enableGrouping: true,
-        cell: ({ getValue }) => <Badge tone="slate">{String(getValue())}</Badge>,
+        cell: ({ getValue }) => <Badge tone="slate">{humanCode(getValue())}</Badge>,
       },
       {
         accessorKey: "vehicle_class",
         header: "Vehicle",
         size: 100,
-        cell: ({ getValue }) => String(getValue() || "—"),
+        cell: ({ getValue }) => humanCode(getValue()),
       },
       {
         accessorKey: "amount_cents",
@@ -206,4 +206,12 @@ export default function BookingDraftsGrid({ rows, selected, onSelect, loading }:
       emptyMessage="No booking drafts match your filters"
     />
   );
+}
+
+/** Pass 6: never show raw snake_case codes ("cargo_van" -> "Cargo van"). */
+function humanCode(v: unknown): string {
+  const t = String(v ?? "")
+    .replace(/_/g, " ")
+    .trim();
+  return t ? t.charAt(0).toUpperCase() + t.slice(1).toLowerCase() : "—";
 }

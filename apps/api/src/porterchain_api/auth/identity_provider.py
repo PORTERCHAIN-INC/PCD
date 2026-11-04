@@ -13,7 +13,7 @@ from porterchain_api.config import Settings
 logger = logging.getLogger("porterchain.security")
 
 def _dev_claims(*, portal: str | None = None, path: str = "", header: str | None = None) -> IdentityClaims:
-    """Local Bearer ``dev`` — one Clerk subject per portal, never staff email on merchant/customer."""
+    """Local Bearer ``dev`` — one Keycloak subject per portal, never staff email on merchant/customer."""
     return dev_claims_for(portal or resolve_dev_portal(path=path, header=header))
 
 
@@ -27,7 +27,7 @@ def claims_to_identity(claims: IdentityClaims) -> AuthenticatedIdentity:
         email_verified=True if claims.email else None,
         auth_time=claims.auth_time,
         authorized_party=claims.authorized_party,
-        adapter_context={"clerk_app": claims.clerk_app} if claims.clerk_app else None,
+        adapter_context={"idp_app": claims.idp_app} if claims.idp_app else None,
     )
 
 
@@ -42,14 +42,14 @@ async def verify_access_token(
     if token == "dev" and allow_auth_dev_bypass(settings):
         return _dev_claims(portal=portal, path=path, header=header)
 
-    # L36: Keycloak is the only provider; Clerk JWKS verification removed.
+    # L36: Keycloak is the only provider; Keycloak JWKS verification removed.
     from porterchain_api.auth.keycloak import verify_keycloak_token
 
     return await verify_keycloak_token(token, settings)
 
 
 class KeycloakIdentityProvider:
-    """Clerk adapter implementing IdentityProvider (no Backend API on authenticate)."""
+    """Keycloak adapter implementing IdentityProvider (no Backend API on authenticate)."""
 
     async def authenticate_bearer(self, token: str, settings: Settings) -> AuthenticatedIdentity:
         claims = await verify_access_token(token, settings)

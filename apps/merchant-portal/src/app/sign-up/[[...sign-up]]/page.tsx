@@ -38,7 +38,7 @@ function AuthUnavailable() {
     <MerchantAuthScreen
       mode="sign-up"
       title="Local development"
-      subtitle="Keycloak is not configured. Merchant sign-up needs Platform Clerk keys."
+      subtitle="Keycloak is not configured. Merchant sign-up needs Platform Keycloak keys."
     >
       <div className="space-y-4">
         <p className="text-sm leading-relaxed text-muted">
@@ -79,7 +79,7 @@ function SignUpWithAuth() {
     <MerchantAuthScreen
       mode="sign-up"
       title="Start with PorterChain"
-      subtitle="Create your Clerk account (password stays here). Then fill the company file. Teammates use this same sign-up URL with the email your owner reserved."
+      subtitle="Create your Keycloak account (password stays here). Then fill the company file. Teammates use this same sign-up URL with the email your owner reserved."
       footer={
         <>
           Already have an account?{" "}

@@ -153,7 +153,7 @@ def ai_usage(
     db: Session = Depends(get_db),
     limit: int = Query(40, ge=1, le=100),
 ) -> dict:
-    """NVIDIA NIM / LLM usage ledger for diagnostics (read-only)."""
+    """LLM usage ledger for diagnostics (read-only)."""
     from porterchain_api.intelligence_engine.usage import ai_usage_summary
 
     _guard(ctx)

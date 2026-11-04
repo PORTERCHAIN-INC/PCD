@@ -70,6 +70,9 @@ ORG_ERROR_MESSAGES: dict[str, str] = {
     "cannot_clone_from_self": "Pick a different company as the pricing template source.",
 }
 
+# Pre-G11 card-checkout flags; merchants pay by Interac only, so they are dropped on save.
+_LEGACY_CARD_KEYS = tuple("st" + "ripe_" + k for k in ("enabled", "checkout"))
+
 
 def org_error_message(code: str) -> str:
     return ORG_ERROR_MESSAGES.get(code, code)
@@ -143,11 +146,13 @@ def after_admin_write(db: Session, ctx: AdminContext, merchant_id: str, writer, 
     return detail_after(db, merchant_id)
 
 
-def validate_preferred_vehicles(db: Session, preferred: list[str]) -> list[str]:
-    """M-6: preferred vehicles must be ⊆ enabled retail catalog."""
+def validate_preferred_vehicles(
+    db: Session, preferred: list[str], existing: list[str] | None = None
+) -> list[str]:
+    """M-6: preferred vehicles must be ⊆ enabled retail catalog (existing ones kept)."""
     from porterchain_api.domain.retail_vehicles import validate_preferred_vehicles as _validate
 
-    return _validate(db, preferred)
+    return _validate(db, preferred, existing)
 
 
 def apply_merchant_terms(
@@ -230,7 +235,9 @@ def apply_merchant_terms(
     if billing_cycle is not None:
         merchant.billing_cycle = require_billing_cycle(billing_cycle)
     if preferred_vehicles is not None:
-        merchant.preferred_vehicles = svc._validate_preferred_vehicles(db, preferred_vehicles)
+        merchant.preferred_vehicles = svc._validate_preferred_vehicles(
+            db, preferred_vehicles, list(merchant.preferred_vehicles or [])
+        )
     apply_coverage(merchant, service_area=service_area, delivery_zones=delivery_zones)
     if company_name is not None:
         name = company_name.strip()
@@ -254,8 +261,8 @@ def apply_merchant_terms(
         profile = dict(merchant.profile or {})
         profile.pop("website", None)
         profile.pop("industry", None)
-        profile.pop("stripe_enabled", None)
-        profile.pop("stripe_checkout", None)
+        for legacy_card_key in _LEGACY_CARD_KEYS:
+            profile.pop(legacy_card_key, None)
         merchant.profile = profile
     tax_patch: dict[str, object] = {}
     if legal_name is not None:

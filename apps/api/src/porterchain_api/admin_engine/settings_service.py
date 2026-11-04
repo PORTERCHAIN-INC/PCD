@@ -73,7 +73,7 @@ SETTINGS_SECTIONS: list[dict[str, str]] = [
     {"id": "customer", "label": "Customer", "group": "partners"},
     {"id": "dispatch", "label": "Dispatch", "group": "connections"},
     {"id": "stripe", "label": "Stripe", "group": "connections"},
-    {"id": "google_maps", "label": "Google Maps", "group": "connections"},
+    {"id": "maps", "label": "Maps (PMTiles + Photon)", "group": "connections"},
     {"id": "firebase", "label": "Firebase", "group": "connections"},
     {"id": "storage", "label": "Storage", "group": "connections"},
     {"id": "channels", "label": "Channels", "group": "connections"},
@@ -125,7 +125,7 @@ DEFAULTS: dict[str, Any] = {
         "holidays": [],
     },
     # Branding / auth / security SystemConfig rows were decorative theater —
-    # Staff IdP + Clerk + env own those surfaces. Do not reintroduce defaults.
+    # Staff IdP + Keycloak + env own those surfaces. Do not reintroduce defaults.
     "settings_booking": {
         "quote_ttl_minutes": 72 * 60,
         "booking_draft_ttl_minutes": 1440,
@@ -232,13 +232,13 @@ def _is_staff_subject(subject: str | None) -> bool:
     return bool(subject) and subject.startswith("staff:")
 
 
-def _is_legacy_clerk_staff_id(subject: str | None) -> bool:
-    """Pre-cutover AdminUser rows still holding a Clerk ``user_…`` id."""
+def _is_legacy_idp_staff_id(subject: str | None) -> bool:
+    """Pre-cutover AdminUser rows still holding a Keycloak ``user_…`` id."""
     return bool(subject) and subject.startswith("user_")
 
 
 def _identity_linked(auth_subject: str | None) -> bool:
-    """True only for real Clerk ``user_…`` (or other non-pending, non-staff) ids."""
+    """True only for real Keycloak ``user_…`` (or other non-pending, non-staff) ids."""
     if not auth_subject:
         return False
     if _is_pending_subject(auth_subject) or _is_staff_subject(auth_subject):
@@ -289,7 +289,7 @@ def _identity_status(auth_subject: str | None, invite_status: str) -> str:
 
 
 def _staff_invite_status(subject: str | None) -> str:
-    if _is_staff_subject(subject) or _is_legacy_clerk_staff_id(subject):
+    if _is_staff_subject(subject) or _is_legacy_idp_staff_id(subject):
         return "accepted"
     if _is_pending_subject(subject):
         return "invite_pending"
@@ -299,7 +299,7 @@ def _staff_invite_status(subject: str | None) -> str:
 def _staff_identity_status(subject: str | None) -> str:
     if _is_staff_subject(subject):
         return "registered"
-    if _is_legacy_clerk_staff_id(subject):
+    if _is_legacy_idp_staff_id(subject):
         # Still provisioned; subject rebinds to staff:{id} on next IdP login/enroll.
         return "registered"
     if _is_pending_subject(subject):
@@ -329,13 +329,13 @@ def _invite_label(invite_status: str) -> str:
 
 
 def _status_label(access_status: str, invite_status: str, identity_status: str) -> str:
-    """Clerk-persona status line (driver / merchant / customer)."""
+    """Keycloak-persona status line (driver / merchant / customer)."""
     if identity_status == "registered":
-        identity = "Clerk registered"
+        identity = "Keycloak registered"
     elif identity_status == "invite_pending":
-        identity = "Clerk pending"
+        identity = "Keycloak pending"
     else:
-        identity = "No Clerk account"
+        identity = "No Keycloak account"
     return f"{_access_label(access_status)} · {_invite_label(invite_status)} · {identity}"
 
 
@@ -346,7 +346,7 @@ def _staff_status_label(
     *,
     subject: str | None = None,
 ) -> str:
-    """Staff IdP status line — never mentions Clerk as the live auth path."""
+    """Staff IdP status line — never mentions Keycloak as the live auth path."""
     invite = {
         "not_invited": "Not enrolled",
         "invite_pending": "Activation pending",
@@ -354,7 +354,7 @@ def _staff_status_label(
         "revoked": "Revoked",
         "invite_failed": "Enroll failed",
     }.get(invite_status, invite_status.replace("_", " ").title())
-    if _is_legacy_clerk_staff_id(subject):
+    if _is_legacy_idp_staff_id(subject):
         identity = "Legacy id (rebinds on login)"
     elif identity_status == "registered":
         identity = "Staff IdP bound"
@@ -370,7 +370,7 @@ def _facet_counts(items: list[PlatformUserItem]) -> PlatformUsersFacets:
     invite: dict[str, int] = {}
     identity: dict[str, int] = {}
     account: dict[str, int] = {}
-    clerk: dict[str, int] = {}
+    keycloak: dict[str, int] = {}
     for item in items:
         access[item.access_status] = access.get(item.access_status, 0) + 1
         invite[item.invite_status] = invite.get(item.invite_status, 0) + 1
@@ -378,13 +378,13 @@ def _facet_counts(items: list[PlatformUserItem]) -> PlatformUsersFacets:
         key = (item.status or "unknown").lower()
         account[key] = account.get(key, 0) + 1
         if item.directory_status:
-            clerk[item.directory_status] = clerk.get(item.directory_status, 0) + 1
+            keycloak[item.directory_status] = keycloak.get(item.directory_status, 0) + 1
     return PlatformUsersFacets(
         access_status=access,
         invite_status=invite,
         identity_status=identity,
         account_status=account,
-        directory_status=clerk,
+        directory_status=keycloak,
     )
 
 
@@ -419,7 +419,7 @@ def _apply_user_filters(
 from porterchain_api.admin_engine.settings_directory_merge import (  # noqa: E402
     _enrich_with_directory,
     _mark_not_in_directory,
-    _merge_clerk_directory,
+    _merge_idp_directory,
 )
 
 
@@ -451,7 +451,7 @@ class AdminSettingsService:
         items: list[PlatformUserItem] = []
 
         if user_type == "staff":
-            # Staff IdP SoT — AdminUser rows only; never intersect retired Clerk admin app.
+            # Staff IdP SoT — AdminUser rows only; never intersect retired Keycloak admin app.
             for u in self.list_staff(db, active_only=False)[:limit]:
                 invite = _staff_invite_status(u.auth_subject)
                 identity = _staff_identity_status(u.auth_subject)
@@ -489,8 +489,8 @@ class AdminSettingsService:
                 items=filtered,
                 total=len(filtered),
                 facets=facets,
-                clerk_synced=False,
-                clerk_total=None,
+                idp_synced=False,
+                idp_total=None,
             )
 
         invitations = _latest_invitations(db, user_type)
@@ -589,9 +589,9 @@ class AdminSettingsService:
         else:
             raise ValueError("invalid_user_type")
 
-        # PorterChain DB is the directory SoT. Clerk enriches identity when available.
-        # Merchant also injects Clerk-only orphans (no seat yet).
-        items, clerk_synced, clerk_total = _merge_clerk_directory(
+        # PorterChain DB is the directory SoT. Keycloak enriches identity when available.
+        # Merchant also injects Keycloak-only orphans (no seat yet).
+        items, idp_synced, idp_total = _merge_idp_directory(
             items,
             settings,
             user_type,
@@ -603,7 +603,7 @@ class AdminSettingsService:
 
         facets = _facet_counts(items)
 
-        def matches_clerk(item: PlatformUserItem) -> bool:
+        def matches_idp(item: PlatformUserItem) -> bool:
             return not directory_status or item.directory_status == directory_status
 
         filtered = [
@@ -616,14 +616,14 @@ class AdminSettingsService:
                 identity_status=identity_status,
                 account_status=account_status,
             )
-            if matches_clerk(i)
+            if matches_idp(i)
         ]
         return PlatformUsersResponse(
             items=filtered,
             total=len(filtered),
             facets=facets,
-            clerk_synced=clerk_synced,
-            clerk_total=clerk_total if clerk_synced else None,
+            idp_synced=idp_synced,
+            idp_total=idp_total if idp_synced else None,
         )
 
     def update_staff_role(
@@ -955,16 +955,13 @@ class AdminSettingsService:
         ready: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         from porterchain_api.admin_engine.integration_health import build_integration_health
-        from porterchain_api.intelligence_engine import nim_client
-        from porterchain_shared.config.settings import PlatformSettings
+        from porterchain_api.intelligence_engine import llm as llm_client
 
-        platform = PlatformSettings()
         return build_integration_health(
             db,
             settings,
             ready=ready,
-            nvidia_nim_configured=nim_client.nim_configured(),
-            nvidia_model=getattr(platform, "nvidia_model", None),
+            llm_configured=llm_client.llm_configured(),
         )
 
     def dashboard(self, db: Session, settings: Settings) -> dict[str, Any]:
@@ -1006,7 +1003,7 @@ class AdminSettingsService:
             "role_catalog": catalog,
             "authz": {
                 "engine": "spicedb",
-                "docs": "docs/architecture/auth-clerk-spicedb.md",
+                "docs": "docs/architecture/auth-keycloak-spicedb.md",
                 "schema": "apps/api/src/porterchain_api/authz/schema.zed",
             },
             "validation": self.validate(settings, db),
@@ -1129,7 +1126,7 @@ class AdminSettingsService:
                 warnings.append("Firebase project not configured for push notifications")
 
         if not is_identity_configured(settings) and not settings.auth_dev_bypass:
-            warnings.append("Clerk authentication not fully configured")
+            warnings.append("Keycloak authentication not fully configured")
 
         ready = readiness(db, settings)
         if ready.get("status") != "ok":

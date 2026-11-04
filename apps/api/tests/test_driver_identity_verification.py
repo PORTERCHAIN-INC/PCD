@@ -20,7 +20,7 @@ def _driver(db: Session, *, license_verified: bool = False) -> Driver:
         email=f"identity-{suffix}@test.porterchain.com",
         full_name=f"Identity Driver {suffix}",
         status=DriverStatus.PENDING.value,
-        auth_subject=f"clerk_identity_{suffix}",
+        auth_subject=f"idp_identity_{suffix}",
         license_verified=license_verified,
         documents={},
     )

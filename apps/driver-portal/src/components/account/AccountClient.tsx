@@ -58,8 +58,9 @@ function errText(e: unknown): string {
   } catch {
     /* plain */
   }
-  const clerk = (e as { errors?: Array<{ longMessage?: string; message?: string }> })?.errors?.[0];
-  return clerk?.longMessage || clerk?.message || msg || "Something went wrong";
+  const keycloak = (e as { errors?: Array<{ longMessage?: string; message?: string }> })
+    ?.errors?.[0];
+  return keycloak?.longMessage || keycloak?.message || msg || "Something went wrong";
 }
 
 export default function AccountClient({ version }: { version: string }) {
@@ -434,7 +435,7 @@ function PersonalSection({
   );
 }
 
-/** Email/phone change: add in Clerk -> 6-digit code -> make primary -> API copies verified value. */
+/** Email/phone change: add in Keycloak -> 6-digit code -> make primary -> API copies verified value. */
 function ContactSection({
   profile,
 }: {

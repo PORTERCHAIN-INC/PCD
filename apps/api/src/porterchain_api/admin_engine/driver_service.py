@@ -111,12 +111,12 @@ class AdminDriverService(DriverAccountOps):
                 InvitationService().provision_driver_account(db, ctx, settings, driver)
                 db.refresh(driver)
             except Exception as exc:
-                logger.warning("driver_clerk_provision_failed: %s", exc)
+                logger.warning("driver_idp_provision_failed: %s", exc)
 
         return driver
 
     def provision_pending_from_lead(self, db: Session, ctx: AdminContext, lead) -> Driver:
-        """Idempotent PENDING driver. No Clerk invite."""
+        """Idempotent PENDING driver. No Keycloak invite."""
         existing = db.query(Driver).filter(Driver.crm_lead_id == lead.id).first()
         if existing:
             return existing
@@ -189,7 +189,7 @@ class AdminDriverService(DriverAccountOps):
                 InvitationService().provision_driver_account(db, ctx, settings, driver)
                 db.refresh(driver)
             except Exception as exc:
-                logger.warning("driver_clerk_provision_failed %s: %s", driver_id, exc)
+                logger.warning("driver_idp_provision_failed %s: %s", driver_id, exc)
         from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
         sync_authz_after_persona_mutation(db, driver.auth_subject)
@@ -449,7 +449,7 @@ class AdminDriverService(DriverAccountOps):
 
 
 def revoke_driver_sessions(driver: Driver, settings: Settings | None) -> None:
-    """Offboarding: sign the driver out of Clerk everywhere (best effort; API access is
+    """Offboarding: sign the driver out of Keycloak everywhere (best effort; API access is
     already blocked by status on every request)."""
     if not driver.auth_subject:
         return

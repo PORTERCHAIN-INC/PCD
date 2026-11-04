@@ -177,7 +177,8 @@ def test_estimate_matches_quote_preview_engine(client):
             "pickup": {"formatted": "M5V, Ontario, Canada", "postal": "M5V", "lat": a[1], "lng": a[2]},
             "dropoff": {"formatted": "M4W, Ontario, Canada", "postal": "M4W", "lat": b[1], "lng": b[2]},
             "vehicle_class": "sedan_suv",
-            "booking_mode": "vehicle",
+            "booking_mode": "parcels",  # 2026-10-31: customers are parcel-priced only
+                "parcels": [{"preset_id": "small", "quantity": 1}],
             "scheduled_at": "2026-10-12T15:00:00Z",
         },
     ).json()

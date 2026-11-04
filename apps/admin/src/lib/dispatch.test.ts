@@ -24,27 +24,26 @@ describe("legacy Control Tower links", () => {
   });
 });
 
-describe("Dispatch nav", () => {
-  const dispatchGroup = ADMIN_NAV_GROUPS.find((g) => g.id === "operations")!;
+describe("Dispatch nav (doc 75)", () => {
+  const dispatchGroup = ADMIN_NAV_GROUPS.find((g) => g.id === "dispatch")!;
 
-  it("is Queue, Plan, Live, Exceptions, Orders, Fleet (metrics live on Today)", () => {
+  it("is Plan, Live map, Exceptions, Fleet & vehicles, Bulk batches (D-75 update, Ravi)", () => {
     expect(dispatchGroup.label).toBe("Dispatch");
     expect(dispatchGroup.items.map((i) => i.label)).toEqual([
-      "Queue",
       "Plan",
-      "Live",
+      "Live map",
       "Exceptions",
-      "Orders",
-      "Fleet",
+      "Fleet & vehicles",
+      "Bulk batches",
     ]);
   });
 
-  it("moves Booking Drafts to the growth/sales group and Drivers into Fleet", () => {
-    const growth = ADMIN_NAV_GROUPS.find((g) => g.id === "growth")!;
-    expect(growth.items.some((i) => i.href === "/booking-drafts")).toBe(true);
-    expect(dispatchGroup.items.some((i) => i.href === "/booking-drafts")).toBe(false);
-    expect(ADMIN_NAV_GROUPS.flatMap((g) => g.items).some((i) => i.href === "/drivers")).toBe(false);
-    expect(isNavActive("/drivers/abc", "/dispatch/fleet")).toBe(true);
+  it("puts Orders + Booking drafts in Orders and Drivers in Network", () => {
+    const orders = ADMIN_NAV_GROUPS.find((g) => g.id === "orders")!;
+    expect(orders.items.map((i) => i.href)).toEqual(["/orders", "/booking-drafts"]);
+    const network = ADMIN_NAV_GROUPS.find((g) => g.id === "network")!;
+    expect(network.items.some((i) => i.href === "/drivers")).toBe(true);
+    expect(isNavActive("/drivers/abc", "/drivers")).toBe(true);
   });
 
   it("lists every nav href as a top-level route", () => {

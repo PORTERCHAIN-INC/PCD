@@ -19,7 +19,7 @@ PORTALS = (
 
 
 def _get(url: str, headers: dict | None = None) -> int:
-    """HTTP status without following redirects (portals often 307 to Clerk)."""
+    """HTTP status without following redirects (portals often 307 to Keycloak)."""
 
     class _NoRedirect(urllib.request.HTTPRedirectHandler):
         def redirect_request(self, req, fp, code, msg, headers, newurl):  # noqa: ANN001

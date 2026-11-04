@@ -55,19 +55,15 @@ def test_b3_return_fee_examples():
     assert T["failed_delivery"]["handling_in_pct"] is False
 
 
-def test_b4_contract_coverage_overrides_platform_default():
+def test_b4_declared_value_cover_off_until_g_ins():
+    """Ravi 2026-10-29 replaced the free $2,500 / $25,000-upgrade model. Off until cargo insurance (G-INS)."""
     b = _price(["L5M", "M5V"])
     cov = b.metadata["coverage"]
-    assert (
-        cov["covered_up_to_cents"] == 250000
-        and cov["covered_per"] == "route"
-        and cov["charge_cents"] == 0
-    )
-    up = _price(["L5M", "M5V"], coverage_upgrade=True)
-    assert up.metadata["coverage"]["covered_up_to_cents"] == 2_500_000
-    assert (
-        up.subtotal_cents == 12000 + 2 * 1000
-    )  # +$10 per stop on top of the route minimum
+    assert cov["tier"] == "default_liability" and cov["charge_cents"] == 0
+    assert cov["default_liability_cents_per_kg"] == 441
+    up = _price(["L5M", "M5V"], coverage_upgrade=True, declared_value_cents=100_000)
+    assert up.metadata["coverage"]["unavailable"] == ["declared_value_cover_unavailable"]
+    assert up.subtotal_cents == b.subtotal_cents  # nothing sold while off
 
 
 def test_b5_claims_window_and_records():

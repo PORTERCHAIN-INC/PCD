@@ -1,13 +1,13 @@
-"""Clerk verified email ↔ system profile email identity rules.
+"""Keycloak verified email ↔ system profile email identity rules.
 
 Rule: every provisioned profile (admin / merchant / driver / customer) bound to a
-Clerk subject must store the same normalized email as Clerk's verified primary
-email. Clerk id alone is never enough when emails disagree.
+Keycloak subject must store the same normalized email as Keycloak's verified primary
+email. Keycloak id alone is never enough when emails disagree.
 
-Clerk verified email SSOT (never trust Porterchain DB as Clerk identity):
+Keycloak verified email SSOT (never trust Porterchain DB as Keycloak identity):
 1. Signed session JWT email claim (when present)
-2. Clerk Backend API primary email with verification.status == verified
-3. Fail closed — clerk_email_required / clerk_email_unverified
+2. Keycloak Backend API primary email with verification.status == verified
+3. Fail closed — idp_email_required / idp_email_unverified
 
 Mismatched persona rows are hard-deleted — never left as pending links.
 """
@@ -33,10 +33,10 @@ if TYPE_CHECKING:
 logger = logging.getLogger("porterchain.security")
 
 EMAIL_IDENTITY_MISMATCH = "email_identity_mismatch"
-CLERK_EMAIL_REQUIRED = "clerk_email_required"
-CLERK_EMAIL_UNVERIFIED = "clerk_email_unverified"
+IDP_EMAIL_REQUIRED = "idp_email_required"
+IDP_EMAIL_UNVERIFIED = "idp_email_unverified"
 
-# Short TTL cache: Clerk Backend lookup when JWT omits email (hot-path backstop).
+# Short TTL cache: Keycloak Backend lookup when JWT omits email (hot-path backstop).
 _EMAIL_CACHE_TTL_S = 60.0
 _email_cache: dict[str, tuple[float, str | None, str | None]] = {}
 
@@ -56,28 +56,28 @@ def emails_match(system_email: str | None, identity_email: str | None) -> bool:
     return left == right
 
 
-def require_clerk_email(identity_email: str | None) -> str:
-    """Fail closed when Clerk verified email is missing."""
+def require_idp_email(identity_email: str | None) -> str:
+    """Fail closed when Keycloak verified email is missing."""
     normalized = normalize_email(identity_email)
     if not normalized:
-        raise PermissionError(CLERK_EMAIL_REQUIRED)
+        raise PermissionError(IDP_EMAIL_REQUIRED)
     return normalized
 
 
-def require_system_email_matches_clerk(
+def require_system_email_matches_idp(
     system_email: str | None,
     identity_email: str | None,
     *,
     detail: str = EMAIL_IDENTITY_MISMATCH,
 ) -> None:
-    """Raise PermissionError when Clerk email missing or ≠ system profile email."""
-    require_clerk_email(identity_email)
+    """Raise PermissionError when Keycloak email missing or ≠ system profile email."""
+    require_idp_email(identity_email)
     if not emails_match(system_email, identity_email):
         raise PermissionError(detail)
 
 
 def email_from_jwt_payload(payload: dict[str, Any]) -> str | None:
-    """Extract email from Clerk session JWT (default tokens omit this — customize session token)."""
+    """Extract email from Keycloak session JWT (default tokens omit this — customize session token)."""
     for key in ("email", "primary_email_address", "email_address"):
         value = payload.get(key)
         if isinstance(value, str) and value.strip():
@@ -85,15 +85,15 @@ def email_from_jwt_payload(payload: dict[str, Any]) -> str | None:
     return None
 
 
-def verified_primary_email_from_clerk_user(user: dict[str, Any]) -> tuple[str | None, str | None]:
+def verified_primary_email_from_idp_user(user: dict[str, Any]) -> tuple[str | None, str | None]:
     """Return (verified_primary_email, failure_detail).
 
-    failure_detail is CLERK_EMAIL_UNVERIFIED when a primary exists but is not verified,
-    else CLERK_EMAIL_REQUIRED when absent.
+    failure_detail is IDP_EMAIL_UNVERIFIED when a primary exists but is not verified,
+    else IDP_EMAIL_REQUIRED when absent.
     """
     emails = user.get("email_addresses") or []
     if not emails:
-        return None, CLERK_EMAIL_REQUIRED
+        return None, IDP_EMAIL_REQUIRED
     primary_id = user.get("primary_email_address_id")
     primary = None
     for entry in emails:
@@ -104,22 +104,22 @@ def verified_primary_email_from_clerk_user(user: dict[str, Any]) -> tuple[str | 
         primary = emails[0]
     address = normalize_email(primary.get("email_address") if isinstance(primary, dict) else None)
     if not address:
-        return None, CLERK_EMAIL_REQUIRED
+        return None, IDP_EMAIL_REQUIRED
     status = ((primary.get("verification") or {}) if isinstance(primary, dict) else {}).get("status")
     if status != "verified":
-        return None, CLERK_EMAIL_UNVERIFIED
+        return None, IDP_EMAIL_UNVERIFIED
     return address, None
 
 
-def resolve_verified_clerk_email(
+def resolve_verified_idp_email(
     *,
     jwt_email: str | None,
     auth_subject: str,
     settings: Settings,
 ) -> str:
-    """Resolve Clerk-attested verified email. Never reads Porterchain DB.
+    """Resolve Keycloak-attested verified email. Never reads Porterchain DB.
 
-    Raises PermissionError with CLERK_EMAIL_REQUIRED or CLERK_EMAIL_UNVERIFIED.
+    Raises PermissionError with IDP_EMAIL_REQUIRED or IDP_EMAIL_UNVERIFIED.
     """
     from_jwt = normalize_email(jwt_email)
     if from_jwt:
@@ -128,15 +128,15 @@ def resolve_verified_clerk_email(
     from porterchain_api.auth.dev import is_dev_bypass_subject
 
     if not auth_subject or is_dev_bypass_subject(auth_subject):
-        raise PermissionError(CLERK_EMAIL_REQUIRED)
+        raise PermissionError(IDP_EMAIL_REQUIRED)
     if auth_subject.startswith("pending:") or auth_subject.startswith("pending_"):
-        raise PermissionError(CLERK_EMAIL_REQUIRED)
+        raise PermissionError(IDP_EMAIL_REQUIRED)
 
     from porterchain_api.auth.identity_directory import fetch_identity_user, is_directory_configured
 
     if not is_directory_configured(settings):
-        logger.warning("clerk_email_resolve_failed reason=secret_not_configured")
-        raise PermissionError(CLERK_EMAIL_REQUIRED)
+        logger.warning("idp_email_resolve_failed reason=secret_not_configured")
+        raise PermissionError(IDP_EMAIL_REQUIRED)
 
     now = time.monotonic()
     cached = _email_cache.get(auth_subject)
@@ -144,28 +144,28 @@ def resolve_verified_clerk_email(
         email, detail = cached[1], cached[2]
         if email:
             return email
-        raise PermissionError(detail or CLERK_EMAIL_REQUIRED)
+        raise PermissionError(detail or IDP_EMAIL_REQUIRED)
 
     try:
-        clerk_user, _kind = fetch_identity_user(settings, auth_subject)
+        idp_user, _kind = fetch_identity_user(settings, auth_subject)
     except Exception:
-        logger.warning("clerk_email_resolve_failed reason=backend_lookup_error", exc_info=True)
-        _email_cache[auth_subject] = (now + _EMAIL_CACHE_TTL_S, None, CLERK_EMAIL_REQUIRED)
-        raise PermissionError(CLERK_EMAIL_REQUIRED) from None
+        logger.warning("idp_email_resolve_failed reason=backend_lookup_error", exc_info=True)
+        _email_cache[auth_subject] = (now + _EMAIL_CACHE_TTL_S, None, IDP_EMAIL_REQUIRED)
+        raise PermissionError(IDP_EMAIL_REQUIRED) from None
 
-    if not clerk_user:
-        _email_cache[auth_subject] = (now + _EMAIL_CACHE_TTL_S, None, CLERK_EMAIL_REQUIRED)
-        raise PermissionError(CLERK_EMAIL_REQUIRED)
+    if not idp_user:
+        _email_cache[auth_subject] = (now + _EMAIL_CACHE_TTL_S, None, IDP_EMAIL_REQUIRED)
+        raise PermissionError(IDP_EMAIL_REQUIRED)
 
-    email, detail = verified_primary_email_from_clerk_user(clerk_user)
+    email, detail = verified_primary_email_from_idp_user(idp_user)
     _email_cache[auth_subject] = (now + _EMAIL_CACHE_TTL_S, email, detail)
     if email:
         return email
-    raise PermissionError(detail or CLERK_EMAIL_REQUIRED)
+    raise PermissionError(detail or IDP_EMAIL_REQUIRED)
 
 
 def enrich_claims_with_verified_email(claims: IdentityClaims, settings: Settings) -> IdentityClaims:
-    """Attach Clerk verified email onto claims before UserSync / portal authz."""
+    """Attach Keycloak verified email onto claims before UserSync / portal authz."""
     if normalize_email(claims.email):
         return replace(claims, email=normalize_email(claims.email))
     from porterchain_api.auth.dev import is_dev_bypass_subject
@@ -175,14 +175,14 @@ def enrich_claims_with_verified_email(claims: IdentityClaims, settings: Settings
     if claims.auth_subject.startswith("pending:") or claims.auth_subject.startswith("pending_"):
         return claims
     try:
-        email = resolve_verified_clerk_email(
+        email = resolve_verified_idp_email(
             jwt_email=claims.email,
             auth_subject=claims.auth_subject,
             settings=settings,
         )
     except PermissionError:
         logger.warning(
-            "clerk_email_enrich_failed",
+            "idp_email_enrich_failed",
             extra={"auth_subject": claims.auth_subject},
         )
         return claims
@@ -190,8 +190,8 @@ def enrich_claims_with_verified_email(claims: IdentityClaims, settings: Settings
 
 
 def assert_portal_email_identity(system_email: str | None, identity_email: str | None) -> None:
-    """Portal gate: require Clerk email + exact match to system profile."""
-    require_system_email_matches_clerk(system_email, identity_email)
+    """Portal gate: require Keycloak email + exact match to system profile."""
+    require_system_email_matches_idp(system_email, identity_email)
 
 
 def delete_email_mismatched_bindings(
@@ -203,7 +203,7 @@ def delete_email_mismatched_bindings(
     """Hard-delete persona rows where auth_subject is bound to a different email.
 
     Returns the number of persona rows deleted. Safe to call on every auth sync.
-    Does nothing when Clerk email is missing (cannot verify match).
+    Does nothing when Keycloak email is missing (cannot verify match).
     """
     from porterchain_api.auth.persona_bundle import invalidate_persona_bundle, load_persona_bundle
 
@@ -259,7 +259,7 @@ def _strip_registry_if_no_matching_persona(
     auth_subject: str,
     identity_email: str,
 ) -> None:
-    """If mismatch deletes removed all personas, drop elevated registry identity for that clerk id."""
+    """If mismatch deletes removed all personas, drop elevated registry identity for that keycloak id."""
     from porterchain_api.auth.persona_bundle import load_persona_bundle
 
     bundle = load_persona_bundle(db, auth_subject, force=True)
@@ -279,7 +279,7 @@ def _strip_registry_if_no_matching_persona(
     user = db.query(PorterchainUser).filter(PorterchainUser.auth_subject == auth_subject).first()
     if not user:
         return
-    # Registry email must equal Clerk; if it already matches and has no personas, leave as unprovisioned.
+    # Registry email must equal Keycloak; if it already matches and has no personas, leave as unprovisioned.
     if emails_match(user.email, identity_email):
         user.role = "unprovisioned"
         return

@@ -1,4 +1,4 @@
-"""Resolve merchant context from Clerk JWT + Porterchain merchant_users (no Clerk Organizations)."""
+"""Resolve merchant context from Keycloak JWT + Porterchain merchant_users (no Keycloak Organizations)."""
 
 from dataclasses import dataclass
 from typing import Annotated, Any
@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session
 from porterchain_api.auth.dev import allow_auth_dev_bypass, is_dev_bypass_subject, is_merchant_dev_subject
 from porterchain_api.auth.bearer import IdentityClaims, get_identity_claims
 from porterchain_api.auth.email_identity import (
-    CLERK_EMAIL_REQUIRED,
-    CLERK_EMAIL_UNVERIFIED,
+    IDP_EMAIL_REQUIRED,
+    IDP_EMAIL_UNVERIFIED,
     EMAIL_IDENTITY_MISMATCH,
     assert_portal_email_identity,
     normalize_email,
@@ -19,8 +19,8 @@ from porterchain_api.auth.portal_guard import assert_portal_provisioned
 from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.domain.merchant_states import PORTAL_OPEN_STATUSES, MerchantStatus
-from porterchain_api.merchant_engine.lookups import get_merchant, seats_for_clerk
-from porterchain_api.merchant_engine.portal_signup import claim_pending_seats_for_clerk, first_open_seat
+from porterchain_api.merchant_engine.lookups import get_merchant, seats_for_idp
+from porterchain_api.merchant_engine.portal_signup import claim_pending_seats_for_idp, first_open_seat
 from porterchain_api.merchant_engine.provision import ensure_dev_merchant_seat
 from porterchain_api.merchant_engine.rbac import MerchantContext, parse_merchant_role
 
@@ -33,7 +33,7 @@ class DevMerchantHeaders:
 
 @dataclass
 class MerchantSeats:
-    """Every seat this Clerk user holds, whatever each company's status is (BF)."""
+    """Every seat this Keycloak user holds, whatever each company's status is (BF)."""
 
     auth_subject: str
     seats: list[Any]
@@ -70,9 +70,9 @@ def get_merchant_context(
     assert_portal_provisioned(db, claims, portal="merchant", settings=settings)
 
     # Heal Admin-reserved pending seats even when AccessGate skips onboarding
-    # because another company for this Clerk user is already ACTIVE.
+    # because another company for this Keycloak user is already ACTIVE.
     email = normalize_email(claims.email)
-    if email and claim_pending_seats_for_clerk(db, email=email, subject_ref=claims.auth_subject):
+    if email and claim_pending_seats_for_idp(db, email=email, subject_ref=claims.auth_subject):
         db.commit()
 
     user = _resolve_merchant_user(db, claims.auth_subject, x_merchant_id, settings)
@@ -82,7 +82,7 @@ def get_merchant_context(
             assert_portal_email_identity(user.email, claims.email)
         except PermissionError as exc:
             detail = str(exc)
-            if detail in {CLERK_EMAIL_REQUIRED, CLERK_EMAIL_UNVERIFIED, EMAIL_IDENTITY_MISMATCH}:
+            if detail in {IDP_EMAIL_REQUIRED, IDP_EMAIL_UNVERIFIED, EMAIL_IDENTITY_MISMATCH}:
                 raise HTTPException(status_code=403, detail=detail) from exc
             raise HTTPException(status_code=403, detail=EMAIL_IDENTITY_MISMATCH) from exc
 
@@ -160,7 +160,7 @@ def get_merchant_seats(
 
     assert_portal_provisioned(db, claims, portal="merchant", settings=settings)
 
-    seats = [s for s in seats_for_clerk(db, claims.auth_subject) if s.is_active]
+    seats = [s for s in seats_for_idp(db, claims.auth_subject) if s.is_active]
     if not seats and allow_auth_dev_bypass(settings) and is_merchant_dev_subject(claims.auth_subject):
         seats = [ensure_dev_merchant_seat(db, claims.auth_subject)]
     if not seats:
@@ -190,7 +190,7 @@ def _resolve_merchant_user(
     settings: Settings,
 ) -> Any:
     if merchant_id:
-        seats = [s for s in seats_for_clerk(db, auth_subject) if s.merchant_id == merchant_id]
+        seats = [s for s in seats_for_idp(db, auth_subject) if s.merchant_id == merchant_id]
         if seats:
             return seats[0]
         # Browser kept pc_merchant_id from a previous sign-in. Do not treat that

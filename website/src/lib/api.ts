@@ -3,9 +3,11 @@ import type {
   DeliveryManageOptions,
   TrackingExperience,
 } from "@porterchain/types";
-import { getPorterchainApiBase } from "@/lib/api-base";
+import { getPorterchainFetchBase } from "@/lib/api-base";
 
-const API_BASE = getPorterchainApiBase();
+// Server-side (SSR) fetches use the private API address: the public URL can be unreachable
+// from inside the container, which made /track show "Shipment not found" for real orders.
+const apiBase = () => getPorterchainFetchBase();
 
 export interface AddressPayload {
   formatted?: string;
@@ -70,7 +72,7 @@ export interface OrderLiveTracking {
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${apiBase()}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
@@ -112,7 +114,7 @@ export interface ManageApiError extends Error {
 }
 
 async function manageFetch<T>(path: string, token: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${apiBase()}${path}`, {
     ...init,
     cache: "no-store",
     referrerPolicy: "no-referrer",
@@ -174,7 +176,7 @@ export interface FastApiError extends Error {
 
 async function fastFetch<T>(path: string, init?: RequestInit & { token?: string }): Promise<T> {
   const { token, ...rest } = init ?? {};
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${apiBase()}${path}`, {
     ...rest,
     cache: "no-store",
     referrerPolicy: "no-referrer",

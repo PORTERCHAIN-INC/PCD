@@ -30,7 +30,7 @@ function LocalDevSignIn() {
   return (
     <MerchantAuthScreen
       title="Local development"
-      subtitle="Clerk is off on localhost. You continue as the local merchant account."
+      subtitle="Keycloak is off on localhost. You continue as the local merchant account."
     >
       <Link
         href={redirectUrl}
@@ -42,7 +42,7 @@ function LocalDevSignIn() {
   );
 }
 
-/** Missing Clerk keys. A shipped build gets no dev-mode door and no internal instructions (BJ). */
+/** Missing Keycloak keys. A shipped build gets no dev-mode door and no internal instructions (BJ). */
 function AuthUnavailable() {
   if (!isDevelopmentBuild()) {
     return (

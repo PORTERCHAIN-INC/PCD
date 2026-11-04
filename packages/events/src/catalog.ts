@@ -1,5 +1,5 @@
 /** Canonical domain event type constants — mirrors shared/python catalog. */
-export const CATALOG_VERSION = "1.2.1";
+export const CATALOG_VERSION = "1.2.2";
 
 export const DomainEvents = {
   // Visitor
@@ -93,6 +93,18 @@ export const DomainEvents = {
   WEBHOOK_RECEIVED: "webhook.received",
 
   // Retired vendor sync names — kept so old envelopes still deserialize
+
+  // Custody (doc 84 F1)
+  CUSTODY_PICKED_UP: "custody.picked_up",
+  CUSTODY_HANDOVER_OUT: "custody.handover_out",
+  CUSTODY_HANDOVER_IN: "custody.handover_in",
+  CUSTODY_DEPOT_IN: "custody.depot_in",
+  CUSTODY_SORTED: "custody.sorted",
+  CUSTODY_LOADED: "custody.loaded",
+  CUSTODY_DELIVERED: "custody.delivered",
+  CUSTODY_RETURNED: "custody.returned",
+  CUSTODY_HELD: "custody.held",
+  CUSTODY_EXCEPTION: "custody.exception",
 
   // CRM
   LEAD_CREATED: "lead.created",

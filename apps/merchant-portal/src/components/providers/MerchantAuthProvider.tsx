@@ -12,7 +12,7 @@ import {
 } from "react";
 import { useAuth } from "@porterchain/auth/oidc/client";
 import { readImpersonationBearer } from "@porterchain/auth";
-import { isAuthConfigured, useClerkDevApiBypass } from "@/lib/env";
+import { isAuthConfigured, useIdpDevApiBypass } from "@/lib/env";
 import { getMerchantSession, type MerchantSession } from "@/lib/api";
 
 import { writeMerchantIdCookie } from "@/lib/merchant-cookie";
@@ -145,7 +145,7 @@ function DevMerchantAuthProvider({
   return <MerchantAuthContext.Provider value={value}>{children}</MerchantAuthContext.Provider>;
 }
 
-function ClerkMerchantAuthProvider({
+function IdpMerchantAuthProvider({
   children,
   initialOrgId,
 }: {
@@ -153,7 +153,7 @@ function ClerkMerchantAuthProvider({
   initialOrgId?: string;
 }) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
-  const devApiBypass = useClerkDevApiBypass();
+  const devApiBypass = useIdpDevApiBypass();
   const [orgId, setOrgIdState] = useState<string | undefined>(initialOrgId);
   const [session, setSession] = useState<MerchantSession | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
@@ -264,14 +264,12 @@ export function MerchantAuthProvider({
   children: ReactNode;
   initialOrgId?: string;
 }) {
-  if (useClerkDevApiBypass() || !isAuthConfigured()) {
+  if (useIdpDevApiBypass() || !isAuthConfigured()) {
     return (
       <DevMerchantAuthProvider initialOrgId={initialOrgId}>{children}</DevMerchantAuthProvider>
     );
   }
-  return (
-    <ClerkMerchantAuthProvider initialOrgId={initialOrgId}>{children}</ClerkMerchantAuthProvider>
-  );
+  return <IdpMerchantAuthProvider initialOrgId={initialOrgId}>{children}</IdpMerchantAuthProvider>;
 }
 
 export function useMerchantAuth(): MerchantAuthState {

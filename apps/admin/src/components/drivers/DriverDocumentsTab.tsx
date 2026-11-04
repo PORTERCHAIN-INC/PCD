@@ -82,7 +82,17 @@ export function DocumentsTab({
               <Button
                 key={item.type}
                 variant="outline"
-                onClick={() => void decide(item.type, "verified")}
+                onClick={() => {
+                  // L197e: verifying with no file unlocks the driver — ask first.
+                  if (
+                    typeof window !== "undefined" &&
+                    !window.confirm(
+                      `Mark ${item.label} as verified without a file? The driver can take jobs right away.`
+                    )
+                  )
+                    return;
+                  void decide(item.type, "verified");
+                }}
               >
                 Verify {item.label}
               </Button>

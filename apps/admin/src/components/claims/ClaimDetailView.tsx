@@ -12,6 +12,7 @@ import { relativeTime } from "@/lib/crmFormat";
 import { Badge, Button } from "@/components/crm/primitives";
 import AdminPage from "@/components/layout/AdminPage";
 import DeleteButton from "@/components/common/DeleteButton";
+import { TranslatedNote } from "@/components/translation/TranslatedNote";
 
 type Tab =
   | "overview"
@@ -213,6 +214,7 @@ function OverviewTab({ detail }: { detail: ClaimDetail }) {
     <div className="grid gap-6 md:grid-cols-2">
       <div>
         <Row label="Description" value={detail.description || "—"} />
+        <TranslatedNote entityType="claim" entityId={detail.id} field="description" />
         <Row label="Amount" value={formatCents(detail.amount_cents)} />
         <Row label="Investigator" value={detail.assigned_investigator || "Unassigned"} />
         <Row label="Created" value={relativeTime(detail.created_at)} />

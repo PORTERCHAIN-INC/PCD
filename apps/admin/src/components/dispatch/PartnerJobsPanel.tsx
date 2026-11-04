@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { MoreHorizontal } from "lucide-react";
+import { CsvButton, FacetButton, SearchBox } from "@/components/console/ConsoleKit";
 import { useApiData } from "@/hooks/useApiData";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import {
@@ -20,6 +21,7 @@ const MODE: Record<PartnerLeg["mode"], string> = {
   ltl: "LTL",
   "3pl": "3PL",
   local: "Van",
+  courier: "Fleet partner",
 };
 const NEXT_LABEL: Partial<Record<LegStatus, string>> = {
   requested: "Mark requested",
@@ -29,7 +31,13 @@ const NEXT_LABEL: Partial<Record<LegStatus, string>> = {
 };
 
 /** Partner (3PL / LTL / FTL / warehouse) legs: job sheet + email draft, manual status. Nothing is sent. */
-export function PartnerJobsPanel({ tick }: { tick: number }) {
+export function PartnerJobsPanel({
+  tick,
+  console: full = false,
+}: {
+  tick: number;
+  console?: boolean;
+}) {
   const { getApiToken } = useAdminAuth();
   const { data, loading, refetch } = useApiData((t) => dispatch.partnerLegs(t), [tick], {
     key: "dispatch-partner-legs",
@@ -37,8 +45,27 @@ export function PartnerJobsPanel({ tick }: { tick: number }) {
   const [menu, setMenu] = useState<string | null>(null);
   const [draft, setDraft] = useState<PartnerEmailDraft | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
-  const items = data?.items ?? [];
-  const counts = FLOW.map((s) => [s, items.filter((i) => i.status === s).length] as const);
+  const [status, setStatus] = useState<LegStatus | "">("");
+  const [mode, setMode] = useState<PartnerLeg["mode"] | "">("");
+  const [q, setQ] = useState("");
+  const all = useMemo(() => data?.items ?? [], [data]);
+  const counts = (full ? [...FLOW, "cancelled" as LegStatus] : FLOW).map(
+    (s) => [s, all.filter((i) => i.status === s).length] as const
+  );
+  const items = useMemo(() => {
+    if (!full) return all;
+    const needle = q.trim().toLowerCase();
+    return all.filter(
+      (l) =>
+        (!status || l.status === status) &&
+        (!mode || l.mode === mode) &&
+        (!needle ||
+          [l.order_number, l.partner_name, l.from_label, l.to_label].some((v) =>
+            (v ?? "").toLowerCase().includes(needle)
+          ))
+    );
+  }, [all, full, status, mode, q]);
+  const modes = [...new Set(all.map((l) => l.mode))];
 
   const run = async (fn: (t: string) => Promise<unknown>) => {
     setMsg(null);
@@ -73,17 +100,64 @@ export function PartnerJobsPanel({ tick }: { tick: number }) {
             Job sheet and email are drafts — you send them. Update status by hand.
           </p>
         </div>
-        <dl className="flex gap-4" aria-label="Partner jobs by status">
-          {counts.map(([s, n]) => (
-            <div key={s} className="text-right">
-              <dt className="text-[11px] uppercase tracking-wider text-muted">
-                {LEG_STATUS_LABEL[s]}
-              </dt>
-              <dd className="text-xl font-black tabular-nums text-primary">{n}</dd>
-            </div>
-          ))}
+        <dl className="flex flex-wrap gap-2 sm:gap-4" aria-label="Partner jobs by status">
+          {counts.map(([s, n]) =>
+            full ? (
+              <button
+                key={s}
+                type="button"
+                aria-pressed={status === s}
+                onClick={() => setStatus(status === s ? "" : s)}
+                className={
+                  "rounded-xl border px-3 py-1.5 text-right " +
+                  (status === s
+                    ? "border-secondary/50 bg-secondary/5"
+                    : "border-transparent hover:bg-gray-bg")
+                }
+              >
+                <dt className="text-[11px] uppercase tracking-wider text-muted">
+                  {LEG_STATUS_LABEL[s]}
+                </dt>
+                <dd className="text-xl font-black tabular-nums text-primary">{n}</dd>
+              </button>
+            ) : (
+              <div key={s} className="text-right">
+                <dt className="text-[11px] uppercase tracking-wider text-muted">
+                  {LEG_STATUS_LABEL[s]}
+                </dt>
+                <dd className="text-xl font-black tabular-nums text-primary">{n}</dd>
+              </div>
+            )
+          )}
         </dl>
       </header>
+      {full && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <SearchBox value={q} onChange={setQ} placeholder="Search order, partner or lane…" />
+          <FacetButton active={mode === ""} onClick={() => setMode("")}>
+            All modes
+          </FacetButton>
+          {modes.map((m) => (
+            <FacetButton key={m} active={mode === m} onClick={() => setMode(mode === m ? "" : m)}>
+              {MODE[m]}
+            </FacetButton>
+          ))}
+          <span className="flex-1" />
+          <CsvButton
+            filename="partner-jobs.csv"
+            headers={["Order", "Partner", "Mode", "Status", "From", "To", "Est. cost"]}
+            rows={items.map((l) => [
+              l.order_number ?? l.order_id,
+              l.partner_name ?? "",
+              MODE[l.mode],
+              LEG_STATUS_LABEL[l.status],
+              l.from_label ?? "",
+              l.to_label ?? "",
+              l.est_cost_cents ? (l.est_cost_cents / 100).toFixed(2) : "",
+            ])}
+          />
+        </div>
+      )}
 
       {loading && !data ? (
         <div className="mt-3 space-y-2" aria-busy="true">
@@ -93,7 +167,9 @@ export function PartnerJobsPanel({ tick }: { tick: number }) {
         </div>
       ) : items.length === 0 ? (
         <p className="mt-4 text-sm text-muted">
-          No partner legs. Out-of-area orders get them from “Plan legs” on the order.
+          {all.length > 0
+            ? "No partner legs match. Clear the search or filters."
+            : "No partner legs. Out-of-area orders get them from “Plan legs” on the order."}
         </p>
       ) : (
         <ul className="mt-3 divide-y divide-primary/5">
@@ -129,6 +205,16 @@ export function PartnerJobsPanel({ tick }: { tick: number }) {
                 >
                   {LEG_STATUS_LABEL[leg.status]}
                 </span>
+                {!next && leg.order_needs_sync ? (
+                  <button
+                    type="button"
+                    onClick={() => run((t) => dispatch.syncPartnerLegOrder(t, leg.id))}
+                    className="col-span-2 min-h-11 rounded-xl px-3 text-sm font-semibold text-white"
+                    style={{ backgroundColor: "var(--primary)" }}
+                  >
+                    Mark order delivered
+                  </button>
+                ) : null}
                 {next ? (
                   <button
                     type="button"
@@ -139,7 +225,7 @@ export function PartnerJobsPanel({ tick }: { tick: number }) {
                     {NEXT_LABEL[next] ?? next}
                   </button>
                 ) : null}
-                <div className={next ? "relative" : "relative col-start-3"}>
+                <div className={next || leg.order_needs_sync ? "relative" : "relative col-start-3"}>
                   <button
                     type="button"
                     aria-label={`More for ${leg.order_number ?? "leg"}`}

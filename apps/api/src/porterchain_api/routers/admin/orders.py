@@ -133,6 +133,21 @@ def create_order(
     return AdminCreateOrderResponse(**_invoke(ctx, "orders_write", _orders.create_built, db, settings, ctx, body))
 
 
+@router.post("/orders/preview")
+def preview_order(
+    body: AdminCreateOrderRequest,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    """L128: price the New order draft (same engine as create) without saving anything."""
+    from porterchain_api.admin_engine.order_builder_service import OrderBuilderService
+
+    out = _invoke(ctx, "orders_write", OrderBuilderService().create, db, settings, ctx, body, dry_run=True)
+    db.rollback()
+    return out
+
+
 @router.post("/orders/bulk")
 def orders_bulk(
     body: OrderBulkRequest,
@@ -260,6 +275,17 @@ def order_pod_artifact(
 def generate_order_invoice(order_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
     """Manual Generate invoice — requires POD_COMPLETED (idempotent if INVOICED)."""
     return _invoke(ctx, "orders_write", _orders.manual_invoice_payload, db, order_id)
+
+
+@router.post("/orders/{order_id}/return")
+def create_order_return(
+    order_id: str, ctx: Ctx, db: Session = Depends(get_db), settings: Settings = Depends(get_settings)
+) -> dict:
+    """L105: book a return pickup for a delivered order (customer -> merchant)."""
+    return _invoke(
+        ctx, "orders_write", _orders.create_return_committed, db, settings, order_id,
+        actor_id=getattr(ctx.user, "id", None),
+    )
 
 
 @router.post("/orders/{order_id}/resend-receipt")

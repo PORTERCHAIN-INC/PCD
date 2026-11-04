@@ -202,6 +202,15 @@ function DetailBody({
                 <dd>{formatCents(detail.tax_cents, currency)}</dd>
               </div>
             ) : null}
+            {detail.supplier_gst_hst_number ? (
+              <div className="flex justify-between">
+                <dt className="text-muted">Supplier</dt>
+                <dd>
+                  {detail.supplier_legal_name ?? "Porterchain Inc."} · GST/HST Reg. No.{" "}
+                  {detail.supplier_gst_hst_number}
+                </dd>
+              </div>
+            ) : null}
             {detail.credited_cents ? (
               <div className="flex justify-between">
                 <dt className="text-muted">Credited</dt>

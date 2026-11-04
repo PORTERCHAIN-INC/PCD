@@ -19,7 +19,7 @@ Test the change on this Mac, then build the touched web images locally (`pnpm --
 | Orders accept, no dispatch motion | `apps/worker` running · Optimize preview/accept · day-plan scorecard on Control Tower / diagnostics        |
 | Stale live map / route            | Redis `last_known` · driver on duty · Valhalla `:8002`                                                     |
 | Bad quotes / distances            | Valhalla `:8002` · production `OSRM_HOST` stays empty · look for source `haversine` in distance resolution |
-| Auth failures                     | Clerk portal keys · Staff IdP (admin) · SpiceDB · ensure bypass only when `APP_ENV=local`                  |
+| Auth failures                     | Keycloak portal keys · Staff IdP (admin) · SpiceDB · ensure bypass only when `APP_ENV=local`               |
 | Webhook issues                    | Stripe/Shopify signature verify · idempotency · handler logs                                               |
 | Event lag                         | Redis stream `porterchain:events` / DLQ `porterchain:events:dlq`                                           |
 
@@ -45,7 +45,7 @@ Test the change on this Mac, then build the touched web images locally (`pnpm --
 
 ## Deploy / secrets
 
-**SSOT:** [`infrastructure/deploy/README.md`](./infrastructure/deploy/README.md) · secrets: [`infrastructure/deploy/SECRETS.md`](./infrastructure/deploy/SECRETS.md) (Doppler `pcd`/`prd`) · connections: [`docs/CONNECTIONS.md`](./docs/CONNECTIONS.md) (`pnpm connections:check`)
+**SSOT:** [`infrastructure/deploy/README.md`](./infrastructure/deploy/README.md) · secrets: [`infrastructure/deploy/SECRETS.md`](./infrastructure/deploy/SECRETS.md) (SOPS `secrets/droplet.enc.yaml`) · connections: [`docs/CONNECTIONS.md`](./docs/CONNECTIONS.md) (`pnpm connections:check`)
 
 | Trigger              | Workflow                   | Result                                                          |
 | -------------------- | -------------------------- | --------------------------------------------------------------- |
@@ -54,7 +54,6 @@ Test the change on this Mac, then build the touched web images locally (`pnpm --
 | Green `CI` on `main` | `Deploy` (`scope=full`)    | GHCR images → droplet compose + migrate + D3 smoke              |
 | Manual               | `Deploy` (`scope=website`) | Website image only + site smoke                                 |
 | Cron 11:00 UTC       | `Nightly E2E`              | D3 behavioral matrix (Postgres + Redis + Valhalla stub)         |
-| Manual               | `Set Public Ingest Key`    | Ensure `PUBLIC_INGEST_API_KEY` in Doppler; roll `api` + `web`   |
 
 Git push from a laptop uses the deploy key in [`docs/GITHUB_SSH_KEYS.md`](./docs/GITHUB_SSH_KEYS.md) — not Actions sync jobs.
 
@@ -65,7 +64,7 @@ Git push from a laptop uses the deploy key in [`docs/GITHUB_SSH_KEYS.md`](./docs
 
 Receiver/customer delivery emails are on by default (email only). Before a deploy that ships them:
 
-1. **`ZEPTOMAIL_WEBHOOK_SECRET`** in Doppler `pcd/prd` (long random string). In ZeptoMail → Mail Agent → Webhooks, point bounce + complaint events at `https://api.porterchain.com/v1/public/mail/zeptomail` with custom header `X-Porterchain-Mail-Webhook: <same secret>`. Without the secret the endpoint returns **503** outside local (it used to accept anyone, who could then suppress real customer addresses).
+1. **`ZEPTOMAIL_WEBHOOK_SECRET`** in `secrets/droplet.enc.yaml` (long random string). In ZeptoMail → Mail Agent → Webhooks, point bounce + complaint events at `https://api.porterchain.com/v1/public/mail/zeptomail` with custom header `X-Porterchain-Mail-Webhook: <same secret>`. Without the secret the endpoint returns **503** outside local (it used to accept anyone, who could then suppress real customer addresses).
 2. `MAIL_TRANSPORT=https`, ZeptoMail token, and a from-address on a domain with SPF + DKIM + DMARC passing (check one sample in Gmail "Show original").
 3. `UNSUBSCRIBE_MAILBOX` (optional, default `unsubscribe@porterchain.com`) must exist or forward to a monitored inbox: it is the `mailto:` half of `List-Unsubscribe` on marketing/CRM mail.
 4. `support@porterchain.com` (or each merchant's `tracking.support_email`) must be monitored: it is the "Report a problem" target in receiver emails.

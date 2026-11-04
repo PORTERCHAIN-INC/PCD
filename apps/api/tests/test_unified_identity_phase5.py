@@ -1,4 +1,4 @@
-"""Phase 5 — unified Clerk app mode: multi-role, portal visit ≠ role."""
+"""Phase 5 — unified Keycloak app mode: multi-role, portal visit ≠ role."""
 
 from __future__ import annotations
 
@@ -14,13 +14,13 @@ from porterchain_api.auth.portal_guard import (
 )
 from porterchain_api.config import Settings
 
-_CLERK_ENV_PREFIXES = ("CLERK_", "NEXT_PUBLIC_CLERK_")
+_IDP_ENV_PREFIXES = ("IDP_", "NEXT_PUBLIC_IDP_")
 
 
 @pytest.fixture(autouse=True)
-def _clear_clerk_env(monkeypatch: pytest.MonkeyPatch) -> None:
+def _clear_idp_env(monkeypatch: pytest.MonkeyPatch) -> None:
     for key in list(os.environ):
-        if key.startswith(_CLERK_ENV_PREFIXES):
+        if key.startswith(_IDP_ENV_PREFIXES):
             monkeypatch.delenv(key, raising=False)
 
 
@@ -29,22 +29,22 @@ def _settings(**overrides: object) -> Settings:
         "app_env": "local",
         "auth_dev_bypass": False,
         "jwt_secret": "a" * 32,
-        "clerk_secret_key": "",
-        "clerk_publishable_key": "",
-        "clerk_jwks_url": "",
-        "clerk_customer_secret_key": "",
-        "clerk_customer_publishable_key": "",
-        "clerk_customer_jwks_url": "",
-        "clerk_merchant_secret_key": "",
-        "clerk_merchant_publishable_key": "",
-        "clerk_merchant_jwks_url": "",
-        "clerk_admin_secret_key": "",
-        "clerk_admin_publishable_key": "",
-        "clerk_admin_jwks_url": "",
-        "clerk_driver_secret_key": "",
-        "clerk_driver_publishable_key": "",
-        "clerk_driver_jwks_url": "",
-        "clerk_unified_mode": False,
+        "idp_secret_key": "",
+        "idp_publishable_key": "",
+        "idp_jwks_url": "",
+        "idp_customer_secret_key": "",
+        "idp_customer_publishable_key": "",
+        "idp_customer_jwks_url": "",
+        "idp_merchant_secret_key": "",
+        "idp_merchant_publishable_key": "",
+        "idp_merchant_jwks_url": "",
+        "idp_admin_secret_key": "",
+        "idp_admin_publishable_key": "",
+        "idp_admin_jwks_url": "",
+        "idp_driver_secret_key": "",
+        "idp_driver_publishable_key": "",
+        "idp_driver_jwks_url": "",
+        "idp_unified_mode": False,
     }
     base.update(overrides)
     return Settings(_env_file=None, **base)  # type: ignore[arg-type]
@@ -53,25 +53,25 @@ def _settings(**overrides: object) -> Settings:
 def _unified_settings(**overrides: object) -> Settings:
     """Platform slots share issuer; Driver distinct — platform_driver layout."""
     sk = "sk_platform"
-    jwks = "https://platform.clerk.accounts.dev/.well-known/jwks.json"
+    jwks = "https://platform.keycloak.accounts.dev/.well-known/jwks.json"
     pk = "pk_platform"
     params: dict[str, object] = {
-        "clerk_unified_mode": False,
-        "clerk_secret_key": sk,
-        "clerk_publishable_key": pk,
-        "clerk_jwks_url": jwks,
-        "clerk_customer_secret_key": sk,
-        "clerk_customer_publishable_key": pk,
-        "clerk_customer_jwks_url": jwks,
-        "clerk_merchant_secret_key": sk,
-        "clerk_merchant_publishable_key": pk,
-        "clerk_merchant_jwks_url": jwks,
-        "clerk_admin_secret_key": sk,
-        "clerk_admin_publishable_key": pk,
-        "clerk_admin_jwks_url": jwks,
-        "clerk_driver_secret_key": "sk_driver",
-        "clerk_driver_publishable_key": "pk_driver",
-        "clerk_driver_jwks_url": "https://driver.clerk.accounts.dev/.well-known/jwks.json",
+        "idp_unified_mode": False,
+        "idp_secret_key": sk,
+        "idp_publishable_key": pk,
+        "idp_jwks_url": jwks,
+        "idp_customer_secret_key": sk,
+        "idp_customer_publishable_key": pk,
+        "idp_customer_jwks_url": jwks,
+        "idp_merchant_secret_key": sk,
+        "idp_merchant_publishable_key": pk,
+        "idp_merchant_jwks_url": jwks,
+        "idp_admin_secret_key": sk,
+        "idp_admin_publishable_key": pk,
+        "idp_admin_jwks_url": jwks,
+        "idp_driver_secret_key": "sk_driver",
+        "idp_driver_publishable_key": "pk_driver",
+        "idp_driver_jwks_url": "https://driver.keycloak.accounts.dev/.well-known/jwks.json",
     }
     params.update(overrides)
     return _settings(**params)

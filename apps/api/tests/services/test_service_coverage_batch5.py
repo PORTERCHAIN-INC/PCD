@@ -188,9 +188,9 @@ def test_booking_draft_update(db, settings) -> None:
 
 @patch("porterchain_api.admin_engine.identity_directory_service.directory_for_kind")
 @patch("porterchain_api.admin_engine.identity_directory_service.is_directory_configured", return_value=True)
-def test_fetch_clerk_snapshots(mock_configured, mock_client, settings) -> None:
+def test_fetch_idp_snapshots(mock_configured, mock_client, settings) -> None:
     snap = MagicMock()
-    snap.email = "clerk@example.com"
+    snap.email = "keycloak@example.com"
     snap.public_metadata = {"user_type": "driver"}
     mock_client.return_value.list_users.return_value = ([{"id": "u1", "email_addresses": []}], 1)
     with patch("porterchain_api.admin_engine.identity_directory_service.IdentityDirectory.snapshot", return_value=snap):

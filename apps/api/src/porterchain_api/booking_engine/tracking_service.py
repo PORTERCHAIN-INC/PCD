@@ -67,7 +67,7 @@ class TrackingService:
         )
 
     def get_order_response_by_tracking(
-        self, db: Session, tracking_number: str, viewer_clerk_user_id: str | None = None
+        self, db: Session, tracking_number: str, viewer_idp_user_id: str | None = None
     ) -> OrderResponse | None:
         from porterchain_api.domain.sandbox import hidden_from_viewer
 
@@ -75,7 +75,7 @@ class TrackingService:
         if not order:
             return None
         # Public surfaces must not resolve test shipments as live capacity.
-        if hidden_from_viewer(db, order, viewer_clerk_user_id):
+        if hidden_from_viewer(db, order, viewer_idp_user_id):
             return None
         return self._order_response_from_order(db, order, public=True)
 
@@ -84,13 +84,13 @@ class TrackingService:
         db: Session,
         settings: Settings,
         tracking_number: str,
-        viewer_clerk_user_id: str | None = None,
+        viewer_idp_user_id: str | None = None,
     ) -> OrderTrackingResponse | None:
         """Build OrderTrackingResponse for the public order tracking endpoint."""
         from porterchain_api.domain.sandbox import hidden_from_viewer
 
         order = self.get_by_tracking(db, tracking_number)
-        if not order or hidden_from_viewer(db, order, viewer_clerk_user_id):
+        if not order or hidden_from_viewer(db, order, viewer_idp_user_id):
             return None
         live = self.build_public_live_tracking(db, settings, order)
         return OrderTrackingResponse(

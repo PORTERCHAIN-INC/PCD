@@ -16,6 +16,7 @@ const fullCsp = websiteCsp({
   apiUrl:
     websitePublicEnv().NEXT_PUBLIC_PORTERCHAIN_API_URL ||
     process.env.NEXT_PUBLIC_PORTERCHAIN_API_URL,
+  errorsDsn: process.env.NEXT_PUBLIC_GLITCHTIP_DSN,
   dev: isDev,
 });
 // Full allowlist is ENFORCED (validated against live pages 2026-10-10); WEBSITE_CSP_ENFORCE=false falls back to report-only

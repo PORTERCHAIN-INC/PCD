@@ -47,8 +47,12 @@ export async function completeStop({
       );
     }
     if (signature) {
-      await runOnlineOrQueue("pod_signature", { ...ids, signature_data: signature }, () =>
-        podSignature(routeId, stopId, signature)
+      const signerName = (pod.signerName ?? "").trim();
+      if (signerName.length < 2) throw new Error("Add the name of the person who signed first.");
+      await runOnlineOrQueue(
+        "pod_signature",
+        { ...ids, signature_data: signature, signer_name: signerName },
+        () => podSignature(routeId, stopId, signature, signerName)
       );
     }
     if (midStop) {

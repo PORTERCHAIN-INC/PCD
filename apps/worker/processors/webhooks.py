@@ -94,6 +94,18 @@ def _shopify_fulfillment(order_id: str | None, event_type: str | None = None) ->
         push_fulfillment(db, get_settings(), order, event_type=event_type)
     except Exception:  # noqa: BLE001
         logger.exception("shopify_fulfillment_push_failed order=%s", order_id)
+    try:
+        # Review 139170: a completed delivery for a Shopify-installed store is charged
+        # through the Shopify Billing API (usage record), not an Interac invoice.
+        if str(event_type or "").lower().endswith("delivered"):
+            from porterchain_api.merchant_engine.shopify_billing import record_usage
+
+            order = db.query(Order).filter(Order.id == order_id).first()
+            if order is not None:
+                logger.info("shopify_usage order=%s result=%s", order_id, record_usage(db, get_settings(), order))
+    except Exception:  # noqa: BLE001
+        db.rollback()
+        logger.exception("shopify_usage_failed order=%s", order_id)
     finally:
         db.close()
 

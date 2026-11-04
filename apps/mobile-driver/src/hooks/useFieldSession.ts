@@ -7,6 +7,7 @@ import { AppState } from "react-native";
 import { onRefusedChanged } from "../refusedReview";
 import NetInfo from "@react-native-community/netinfo";
 import { endShift, startShift } from "../api";
+import { logHos } from "../hos";
 import { idleHandshake, runHandshake } from "../handshake";
 import {
   onGpsPolicyEnabled,
@@ -172,6 +173,7 @@ export function useFieldSession() {
           throw err;
         })
       );
+      void logHos("on_duty").catch(() => undefined); // doc 80: HOS daily record
       setHandshake((prev) => ({ ...prev, online: true }));
     },
     [handshake.routeId]
@@ -180,6 +182,7 @@ export function useFieldSession() {
   const goOffDuty = useCallback(async () => {
     await stopBackgroundLocation();
     await endShift();
+    void logHos("off_duty").catch(() => undefined);
     setHandshake((prev) => ({ ...prev, online: false }));
   }, []);
 

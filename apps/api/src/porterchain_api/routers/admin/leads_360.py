@@ -29,7 +29,7 @@ def lead_assist(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
-    """NVIDIA NIM / heuristic sales assist — never auto-sends."""
+    """an LLM (FEATURE_AI, off in Phase 0) / heuristic sales assist — never auto-sends."""
     require_module(ctx, "crm_read")
     lead = _crm.get_lead(db, lead_id)
     if not lead:
@@ -40,7 +40,7 @@ def lead_assist(
         db,
         lead,
         # phase2_intelligence_enabled() reads "intelligence"; the old key name
-        # meant the NIM path could never run even with the flag on.
+        # meant the LLM path could never run even with the flag on.
         flags={"intelligence": bool(settings.phase2_intelligence)},
         actor_id=ctx.user.id,
     )

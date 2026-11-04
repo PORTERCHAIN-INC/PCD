@@ -77,7 +77,7 @@ def test_public_live_tracking_redacts_addresses(monkeypatch: pytest.MonkeyPatch)
 def test_customer_delete_forbidden() -> None:
     svc = DirectoryUserService()
     with pytest.raises(ValueError, match="customer_delete_forbidden"):
-        svc.delete_clerk_user(
+        svc.delete_idp_user(
             MagicMock(),
             MagicMock(),
             MagicMock(),
@@ -86,7 +86,7 @@ def test_customer_delete_forbidden() -> None:
         )
 
 
-def test_customer_provision_from_clerk_links_row() -> None:
+def test_customer_provision_from_idp_links_row() -> None:
     svc = DirectoryUserService()
     customer = SimpleNamespace(
         id="cust-1",
@@ -104,7 +104,7 @@ def test_customer_provision_from_clerk_links_row() -> None:
             "porterchain_api.auth.authz_sync.sync_authz_after_persona_mutation"
         ) as sync,
     ):
-        platform_id = svc._provision_from_clerk(
+        platform_id = svc._provision_from_idp(
             db,
             MagicMock(),
             "customer",

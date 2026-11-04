@@ -1,4 +1,4 @@
-"""AY — new seat first run: Clerk password, wait for ACTIVE, English roles, seat off stays off."""
+"""AY — new seat first run: Keycloak password, wait for ACTIVE, English roles, seat off stays off."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from porterchain_api.merchant_models import Merchant, MerchantUser
 
 
 def _claims(subject_ref: str, email: str) -> IdentityClaims:
-    return IdentityClaims(auth_subject=subject_ref, email=email, clerk_app="merchant")
+    return IdentityClaims(auth_subject=subject_ref, email=email, idp_app="merchant")
 
 
 def _company(
@@ -35,7 +35,7 @@ def _company(
 
 
 def _reserved_seat(db, merchant: Merchant, *, role: str, email: str) -> MerchantUser:
-    """Owner reserves a seat by email — no Clerk invite, clerk id stays pending."""
+    """Owner reserves a seat by email — no Keycloak invite, keycloak id stays pending."""
     seat = MerchantUser(
         merchant_id=merchant.id,
         auth_subject=f"pending:{email}",
@@ -48,7 +48,7 @@ def _reserved_seat(db, merchant: Merchant, *, role: str, email: str) -> Merchant
     return seat
 
 
-def test_reserved_seat_links_clerk_id_on_first_sign_in(db, settings) -> None:
+def test_reserved_seat_links_idp_id_on_first_sign_in(db, settings) -> None:
     merchant = _company(db)
     email = f"dispatch_{uuid.uuid4().hex[:8]}@firstrun.test"
     seat = _reserved_seat(db, merchant, role=MerchantRole.OPS.value, email=email)

@@ -1,4 +1,4 @@
-"""Phase 4 — Clerk webhooks, ensure-user, no elevation, deactivate."""
+"""Phase 4 — Keycloak webhooks, ensure-user, no elevation, deactivate."""
 
 from __future__ import annotations
 
@@ -50,12 +50,12 @@ def test_ensure_user_never_grants_invite_only_from_identity_alone() -> None:
     db.add.side_effect = add
 
     identity = AuthenticatedIdentity(
-        provider="clerk",
-        issuer="https://clerk.example",
+        provider="keycloak",
+        issuer="https://keycloak.example",
         subject="user_meta_admin",
         email="someone@example.com",
         email_verified=True,
-        adapter_context={"clerk_app": "admin"},
+        adapter_context={"idp_app": "admin"},
     )
     # Simulate public_metadata temptation via email domain — ensure must ignore
     user = EnsureUserService().ensure_from_identity(db, identity, email_verified=True, commit=False)
@@ -83,7 +83,7 @@ def test_deactivate_does_not_delete_user_row() -> None:
     db = MagicMock()
     user = PorterchainUser(
         id="u1",
-        auth_subject="clerk_del",
+        auth_subject="idp_del",
         email="d@example.com",
         role="customer",
         status=AccountStatus.ACTIVE.value,
@@ -106,7 +106,7 @@ def test_deactivate_does_not_delete_user_row() -> None:
         return link_q
 
     db.query.side_effect = query
-    EnsureUserService().deactivate_clerk_user(db, auth_subject="clerk_del", commit=False)
+    EnsureUserService().deactivate_idp_user(db, auth_subject="idp_del", commit=False)
     assert user.status == AccountStatus.DEACTIVATED.value
     assert link.is_current is False
     assert link.deactivated_at is not None

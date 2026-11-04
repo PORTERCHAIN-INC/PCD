@@ -164,7 +164,15 @@ export function SettingsTab({ m, onSaved }: { m: MerchantDetail; onSaved: () => 
       setTimeout(() => setSaved(false), 2500);
     } catch (e) {
       setSaved(false);
-      setSaveError(e instanceof Error ? e.message : "Save failed");
+      const msg = e instanceof Error ? e.message : "";
+      const veh = msg.match(/preferred_vehicle_not_in_catalog:([a-z0-9_]+)/);
+      setSaveError(
+        veh
+          ? `Couldn't save: "${titleCase(veh[1])}" isn't in the enabled vehicle catalog. Remove it from Vehicles or enable it in Settings → Vehicles.`
+          : msg
+            ? `Couldn't save: ${msg}`
+            : "Couldn't save. Try again."
+      );
     } finally {
       setBusy(false);
     }

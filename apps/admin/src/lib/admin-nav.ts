@@ -8,7 +8,6 @@ import {
   ClipboardList,
   Headphones,
   HeartPulse,
-  LayoutDashboard,
   Newspaper,
   Package,
   Phone,
@@ -19,7 +18,6 @@ import {
   Truck,
   UserPlus,
   Users,
-  Zap,
   BarChart3,
   CreditCard,
   FileText,
@@ -51,43 +49,46 @@ export const WEBSITE_CONTACT_LEAD_SOURCE = "website_contact";
 export const WEBSITE_NEWSLETTER_LEAD_SOURCE = "website_newsletter";
 
 /**
- * Admin primary nav — ordered by daily ops workflow.
+ * Admin primary nav (doc 75 §2, D-75-1): Today · Orders · Dispatch · Network ·
+ * Customers & Orgs · Billing · Support · Insights · Settings.
  * Top-level (ops) pages must appear here; detail/redirect routes do not.
- *
- * Groups follow the operator's day: overview → run the day (operations) →
- * manage partners (merchants / drivers / retail customers) → grow the pipeline
- * (sales/recovery/content) → money → customer care (tickets + claims) → administration.
  */
 export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
-    id: "dashboard",
+    id: "today",
     label: "Today",
     items: [
       {
         href: "/today",
         label: "Today",
-        description: "Exceptions first, live map, one-click assign",
+        description: "Pickups, live, exceptions, tickets due, network KPIs",
         icon: Radio,
         badgeKey: "exceptions",
-      },
-      {
-        href: "/dashboard",
-        label: "Dashboard",
-        description: "Network KPIs and alerts",
-        icon: LayoutDashboard,
       },
     ],
   },
   {
-    id: "operations",
-    label: "Dispatch",
+    id: "orders",
+    label: "Orders",
     items: [
       {
-        href: "/dispatch/today",
-        label: "Queue",
-        description: "Classic dispatch: unassigned, board",
-        icon: Zap,
+        href: "/orders",
+        label: "All orders",
+        description: "Active deliveries and history",
+        icon: Package,
       },
+      {
+        href: "/booking-drafts",
+        label: "Booking drafts",
+        description: "Retail checkout drafts (ops recovery)",
+        icon: ClipboardList,
+      },
+    ],
+  },
+  {
+    id: "dispatch",
+    label: "Dispatch",
+    items: [
       {
         href: "/dispatch/plan",
         label: "Plan",
@@ -96,7 +97,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       },
       {
         href: "/dispatch/live",
-        label: "Live",
+        label: "Live map",
         description: "Map and ETAs vs promise",
         icon: Radio,
       },
@@ -108,52 +109,74 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         badgeKey: "exceptions",
       },
       {
-        href: "/orders",
-        label: "Orders",
-        description: "Active deliveries and history",
-        icon: Package,
+        href: "/dispatch/fleet",
+        label: "Fleet & vehicles",
+        description: "Vehicles and capacity",
+        icon: Truck,
       },
       {
-        href: "/dispatch/fleet",
-        label: "Fleet",
-        description: "Drivers, vehicles, capacity",
-        icon: Truck,
+        href: "/dispatch/batches",
+        label: "Bulk batches",
+        description: "Merchant CSV batches, routes and handovers",
+        icon: Package,
       },
     ],
   },
   {
-    id: "partners",
-    label: "Accounts",
+    id: "network",
+    label: "Network",
+    items: [
+      {
+        href: "/drivers",
+        label: "Drivers",
+        description: "Driver profiles, documents, pay",
+        icon: Users,
+      },
+      {
+        href: "/partners",
+        label: "Partners",
+        description: "Couriers, linehaul, 3PL, warehouses, customs agents",
+        icon: Truck,
+      },
+      {
+        href: "/partners/jobs",
+        label: "Partner jobs",
+        description: "Legs handed to partners and their status",
+        icon: Route,
+      },
+      {
+        href: "/partners/contracts",
+        label: "Fleet contracts",
+        description: "Contractor fleet rates and payable statements",
+        icon: FileText,
+      },
+    ],
+  },
+  {
+    id: "customers",
+    label: "Customers & Orgs",
     items: [
       {
         href: "/merchants",
-        label: "Merchants",
-        description: "Business accounts and contracts",
+        label: "Organisations",
+        description: "Business accounts by type, contracts, pricing",
+        icon: Building2,
+      },
+      {
+        href: "/orgs",
+        label: "Types & packs",
+        description: "Business type review, capabilities, operating profile",
         icon: Building2,
       },
       {
         href: "/customers",
-        label: "Customers",
+        label: "People",
         description: "Retail customers and booking history",
         icon: Users,
       },
-    ],
-  },
-  {
-    id: "growth",
-    // "Sales": only what drives replies, quotes and bookings. Lead Agent, Calendar
-    // and Attribution stay reachable from the Inbox "More" menu; Blog moved to Administration.
-    label: "Sales",
-    items: [
-      {
-        href: "/booking-drafts",
-        label: "Booking drafts",
-        description: "Retail checkout drafts (ops recovery)",
-        icon: ClipboardList,
-      },
       {
         href: "/leads",
-        label: "Inbox",
+        label: "Leads",
         description: "Every lead, answered in under 5 minutes",
         icon: UserPlus,
         badgeKey: "leads",
@@ -171,19 +194,18 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         icon: Phone,
         badgeKey: "calls",
       },
+      {
+        href: "/merchants/duplicates",
+        label: "Duplicates",
+        description: "Find and merge duplicate accounts",
+        icon: Building2,
+      },
     ],
   },
   {
-    id: "finance",
-    label: "Finance",
+    id: "billing",
+    label: "Billing",
     items: [
-      {
-        href: "/finance/cash",
-        label: "Cash",
-        description: "Who owes us, e-Transfers to match, reminders",
-        icon: Wallet,
-        badgeKey: "cash",
-      },
       {
         href: "/finance/invoices",
         label: "Invoices",
@@ -193,26 +215,33 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       {
         href: "/finance/payments",
         label: "Payments",
-        description: "Stripe, refunds, disputes, bank payouts",
+        description: "Interac matching, refunds, disputes, payouts",
         icon: CreditCard,
       },
       {
         href: "/finance/driver-pay",
-        label: "Driver Pay",
+        label: "Driver & partner pay",
         description: "Pay runs, approvals, bank file",
         icon: Banknote,
       },
       {
         href: "/pricing",
-        label: "Pricing",
-        description: "Catalog, merchant deals, quote simulator",
+        label: "Rate cards & pricing",
+        description: "Standard rate card, org pricing, quote simulator",
         icon: Calculator,
       },
       {
-        href: "/finance/reports",
-        label: "Reports",
-        description: "Margin, GST/HST, QuickBooks / Xero",
-        icon: BarChart3,
+        href: "/finance/tax-registration",
+        label: "Tax (GST/HST)",
+        description: "Registration and filings",
+        icon: FileText,
+      },
+      {
+        href: "/finance/cash",
+        label: "Cash",
+        description: "Who owes us, e-Transfers to match, reminders",
+        icon: Wallet,
+        badgeKey: "cash",
       },
     ],
   },
@@ -222,8 +251,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       {
         href: "/support",
-        label: "Tickets",
-        description: "Customer helpdesk and SLA",
+        label: "Unified inbox",
+        description: "Tickets, email and lead replies, SLA",
         icon: Headphones,
         badgeKey: "tickets",
       },
@@ -236,20 +265,44 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     ],
   },
   {
-    id: "administration",
-    label: "Administration",
+    id: "insights",
+    label: "Insights",
     items: [
       {
-        href: "/blog",
-        label: "Blog",
-        description: "Marketing content (EN / FR)",
-        icon: Newspaper,
+        href: "/finance/reports",
+        label: "Reports",
+        description: "Margin, GST/HST, QuickBooks / Xero",
+        icon: BarChart3,
       },
       {
-        href: "/blog/authors",
-        label: "Blog authors",
-        description: "CMS author profiles for /authors",
-        icon: PenLine,
+        href: "/finance/metrics",
+        label: "Unit economics",
+        description: "EVA, break-even, payback, queueing",
+        icon: BarChart3,
+      },
+      {
+        href: "/finance/analytics",
+        label: "Analytics",
+        description: "Trends and unit economics",
+        icon: BarChart3,
+      },
+      {
+        href: "/leads/attribution",
+        label: "Attribution",
+        description: "UTM and campaign sources",
+        icon: BarChart3,
+      },
+    ],
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    items: [
+      {
+        href: "/settings",
+        label: "Team & roles",
+        description: "Staff, roles, integrations",
+        icon: Settings,
       },
       {
         href: "/notifications",
@@ -265,15 +318,27 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       },
       {
         href: "/system",
-        label: "System",
-        description: "Health, diagnostics, AI usage",
+        label: "System health & tests",
+        description: "Health, diagnostics, tests",
         icon: HeartPulse,
       },
       {
-        href: "/settings",
-        label: "Settings",
-        description: "Staff, roles, integrations",
-        icon: Settings,
+        href: "/blog",
+        label: "Website & blog",
+        description: "Marketing content (EN / FR)",
+        icon: Newspaper,
+      },
+      {
+        href: "/blog/authors",
+        label: "Blog authors",
+        description: "CMS author profiles for /authors",
+        icon: PenLine,
+      },
+      {
+        href: "/account/security",
+        label: "My security",
+        description: "Passkeys and MFA",
+        icon: Shield,
       },
     ],
   },
@@ -284,36 +349,47 @@ export const ALL_ADMIN_NAV_ITEMS = ADMIN_NAV_GROUPS.flatMap((g) => g.items);
 /** Top-level ops pages that must stay in the nav (redirects / nested details excluded). */
 export const ADMIN_TOP_LEVEL_ROUTES = [
   "/today",
-  "/dashboard",
-  "/dispatch/today",
+  "/orders",
+  "/booking-drafts",
   "/dispatch/plan",
   "/dispatch/live",
   "/dispatch/exceptions",
-  "/orders",
   "/dispatch/fleet",
-  "/booking-drafts",
-  "/claims",
+  "/dispatch/batches",
+  "/drivers",
+  "/partners",
+  "/partners/jobs",
+  "/partners/contracts",
   "/merchants",
+  "/orgs",
   "/customers",
   "/leads",
-  "/leads/today",
-  "/leads/agent",
   "/leads/pipeline",
-  "/leads/calendar",
-  "/leads/attribution",
-  "/blog",
-  "/blog/authors",
-  "/finance/cash",
+  "/leads/today",
+  "/merchants/duplicates",
   "/finance/invoices",
   "/finance/payments",
+  "/finance/metrics",
   "/finance/driver-pay",
   "/pricing",
-  "/finance/reports",
+  "/finance/tax-registration",
+  "/finance/cash",
   "/support",
+  "/claims",
+  "/finance/reports",
+  "/finance/analytics",
+  "/leads/attribution",
+  "/settings",
   "/notifications",
   "/notifications/delivery",
   "/system",
-  "/settings",
+  "/blog",
+  "/blog/authors",
+  "/account/security",
+  "/dispatch/today",
+  "/leads/agent",
+  "/leads/calendar",
+  "/inbox",
 ] as const;
 
 function splitHref(href: string): { path: string; params: URLSearchParams } {
@@ -325,8 +401,6 @@ function splitHref(href: string): { path: string; params: URLSearchParams } {
 /** Pathname match; when href has query params, they must match `search` (e.g. "?source=…"). */
 export function isNavActive(pathname: string, href: string, search = ""): boolean {
   const { path, params } = splitHref(href);
-  // Driver detail pages live under Dispatch → Fleet.
-  if (path === "/dispatch/fleet" && pathname.startsWith("/drivers/")) return true;
   const pathMatch = pathname === path || pathname.startsWith(`${path}/`);
   if (!pathMatch) return false;
 
@@ -383,31 +457,32 @@ const ROLE_GROUPS: Record<string, string[] | "all"> = {
   operations_manager: "all",
   read_only: "all",
   auditor: "all",
-  dispatcher: ["dashboard", "operations", "partners", "support"],
-  fleet_manager: ["dashboard", "operations", "partners", "support"],
-  sales: ["dashboard", "partners", "growth", "support"],
-  merchant_success: ["dashboard", "partners", "growth", "support"],
-  support: ["dashboard", "operations", "partners", "support"],
-  customer_support: ["dashboard", "operations", "partners", "support"],
-  finance: ["dashboard", "partners", "finance"],
-  developer: ["dashboard", "administration"],
+  dispatcher: ["today", "orders", "dispatch", "network", "customers", "support"],
+  fleet_manager: ["today", "orders", "dispatch", "network", "support"],
+  sales: ["today", "customers", "support", "insights"],
+  merchant_success: ["today", "customers", "support"],
+  support: ["today", "orders", "customers", "support"],
+  customer_support: ["today", "orders", "customers", "support"],
+  finance: ["today", "customers", "billing", "insights"],
+  developer: ["today", "settings"],
 };
 const SUPER_ONLY = new Set(["/system"]);
 const READ_ONLY_HIDDEN = new Set(["/system", "/settings", "/blog", "/blog/authors"]);
+/** Everyone keeps their own security page, whatever the role. */
+const ALWAYS = new Set(["/account/security"]);
 
 export function adminNavForRole(role: string | null | undefined): AdminNavGroup[] {
   const r = (role ?? "").toLowerCase();
   const allowed = ROLE_GROUPS[r] ?? "all";
-  return ADMIN_NAV_GROUPS.filter((g) => allowed === "all" || allowed.includes(g.id))
-    .map((g) => ({
-      ...g,
-      items: g.items.filter((i) => {
-        if (SUPER_ONLY.has(i.href) && r && r !== "super_admin" && r !== "developer") return false;
-        if ((r === "read_only" || r === "auditor") && READ_ONLY_HIDDEN.has(i.href)) return false;
-        return true;
-      }),
-    }))
-    .filter((g) => g.items.length > 0);
+  return ADMIN_NAV_GROUPS.map((g) => ({
+    ...g,
+    items: g.items.filter((i) => {
+      if (allowed !== "all" && !allowed.includes(g.id)) return ALWAYS.has(i.href);
+      if (SUPER_ONLY.has(i.href) && r && r !== "super_admin" && r !== "developer") return false;
+      if ((r === "read_only" || r === "auditor") && READ_ONLY_HIDDEN.has(i.href)) return false;
+      return true;
+    }),
+  })).filter((g) => g.items.length > 0);
 }
 
 /** Pages reachable only via palette (no sidebar slot) so every route stays findable. */
@@ -417,11 +492,23 @@ export const ADMIN_PALETTE_EXTRA: {
   group: string;
   keywords?: string;
 }[] = [
-  { href: "/leads/agent", label: "Lead agent", group: "Sales", keywords: "ai auto reply" },
-  { href: "/leads/calendar", label: "Sales calendar", group: "Sales", keywords: "meetings" },
-  { href: "/leads/attribution", label: "Attribution", group: "Sales", keywords: "utm campaigns" },
-  { href: "/system-health", label: "System health", group: "Administration" },
-  { href: "/system-tests", label: "System tests", group: "Administration" },
+  {
+    href: "/dispatch/today",
+    label: "Pickup queue",
+    group: "Dispatch",
+    keywords: "classic queue unassigned board",
+  },
+  {
+    href: "/leads/agent",
+    label: "Lead agent",
+    group: "Customers & Orgs",
+    keywords: "ai auto reply",
+  },
+  {
+    href: "/leads/calendar",
+    label: "Sales calendar",
+    group: "Customers & Orgs",
+    keywords: "meetings",
+  },
   { href: "/inbox", label: "Inbox (messages)", group: "Support" },
-  { href: "/account", label: "My account & security", group: "Account", keywords: "passkey mfa" },
 ];

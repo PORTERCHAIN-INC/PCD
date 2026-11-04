@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Clerk / Doppler config audit CLI — names + validity only (never secret values).
+"""Keycloak config audit CLI — names + validity only (never secret values).
 
 Usage (from repo root):
   pnpm config:audit
@@ -7,7 +7,7 @@ Usage (from repo root):
   cd apps/api && PYTHONPATH=src .venv/bin/python scripts/config_audit.py --strict
   cd apps/api && PYTHONPATH=src .venv/bin/python scripts/config_audit.py --json
 
-Does not call Doppler. Does not mutate secrets.
+Does not read the SOPS file. Does not mutate secrets.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ if str(_SRC) not in sys.path:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Audit Clerk config (names + validity only)")
+    parser = argparse.ArgumentParser(description="Audit Keycloak config (names + validity only)")
     parser.add_argument(
         "--json",
         action="store_true",
@@ -43,7 +43,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    from porterchain_api.auth.clerk_config_audit import audit_report_dict
+    from porterchain_api.auth.idp_config_audit import audit_report_dict
     from porterchain_api.config import Settings
 
     if args.env_file:
@@ -68,7 +68,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"  ERROR {e}")
         else:
             print("--- production_errors: none ---")
-        print("Note: Doppler was not contacted. Cutover remains manual (see docs/runbooks/clerk-consolidation.md).")
+        print("Note: the SOPS file was not read. Cutover remains manual (see docs/runbooks/keycloak-consolidation.md).")
 
     if args.strict and report.get("production_errors"):
         return 1

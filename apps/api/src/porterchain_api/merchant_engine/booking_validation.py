@@ -37,6 +37,9 @@ CUSTOM_QUOTE_MESSAGE = (
     "Contact PorterChain to book it."
 )
 
+#: 2026-10-31 standard pricing (no contract schedule): plain wording.
+STANDARD_CUSTOM_QUOTE_MESSAGE = "This delivery needs a custom quote ({reason}). Contact PorterChain to book it."
+
 
 def assert_not_fsa_refused(breakdown: Any) -> None:
     """A refused FSA miss finalizes at $0 — never preview, book, or build it as a price."""
@@ -44,7 +47,9 @@ def assert_not_fsa_refused(breakdown: Any) -> None:
     if isinstance(meta, dict) and meta.get("fsa_refused"):
         if meta.get("custom_quote"):
             reason = str(meta.get("custom_quote_reason") or "custom_quote").replace("_", " ")
-            raise BookingValidationError("fsa_refused", CUSTOM_QUOTE_MESSAGE.format(reason=reason))
+            standard = meta.get("pricing") in ("parcel_v2", "vehicle_hourly")
+            msg = STANDARD_CUSTOM_QUOTE_MESSAGE if standard else CUSTOM_QUOTE_MESSAGE
+            raise BookingValidationError("fsa_refused", msg.format(reason=reason))
         raise BookingValidationError("fsa_refused", FSA_REFUSED_MESSAGE)
 
 
@@ -94,7 +99,8 @@ class MerchantSyncService:
         if not contract_id:
             if require_contract:
                 raise BookingValidationError("no_active_contract", "No active merchant contract on file.")
-            warnings.append("no_active_contract")
+            # L139 (decided 14:17): an admin-set custom price or the standard price needs no contract
+            # on file, so a missing contract is not a user-facing warning.
 
         # 4. Validate payment terms
         terms = merchant.payment_terms
@@ -115,6 +121,20 @@ def check_declarations(body: Any) -> None:
     """C13/C15: dangerous goods need written approval first; prohibited articles are refused."""
     from porterchain_pricing.contract_terms import DEFAULT_TERMS, declaration_problem
 
+    from porterchain_api.ops_rules.rules import alcohol_problem, lq_check
+
+    text = " ".join(str(getattr(body, k, "") or "") for k in ("item_category", "dangerous_goods_description"))
+    if alcohol_problem(contains_alcohol=bool(getattr(body, "contains_alcohol", False)), text=text) or \
+            "alcohol" in (getattr(body, "prohibited_articles", None) or []):
+        raise BookingValidationError("alcohol_not_carried", "We don't carry alcohol.")
+    lq = getattr(body, "dg_limited_quantity", None)
+    if lq:
+        res = lq_check(list(lq.get("items") or []), package_gross_kg=float(lq.get("package_gross_kg") or 0),
+                       lq_mark_photo=lq.get("lq_mark_photo"), mark_side_mm=lq.get("mark_side_mm"),
+                       small_package=bool(lq.get("small_package")))
+        if not res["ok"]:
+            raise BookingValidationError("dg_limited_quantity_rejected", "; ".join(res["problems"]))
+        return  # TDG limited quantity (perfume/aerosol) is accepted without written approval
     problem = declaration_problem(
         DEFAULT_TERMS,
         dangerous_goods=bool(getattr(body, "dangerous_goods", False)),
@@ -126,3 +146,20 @@ def check_declarations(body: Any) -> None:
         raise BookingValidationError(
             problem, "Dangerous goods need written approval and permits before booking. Contact us for a quote."
         )
+
+
+_COVER_MSG = {
+    "declared_value_cover_unavailable": "Declared-value cover isn't available yet. Standard liability is $4.41/kg.",
+    "declared_value_required": "Enter the declared value of each parcel to buy cover.",
+    "declared_value_over_max": "Declared value is above the $2,500 per-parcel maximum. Contact us before booking.",
+    "declared_value_excluded_goods": "Cash, jewellery, medicines and perishables can't be covered.",
+}
+
+
+def declared_value_block(coverage: dict | None) -> tuple[str, str] | None:
+    """Doc 72 §8 / doc 84: cover was asked for but can't be sold -> (code, message). Plain bookings never block."""
+    cov = coverage or {}
+    if not cov.get("requested") or not cov.get("unavailable"):
+        return None
+    code = cov["unavailable"][0]
+    return code, _COVER_MSG.get(code, "Declared-value cover can't be added to this booking.")

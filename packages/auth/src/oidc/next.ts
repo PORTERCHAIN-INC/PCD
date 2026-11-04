@@ -3,9 +3,10 @@
  * a server-side `auth()` for route handlers / server components.
  */
 import { NextResponse, type NextRequest } from "next/server";
+import { cookieSecure } from "../cookieSecure";
 import {
-  FLOW_COOKIE,
-  SESSION_COOKIE,
+  flowCookieName,
+  sessionCookieName,
   appOrigin,
   authorizeUrl,
   chunkCookies,
@@ -32,7 +33,8 @@ import {
 
 /** Refresh token lifetime cap for the cookie (Keycloak SSO max is shorter and wins). */
 const SESSION_MAX_AGE = 60 * 60 * 12;
-const secure = () => process.env.NODE_ENV === "production";
+// AUTH_COOKIE_SECURE=false only for a plain-http LAN test stack (scripts/local-stack.sh); prod keeps Secure.
+const secure = () => cookieSecure();
 
 function apply(res: NextResponse, specs: CookieSpec[]) {
   for (const s of specs) {
@@ -48,12 +50,12 @@ function apply(res: NextResponse, specs: CookieSpec[]) {
 }
 
 export async function readSession(cookies: CookieReader, c: OidcConfig): Promise<Session | null> {
-  const raw = readChunks(cookies, SESSION_COOKIE);
+  const raw = readChunks(cookies, sessionCookieName());
   return raw ? unseal<Session>(raw, c.secret) : null;
 }
 
 export async function sessionCookies(s: Session, c: OidcConfig): Promise<CookieSpec[]> {
-  return chunkCookies(SESSION_COOKIE, await seal(s, c.secret), SESSION_MAX_AGE);
+  return chunkCookies(sessionCookieName(), await seal(s, c.secret), SESSION_MAX_AGE);
 }
 
 function notConfigured() {
@@ -64,15 +66,26 @@ function notConfigured() {
 async function login(req: NextRequest, c: OidcConfig) {
   const q = req.nextUrl.searchParams;
   const flow = newFlow(safeReturnTo(q.get("return_to") ?? q.get("redirect_url")));
+  // Website sign-in hands off with ?sso=1 on the target page: reuse that fresh Keycloak session.
+  const ssoHandoff = /[?&]sso=1(&|$)/.test(flow.returnTo);
   const redirectUri = `${appOrigin(c, req.url, req.headers)}/auth/callback`;
   const url = await authorizeUrl(c, redirectUri, flow, {
     register: q.get("register") === "1",
     idpHint: q.get("idp") ?? undefined,
     loginHint: q.get("login_hint") ?? undefined,
-    prompt: q.get("prompt") === "login" ? "login" : undefined,
+    // OIDC_PROMPT_LOGIN=1: persona apps always show the Keycloak form, so an SSO session from another
+    // persona (e.g. admin) in the same browser is never silently reused.
+    prompt:
+      q.get("prompt") === "login" || (process.env.OIDC_PROMPT_LOGIN === "1" && !ssoHandoff)
+        ? "login"
+        : undefined,
   });
-  const res = NextResponse.redirect(url);
-  res.cookies.set(FLOW_COOKIE, await seal(flow, c.secret), {
+  // Keycloak pages follow the app language (pc_locale cookie set by the EN/FR switcher).
+  const ui = req.cookies.get("pc_locale")?.value;
+  const target = new URL(url);
+  if (ui === "fr" || ui === "en") target.searchParams.set("ui_locales", ui);
+  const res = NextResponse.redirect(target.toString());
+  res.cookies.set(flowCookieName(), await seal(flow, c.secret), {
     httpOnly: true,
     secure: secure(),
     sameSite: "lax",
@@ -85,13 +98,13 @@ async function login(req: NextRequest, c: OidcConfig) {
 async function callback(req: NextRequest, c: OidcConfig) {
   const origin = appOrigin(c, req.url, req.headers);
   const q = req.nextUrl.searchParams;
-  const raw = req.cookies.get(FLOW_COOKIE)?.value;
+  const raw = req.cookies.get(flowCookieName())?.value;
   const flow = raw ? await unseal<Flow>(raw, c.secret) : null;
   const fail = (code: string) => {
     const res = NextResponse.redirect(
       `${origin}${c.signInPath}?auth_error=${encodeURIComponent(code)}`
     );
-    res.cookies.set(FLOW_COOKIE, "", { path: "/auth", maxAge: 0 });
+    res.cookies.set(flowCookieName(), "", { path: "/auth", maxAge: 0 });
     return res;
   };
   if (q.get("error")) return fail(q.get("error") ?? "access_denied");
@@ -101,7 +114,7 @@ async function callback(req: NextRequest, c: OidcConfig) {
   try {
     const s = await exchangeCode(c, code, flow.verifier, `${origin}/auth/callback`);
     const res = NextResponse.redirect(`${origin}${flow.returnTo}`);
-    res.cookies.set(FLOW_COOKIE, "", { path: "/auth", maxAge: 0 });
+    res.cookies.set(flowCookieName(), "", { path: "/auth", maxAge: 0 });
     return apply(res, await sessionCookies(s, c));
   } catch (e) {
     return fail(e instanceof Error ? e.message : "token_exchange_failed");
@@ -114,7 +127,7 @@ async function logout(req: NextRequest, c: OidcConfig) {
   const back = `${origin}${safeReturnTo(req.nextUrl.searchParams.get("return_to") ?? c.signInPath)}`;
   if (s) await revokeSession(c, s);
   const res = NextResponse.redirect(s ? logoutUrl(c, back, s.idToken) : back);
-  return apply(res, clearCookies(SESSION_COOKIE));
+  return apply(res, clearCookies(sessionCookieName()));
 }
 
 /** GET /auth/session → { signedIn, user, accessToken, expiresAt }; refreshes when due. */
@@ -130,7 +143,7 @@ async function session(req: NextRequest, c: OidcConfig) {
     } catch {
       return apply(
         NextResponse.json({ signedIn: false }, { headers }),
-        clearCookies(SESSION_COOKIE)
+        clearCookies(sessionCookieName())
       );
     }
   }
@@ -217,7 +230,7 @@ export async function authGate(req: NextRequest, o: AuthGateOptions): Promise<Ne
   try {
     s = await refreshSession(c, s);
   } catch {
-    return apply(deny(), clearCookies(SESSION_COOKIE));
+    return apply(deny(), clearCookies(sessionCookieName()));
   }
   const specs = await sessionCookies(s, c);
   // Forward the refreshed cookies to this request so server code sees the new token.

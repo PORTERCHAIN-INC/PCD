@@ -342,3 +342,35 @@ def parcels_for_pricing(body: Any) -> list[ParcelSpec]:
             )
         )
     return out
+
+
+def route_parcel_specs_from_dicts(rows: Any) -> list[ParcelSpec]:
+    """L201: {stop_index, weight_kg, length_cm, width_cm, height_cm} -> ParcelSpec list."""
+    out: list[ParcelSpec] = []
+    for r in rows or []:
+        if not isinstance(r, dict):
+            continue
+        sides = [r.get("length_cm"), r.get("width_cm"), r.get("height_cm")]
+        dims = {k: float(v or 0) for k, v in zip(("length", "width", "height"), sides)} if any(sides) else None
+        w = r.get("weight_kg")
+        out.append(ParcelSpec(stop_index=int(r.get("stop_index") or 0),
+                              weight_kg=float(w) if w else None, dimensions=dims,
+                              item_key=str(r.get("item_key") or "").strip() or None))
+    return out
+
+
+def route_parcel_rows(dropoff: dict[str, Any], additional: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """One row per physical box on each drop of a multi-stop route (stop_index as ParcelSpec)."""
+    rows: list[dict[str, Any]] = []
+    for idx, stop in [(0, dropoff), *[(n + 1, s) for n, s in enumerate(additional)]]:
+        pkgs = [p for p in (stop.get("packages") or []) if isinstance(p, dict)]
+        if not pkgs:
+            rows.append({"stop_index": idx})
+            continue
+        for pkg in pkgs:
+            qty = max(1, min(int(pkg.get("quantity") or 1), 50))
+            for _ in range(qty):
+                rows.append({"stop_index": idx, "weight_kg": pkg.get("weight_kg"),
+                             "length_cm": pkg.get("length_cm"), "width_cm": pkg.get("width_cm"),
+                             "height_cm": pkg.get("height_cm")})
+    return rows

@@ -39,12 +39,12 @@ export default function StickyCta() {
             onClick={() => {
               track(ANALYTICS_EVENTS.CTA_CLICK, {
                 source_section: "business-sticky",
-                path: "clerk_signup",
+                path: "keycloak_signup",
                 cta_label: "sticky_quote",
               });
               track(ANALYTICS_EVENTS.QUOTE_REQUEST, {
                 source_section: "business-sticky",
-                path: "clerk_signup",
+                path: "keycloak_signup",
               });
             }}
             className="flex min-h-[2.75rem] w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[#2563eb] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8] sm:ml-auto sm:w-auto"

@@ -40,6 +40,18 @@ def _validate_file_url(file_url: str) -> str:
     raise ValueError("file_url_not_allowed")
 
 
+def _is_expired(value: Any) -> bool:
+    if not value:
+        return False
+    try:
+        d = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if d.tzinfo is None:
+        d = d.replace(tzinfo=UTC)
+    return d < datetime.now(UTC)
+
+
 def _clear_verified_flag(driver: Any, doc_type: str) -> None:
     flag = _VERIFIED_FLAGS.get(doc_type)
     if flag and hasattr(driver, flag):
@@ -155,6 +167,13 @@ class DocumentsService:
 
         docs = dict(driver.documents or {})
         meta = metadata or {}
+        # L195: replacing a still-valid verified document (renewal) must not lock an approved
+        # driver out mid-shift. Keep the verified flag until ops approves/rejects the new file.
+        prev = docs.get(doc_type) if isinstance(docs.get(doc_type), dict) else {}
+        flag = _VERIFIED_FLAGS.get(doc_type)
+        was_verified = bool(prev.get("verified")) or prev.get("status") == "verified" or bool(
+            flag and getattr(driver, flag, False))
+        keep_verified = was_verified and prev.get("status") != "rejected" and not _is_expired(prev.get("expires_at"))
         docs[doc_type] = {
             "status": "pending_review",
             "verified": False,
@@ -162,7 +181,10 @@ class DocumentsService:
             "uploaded_at": datetime.now(UTC).isoformat(),
             **meta,
         }
-        _clear_verified_flag(driver, doc_type)
+        if keep_verified:
+            docs[doc_type]["replaces_verified"] = True
+        else:
+            _clear_verified_flag(driver, doc_type)
         driver.documents = docs
         db.flush()
         return self._serialize_doc(doc_type, docs[doc_type])

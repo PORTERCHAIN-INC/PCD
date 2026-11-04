@@ -17,9 +17,11 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
+    "@maplibre/maplibre-react-native": "11.5.0",
     "@porterchain/customer-motion": "workspace:*",
     "@porterchain/mobile-theme": "file:./vendor/mobile-theme",
     "@porterchain/types": "workspace:*",
+    "@protomaps/basemaps": "^5.7.2",
     "@react-native-google-signin/google-signin": "16.2.0",
     "expo": "~57.0.27",
     "expo-apple-authentication": "~57.0.2",
@@ -39,10 +41,10 @@
     "lottie-react-native": "~7.3.8",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-native": "0.86.3",
-    "react-native-maps": "1.27.2"
+    "react-native": "0.86.3"
   },
   "devDependencies": {
+    "@types/geojson": "^7946.0.16",
     "@types/react": "~19.2.2",
     "babel-preset-expo": "~57.0.14",
     "typescript": "~6.0.3",

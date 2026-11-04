@@ -102,7 +102,7 @@ def test_require_module_does_not_bypass_via_portal_admin() -> None:
 
     user = AdminUser(
         id="adm-1",
-        auth_subject="clerk_sales",
+        auth_subject="idp_sales",
         email="sales@example.com",
         name="Sales",
         role=AdminRole.SALES.value,
@@ -253,7 +253,7 @@ def test_platform_role_revoke_blocks_require_module_immediately() -> None:
 
     user = AdminUser(
         id="adm-revoke",
-        auth_subject="clerk_revoke",
+        auth_subject="idp_revoke",
         email="revoke@example.com",
         name="Revoke",
         role=AdminRole.SALES.value,
@@ -281,16 +281,16 @@ def test_account_suspend_rejects_principal_without_ttl_wait() -> None:
 
     user = PorterchainUser(
         id="u-susp-1",
-        auth_subject="clerk_susp",
+        auth_subject="idp_susp",
         email="susp@example.com",
         role="merchant_ops",
         status=AccountStatus.SUSPENDED.value,
     )
     identity = AuthenticatedIdentity(
-        subject="clerk_susp",
+        subject="idp_susp",
         email="susp@example.com",
-        issuer="https://example.clerk.accounts.dev",
-        provider=AuthProvider.CLERK.value,
+        issuer="https://example.keycloak.accounts.dev",
+        provider=AuthProvider.KEYCLOAK.value,
         session_id=None,
     )
     svc = PrincipalResolutionService()

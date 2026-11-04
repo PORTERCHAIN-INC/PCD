@@ -15,6 +15,7 @@ const nextConfig: NextConfig = {
     .map((o) => o.trim())
     .filter(Boolean),
   output: "standalone",
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   turbopack: {
     root: monorepoRoot,
   },
@@ -27,6 +28,16 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   experimental: {
     optimizePackageImports: ["lucide-react", "framer-motion"],
+  },
+  // Doc 75 §3: old routes 308 to their new place for one release.
+  async redirects() {
+    return [
+      { source: "/dashboard", destination: "/today", permanent: true },
+      { source: "/system-health", destination: "/system", permanent: true },
+      { source: "/system-tests", destination: "/system?tab=tests", permanent: true },
+      { source: "/admin/system-health", destination: "/system", permanent: true },
+      { source: "/admin/system-tests", destination: "/system?tab=tests", permanent: true },
+    ];
   },
   async headers() {
     return [

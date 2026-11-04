@@ -193,7 +193,7 @@ def get_my_track_link(
 
 
 # --------------------------------------------------------------------------- signed-in account
-# Orders, address book, autofill, report a problem. Clerk session; the customers row is created
+# Orders, address book, autofill, report a problem. Keycloak session; the customers row is created
 # on first call (no onboarding step).
 
 

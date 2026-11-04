@@ -81,7 +81,11 @@ export default function MonitoringPolicyView({ compact = false }: { compact?: bo
         {policy.acknowledged && policy.acknowledgment ? (
           <p className="text-sm text-emerald-800">
             You acknowledged version {policy.acknowledgment.version} on{" "}
-            {new Date(policy.acknowledgment.at).toLocaleString()}.
+            {new Date(policy.acknowledgment.at).toLocaleString("en-CA", {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })}
+            .
           </p>
         ) : (
           <button

@@ -261,6 +261,14 @@ async function readError(res: Response): Promise<string> {
   return `http_${res.status}`;
 }
 
+/** Stripe returns straight to this app (L178). Beta builds use their own scheme. */
+export const checkoutReturnScheme =
+  process.env.EXPO_PUBLIC_CHECKOUT_RETURN_SCHEME === "porterchain-beta"
+    ? "porterchain-beta"
+    : "porterchain-customer";
+const checkoutChannel =
+  checkoutReturnScheme === "porterchain-beta" ? "customer_app_beta" : "customer_app";
+
 async function request<T>(path: string, init: RequestInit = {}, auth = false): Promise<T> {
   if (demoEnabled()) return demoRequest<T>(path, init);
   const headers: Record<string, string> = {
@@ -442,7 +450,7 @@ export function startBooking(body: {
     "/v1/bookings",
     {
       method: "POST",
-      body: JSON.stringify({ checkout_channel: "customer", ...body }),
+      body: JSON.stringify({ checkout_channel: checkoutChannel, ...body }),
     },
     true
   );

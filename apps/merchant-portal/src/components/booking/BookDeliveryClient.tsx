@@ -1,5 +1,7 @@
 "use client";
+import { uuid } from "@/lib/uuid";
 
+import { getLocale } from "@/i18n/core";
 import {
   deliveryOptionLines,
   normalizeDeliveryOptions,
@@ -27,6 +29,7 @@ import {
   type MultiParcelResult,
   type Recipient,
   type SavedAddress,
+  downloadQuotePdf,
 } from "@/lib/booking";
 import { PACKAGE_OPTIONS, VEHICLE_OPTIONS, packageLabel, vehicleLabel } from "@/lib/catalog";
 import { DimensionUnit, WeightUnit, type Parcel } from "@/lib/route-module/types";
@@ -37,9 +40,15 @@ import { formatDate } from "@/lib/utils";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
 import { DateTimePickerSeparateField } from "@porterchain/ui/datetime-picker-separate";
 import Link from "next/link";
+import { downloadMerchantFile, ordersApi } from "@/lib/orders";
 import { BookingFilesPicker } from "@/components/booking/BookingFilesPicker";
 import { attachPendingFiles, type PendingFile } from "@/lib/attachments";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { billingApi } from "@/lib/billing";
+
+/** Warehouse holding is disabled (Phase 0: no storage). Code kept behind this flag. */
+const COLLECT_ONLY_ENABLED = process.env.NEXT_PUBLIC_COLLECT_ONLY_ENABLED === "true";
 
 type Mode = "single" | "multi";
 type Step = "details" | "review" | "confirmed";
@@ -74,7 +83,7 @@ function payloadToAddress(data?: Record<string, unknown>): BookingAddress {
 }
 
 function newId(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return uuid();
   return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
@@ -120,8 +129,21 @@ function pickerValue(raw: unknown): string {
   return String(raw).slice(0, 16);
 }
 
+const VEHICLE_ORDER = ["sedan_suv", "pickup", "cargo_van", "sprinter_van", "box_16", "box_20"];
+const vehicleRank = (v: string) => {
+  const i = VEHICLE_ORDER.indexOf(v);
+  return i < 0 ? VEHICLE_ORDER.indexOf("cargo_van") : i;
+};
+
+const PREVIEW_WARNING_TEXT: Record<string, string> = {
+  zero_credit_limit:
+    "No credit limit is set on your account yet. PorterChain may ask for payment before dispatch.",
+};
+
 export default function BookDeliveryClient({ embedded = false }: { embedded?: boolean }) {
   const { getApiToken, orgId, isSignedIn } = useMerchantAuth();
+  const [labelBusy, setLabelBusy] = useState(false);
+  const [labelError, setLabelError] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>("single");
   const [step, setStep] = useState<Step>("details");
   const [pickup, setPickup] = useState<BookingAddress>(emptyAddress());
@@ -131,6 +153,20 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
   const [pickupBy, setPickupBy] = useState("");
   const [cargo, setCargo] = useState<Parcel[]>([emptyParcel()]);
   const [vehicleClass, setVehicleClass] = useState("cargo_van");
+  // Ravi 2026-10-31: per-parcel ($6/$9 + size/weight table) or hourly vehicle (3 h minimum).
+  const [pricingMode, setPricingMode] = useState<"parcels" | "vehicle">("parcels");
+  // L191: a merchant with an admin-set custom price sees "Custom price" on Review, not "Per parcel".
+  const { data: rateCard } = useQuery({
+    queryKey: ["merchant-rate-card", orgId ?? null],
+    queryFn: async () => billingApi.rateCard((await getApiToken()) ?? "", orgId),
+    enabled: !!isSignedIn,
+    staleTime: 60_000,
+  });
+  const customPriceLabel = rateCard?.custom_price
+    ? `Custom price${rateCard.custom_flat_parcel_cents ? ` · $${(rateCard.custom_flat_parcel_cents / 100).toFixed(2)} per parcel` : ""}`
+    : null;
+  const [vehicleHours, setVehicleHours] = useState("");
+  const [helpAtPickup, setHelpAtPickup] = useState(false);
   const [serviceMode, setServiceMode] = useState<"standard" | "collect_only">("standard");
   const [packageType, setPackageType] = useState("looseParcel");
   const [internalRef, setInternalRef] = useState("");
@@ -155,6 +191,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmResult, setConfirmResult] = useState<{
+    order_id?: string;
     tracking_number: string;
     amount_cents: number;
     is_sandbox?: boolean;
@@ -185,13 +222,18 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
         delivery_options: normalizeDeliveryOptions(deliveryOptions),
       },
       vehicle_class: vehicleClass,
+      booking_mode: pricingMode,
+      dedicated_hours: pricingMode === "vehicle" && vehicleHours ? Number(vehicleHours) : undefined,
+      help_at_pickup: pricingMode === "vehicle" && helpAtPickup ? true : undefined,
       package_type: packageType,
       weight_kg: legacy && legacy.weight_kg > 0 ? legacy.weight_kg : undefined,
       dimensions: legacy?.dimensions || undefined,
       scheduled_at: new Date(readyFrom || Date.now()).toISOString(),
       schedule_mode: readyFrom || pickupBy ? "later" : "now",
       service_mode:
-        mode === "single" && serviceMode === "collect_only" ? "collect_only" : undefined,
+        COLLECT_ONLY_ENABLED && mode === "single" && serviceMode === "collect_only"
+          ? "collect_only"
+          : undefined,
       pickup_window_start: readyFrom ? new Date(readyFrom).toISOString() : undefined,
       pickup_window_end: pickupBy ? new Date(pickupBy).toISOString() : undefined,
       packages: filledCargo.length
@@ -233,6 +275,9 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
     pickup,
     dropoff,
     vehicleClass,
+    pricingMode,
+    vehicleHours,
+    helpAtPickup,
     packageType,
     cargo,
     readyFrom,
@@ -352,8 +397,11 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
   }, [loadMeta]);
 
   useEffect(() => {
-    if (preview?.vehicle_recommendation?.recommended_vehicle && step === "details") {
-      setVehicleClass(preview.vehicle_recommendation.recommended_vehicle);
+    const rec = preview?.vehicle_recommendation?.recommended_vehicle;
+    if (rec && step === "details") {
+      // L22 (Ravi 2026-10-31): merchants default to the small cargo van; a recommendation may
+      // move up to a bigger vehicle but never below it.
+      setVehicleClass((cur) => (vehicleRank(rec) > vehicleRank(cur) ? rec : cur));
     }
   }, [preview?.vehicle_recommendation?.recommended_vehicle, step]);
 
@@ -459,7 +507,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
     setError(null);
     // One key per attempted booking. Kept across retries so a retry replays the
     // same order instead of booking a second van (BH).
-    if (!confirmKeyRef.current) confirmKeyRef.current = crypto.randomUUID();
+    if (!confirmKeyRef.current) confirmKeyRef.current = uuid();
     const idempotencyKey = confirmKeyRef.current;
     try {
       const token = await getApiToken();
@@ -520,6 +568,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
         );
       }
       setConfirmResult({
+        order_id: result.order_id,
         tracking_number: result.tracking_number,
         amount_cents: result.amount_cents,
         is_sandbox: result.is_sandbox,
@@ -535,6 +584,43 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
     }
   }
 
+  // L89: a typed address that was never picked from the suggestions has no map point;
+  // stop here with a clear message instead of failing later on the Review step.
+  const unresolved = (a: BookingAddress) =>
+    Boolean(a.formatted?.trim()) && typeof a.lat !== "number" && !a.postal;
+  const goReview = () => {
+    if (unresolved(pickup)) {
+      setError("Pick the pickup address from the suggestions so we can find it on the map.");
+      return;
+    }
+    if (unresolved(dropoff)) {
+      setError("Pick the dropoff address from the suggestions so we can find it on the map.");
+      return;
+    }
+    setError(null);
+    setStep("review");
+  };
+
+  // L88: print the 4x6 label straight from the confirmation card.
+  const printConfirmedLabel = async () => {
+    if (!confirmResult?.order_id) return;
+    setLabelBusy(true);
+    setLabelError(null);
+    try {
+      const token = await getApiToken();
+      await downloadMerchantFile(
+        token,
+        ordersApi.labelsPdfPath(confirmResult.order_id),
+        `labels-${confirmResult.tracking_number}.pdf`,
+        orgId
+      );
+    } catch (e) {
+      setLabelError(e instanceof Error ? e.message : "Could not prepare labels");
+    } finally {
+      setLabelBusy(false);
+    }
+  };
+
   if (step === "confirmed") {
     return (
       <div className="mx-auto max-w-2xl space-y-6">
@@ -543,6 +629,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
             {confirmResult?.is_sandbox ? "Test booking created" : "Booking confirmed"}
           </p>
           {fileNotice && <p className="mt-1 text-sm">{fileNotice}</p>}
+          {labelError && <p className="mt-1 text-sm text-red-700">{labelError}</p>}
           {confirmResult && (
             <>
               <p className="mt-2 text-sm">
@@ -556,7 +643,12 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                   Tracking emailed to {confirmResult.consignee_email}
                 </p>
               ) : null}
-              <div className="mt-3">
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {confirmResult.order_id ? (
+                  <Button size="sm" onClick={() => void printConfirmedLabel()} disabled={labelBusy}>
+                    {labelBusy ? "Preparing…" : "Print labels (4×6)"}
+                  </Button>
+                ) : null}
                 <CopyPublicTrackLink
                   trackingNumber={confirmResult.tracking_number}
                   publicUrl={confirmResult.public_track_url}
@@ -609,7 +701,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
           <p className="text-sm text-muted">Net terms — contract pricing with live preview</p>
         ) : (
           <div>
-            <h1 className="text-2xl font-bold text-primary">Request capacity</h1>
+            <h1 className="text-2xl font-bold text-primary">Book delivery</h1>
             <p className="text-sm text-muted">Book a vehicle and driver on your contract rates.</p>
           </div>
         )}
@@ -636,7 +728,14 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
           <span className="font-medium text-primary">Single</span> — one pickup → one drop (one
           order). <span className="font-medium text-primary">Multiple deliveries</span> — same
           pickup, many drops as <span className="font-medium text-primary">separate orders</span>{" "}
-          (not one multi-stop route). For one multi-stop route, use the Multi-stop route tab.
+          (not one multi-stop route). For one multi-stop route, use{" "}
+          <Link
+            href="/routes"
+            className="font-medium text-secondary underline-offset-2 hover:underline"
+          >
+            Routes
+          </Link>
+          .
         </p>
       </div>
 
@@ -916,7 +1015,8 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                     + Add parcel
                   </button>
                 </div>
-                {mode === "single" ? (
+                {/* Collect-only (warehouse holding) is off under Phase 0: no storage. */}
+                {COLLECT_ONLY_ENABLED && mode === "single" ? (
                   <fieldset className="space-y-2" data-testid="service-mode">
                     <legend className="text-sm font-medium text-primary">Job type</legend>
                     <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Job type">
@@ -961,6 +1061,62 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                     ) : null}
                   </fieldset>
                 ) : null}
+                <fieldset className="rounded-xl border border-primary/10 p-3">
+                  <legend className="px-1 text-sm font-medium text-primary">How to price</legend>
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="pricing-mode"
+                        checked={pricingMode === "parcels"}
+                        onChange={() => setPricingMode("parcels")}
+                      />
+                      Per parcel: $6 small (fits 20 × 14 × 14 in), $9 larger, plus size/weight
+                      handling
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="pricing-mode"
+                        checked={pricingMode === "vehicle"}
+                        onChange={() => setPricingMode("vehicle")}
+                      />
+                      Hourly vehicle: $40/h car, SUV or pickup · $60/h cargo van · $70/h 16 ft+ box
+                      (3 h minimum)
+                    </label>
+                  </div>
+                  {pricingMode === "vehicle" ? (
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <label className="text-sm font-medium text-primary" htmlFor="vehicle-hours">
+                          Hours needed (from arrival at pickup to the last drop)
+                        </label>
+                        <input
+                          id="vehicle-hours"
+                          type="number"
+                          min={3}
+                          step={0.25}
+                          placeholder="3 h minimum; blank = route estimate"
+                          className="mt-1 w-full rounded-xl border border-primary/15 px-3 py-2 text-sm"
+                          value={vehicleHours}
+                          onChange={(e) => setVehicleHours(e.target.value)}
+                        />
+                      </div>
+                      <label className="mt-6 flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={helpAtPickup}
+                          onChange={(e) => setHelpAtPickup(e.target.checked)}
+                        />
+                        Load help at pickup (+$30). For drops, tick “Needs help loading / unloading”
+                        (+$30 per stop).
+                      </label>
+                    </div>
+                  ) : null}
+                  <p className="mt-2 text-xs text-muted">
+                    Prices are before HST. Without help, the driver only picks up and drops off.
+                  </p>
+                </fieldset>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <label className="text-sm font-medium text-primary">Vehicle we send</label>
@@ -1140,6 +1296,23 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                 {mode === "single" && serviceMode === "collect_only" ? (
                   <ReviewRow label="Job type" value="Collect now, deliver later" />
                 ) : null}
+                {mode === "single" && recipientId ? (
+                  <ReviewRow
+                    label="Recipient"
+                    value={recipients.find((r) => r.id === recipientId)?.name ?? "—"}
+                  />
+                ) : null}
+                {!readyFrom && !pickupBy ? (
+                  <ReviewRow label="Pickup time" value="As soon as possible" />
+                ) : null}
+                <ReviewRow
+                  label="Pricing"
+                  value={
+                    pricingMode === "vehicle"
+                      ? `Hourly vehicle${vehicleHours ? ` · ${vehicleHours} h` : ""}${helpAtPickup ? " · help at pickup" : ""}`
+                      : (customPriceLabel ?? "Per parcel")
+                  }
+                />
                 <ReviewRow label="Vehicle we send" value={vehicleLabel(vehicleClass)} />
                 <ReviewRow label="Package" value={packageLabel(packageType)} />
                 {readyFrom ? (
@@ -1225,14 +1398,18 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
                 {preview?.contract_pricing && (
                   <p className="rounded-lg bg-blue-50 px-3 py-2 text-blue-800">
                     Contract pricing applied
-                    {preview.payment_terms ? ` · ${preview.payment_terms}` : ""}
+                    {preview.payment_terms ? ` · ${preview.payment_terms.replace(/_/g, " ")}` : ""}
                   </p>
                 )}
-                {preview?.warnings?.map((w) => (
-                  <p key={w} className="text-amber-700">
-                    {w}
-                  </p>
-                ))}
+                {preview?.warnings?.map((w) => {
+                  // L139: never show raw codes; known codes get plain text, unknown codes are hidden.
+                  const text = PREVIEW_WARNING_TEXT[w] ?? (/^[a-z0-9_]+$/.test(w) ? null : w);
+                  return text ? (
+                    <p key={w} className="text-amber-700">
+                      {text}
+                    </p>
+                  ) : null;
+                })}
                 {preview?.address_errors?.map((e) => (
                   <p key={e.field} className="text-red-600">
                     {e.field}: {e.error}
@@ -1247,7 +1424,7 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
             )}
             <div className="mt-6 flex flex-wrap gap-2">
               {step === "details" && (
-                <Button type="button" onClick={() => setStep("review")}>
+                <Button type="button" onClick={goReview}>
                   Review booking
                 </Button>
               )}
@@ -1277,7 +1454,19 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
         </div>
 
         <aside className="space-y-4">
-          <PricingPanel preview={preview} loading={previewLoading} error={previewError} />
+          <PricingPanel
+            preview={preview}
+            loading={previewLoading}
+            error={previewError}
+            onDownloadPdf={
+              isSignedIn && bookingPayload
+                ? async (lang) => {
+                    const token = await getApiToken();
+                    await downloadQuotePdf(token, bookingPayload, orgId, lang);
+                  }
+                : undefined
+            }
+          />
           <div className="rounded-2xl border border-primary/10 bg-white p-4">
             <h3 className="font-medium text-primary">Saved templates</h3>
             {templates.length === 0 ? (
@@ -1378,11 +1567,27 @@ function PricingPanel({
   preview,
   loading,
   error,
+  onDownloadPdf,
 }: {
   preview: ReturnType<typeof useBookingPreview>["preview"];
   loading: boolean;
   error?: string | null;
+  onDownloadPdf?: (lang: "en" | "fr") => Promise<void>;
 }) {
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfErr, setPdfErr] = useState<string | null>(null);
+  const download = async (lang: "en" | "fr") => {
+    if (!onDownloadPdf) return;
+    setPdfBusy(true);
+    setPdfErr(null);
+    try {
+      await onDownloadPdf(lang);
+    } catch (e) {
+      setPdfErr(e instanceof Error ? e.message : "Quote PDF failed");
+    } finally {
+      setPdfBusy(false);
+    }
+  };
   return (
     <div className="rounded-2xl border border-primary/10 bg-white p-4">
       <h3 className="font-medium text-primary">Pricing preview</h3>
@@ -1413,6 +1618,24 @@ function PricingPanel({
               chargedCents={preview.amount_cents}
               currency={(preview.currency || "cad").toUpperCase()}
             />
+          )}
+          {onDownloadPdf && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <button
+                type="button"
+                data-testid="download-quote-pdf"
+                disabled={pdfBusy}
+                onClick={() => void download(getLocale())}
+                className="min-h-11 rounded-full border border-primary/20 px-4 text-sm font-semibold text-primary hover:bg-primary/5 disabled:opacity-50"
+              >
+                {pdfBusy ? "Preparing…" : "Download quote PDF"}
+              </button>
+              {pdfErr && (
+                <p role="alert" className="w-full text-xs text-red-700">
+                  {pdfErr}
+                </p>
+              )}
+            </div>
           )}
         </div>
       )}

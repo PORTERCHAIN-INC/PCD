@@ -115,7 +115,7 @@ const FAQ = [
   },
   {
     q: "Are deliveries covered?",
-    a: "$2,500 goods insurance is included. Enhanced coverage up to $25,000 is optional at +$10 per stop and replaces the included cover. Claims must be notified in writing within 5 business days.",
+    a: "Standard liability is $4.41 per kg (Ontario rules). Optional declared-value cover (1.5% of the value, $3 minimum, up to $2,500 per parcel) will be offered once our cargo insurance is confirmed. Claims must be notified in writing within 5 business days.",
   },
   { q: "Are taxes included?", a: "All prices in CAD. 13% HST extra." },
   { q: "Is tracking included?", a: "Yes. Live tracking and recipient notices are included." },

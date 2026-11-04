@@ -64,7 +64,7 @@ def admin_client(db, monkeypatch):
 
     pc = PorterchainUser(
         id="user-leads-dev",
-        auth_subject="clerk-leads-dev",
+        auth_subject="keycloak-leads-dev",
         email="leads-dev@porterchain.com",
         role="super_admin",
         status="active",
@@ -74,7 +74,7 @@ def admin_client(db, monkeypatch):
 
     admin = AdminContext(
         user=AdminUser(
-            auth_subject="clerk-leads-dev",
+            auth_subject="keycloak-leads-dev",
             email="leads-dev@porterchain.com",
             role="super_admin",
             porterchain_user_id="user-leads-dev",

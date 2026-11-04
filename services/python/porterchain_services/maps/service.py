@@ -200,6 +200,25 @@ class MapsService(BaseService):
         profile = self._resolve_costing(costing=costing, vehicle_class=vehicle_class)
         return self._valhalla_route_locations(points, costing=profile)
 
+    #: L197d: Valhalla's default service limit is 50 locations per side; a 118-stop route
+    #: matrix was refused, so the optimiser silently fell back to straight-line distance.
+    MATRIX_CHUNK = 50
+
+    def _valhalla_matrix_chunked(self, sources, targets, **kw):
+        n = self.MATRIX_CHUNK
+        if len(sources) <= n and len(targets) <= n:
+            return self._valhalla_matrix(sources, targets, **kw)
+        rows: list[list[Any]] = [[] for _ in sources]
+        for si in range(0, len(sources), n):
+            src = sources[si : si + n]
+            for ti in range(0, len(targets), n):
+                block = self._valhalla_matrix(src, targets[ti : ti + n], **kw)
+                if block is None or len(block) != len(src):
+                    return None
+                for k, row in enumerate(block):
+                    rows[si + k].extend(row)
+        return rows
+
     def matrix_durations(
         self,
         sources: list[tuple[float, float]],
@@ -220,7 +239,7 @@ class MapsService(BaseService):
             return [], None
         profile = self._resolve_costing(costing=costing, vehicle_class=vehicle_class)
         if self.engine == "valhalla" and self.settings.valhalla_url:
-            matrix = self._valhalla_matrix(
+            matrix = self._valhalla_matrix_chunked(
                 sources,
                 targets,
                 costing=profile,

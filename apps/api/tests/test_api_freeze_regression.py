@@ -1,8 +1,8 @@
 """Regression for the 2026-10-14 prod freeze.
 
 Root cause: async auth dependencies (get_driver_context) ran *blocking* work on the
-event loop — Clerk Backend user lookups (sync httpx, 20 s timeout) and SQLAlchemy
-pool checkouts (30 s pool_timeout). One slow Clerk call froze every request,
+event loop — Keycloak Backend user lookups (sync httpx, 20 s timeout) and SQLAlchemy
+pool checkouts (30 s pool_timeout). One slow Keycloak call froze every request,
 including /health, and left other sessions idle-in-transaction until Postgres
 killed them at 60 s.
 """
@@ -25,7 +25,7 @@ from porterchain_api.auth import driver as driver_auth
 from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.db import get_db
 
-SLOW_CLERK_S = 1.5
+SLOW_IDP_S = 1.5
 
 
 def _app_with_driver_route() -> FastAPI:
@@ -60,7 +60,7 @@ async def _hammer_health(client: httpx.AsyncClient, seconds: float) -> list[floa
 
 
 @pytest.fixture
-def slow_clerk(monkeypatch):
+def slow_idp(monkeypatch):
     async def fake_verify(token, settings, **_):
         return IdentityClaims(auth_subject="user_slow", email=None)
 
@@ -69,26 +69,26 @@ def slow_clerk(monkeypatch):
 
     def stop_after_enrich(db, claims):
         # prepare -> UserSync -> email identity -> fetch_identity_user: blocking
-        # Clerk Backend HTTP with a DB transaction already open, like prod.
-        time.sleep(SLOW_CLERK_S)
+        # Keycloak Backend HTTP with a DB transaction already open, like prod.
+        time.sleep(SLOW_IDP_S)
         raise HTTPException(status_code=403, detail="driver_not_found")
 
-    import porterchain_api.auth.bearer as clerk_mod
+    import porterchain_api.auth.bearer as idp_mod
     import porterchain_api.auth.email_identity as ei
     import porterchain_api.auth.prepare as prep
 
-    monkeypatch.setattr(clerk_mod, "verify_access_token", fake_verify)
+    monkeypatch.setattr(idp_mod, "verify_access_token", fake_verify)
     monkeypatch.setattr(ei, "enrich_claims_with_verified_email", slow_enrich)
     monkeypatch.setattr(prep, "prepare_user_from_claims", stop_after_enrich)
 
 
 @pytest.mark.anyio
-async def test_slow_clerk_signin_does_not_freeze_health(slow_clerk):
+async def test_slow_idp_signin_does_not_freeze_health(slow_idp):
     app = _app_with_driver_route()
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://t") as c:
         t0 = time.perf_counter()
-        hammer = asyncio.create_task(_hammer_health(c, SLOW_CLERK_S))
+        hammer = asyncio.create_task(_hammer_health(c, SLOW_IDP_S))
         await asyncio.sleep(0.05)  # probes running; now drivers sign in
         signins = [
             asyncio.create_task(c.get("/driver-api/v1/jobs", headers={"Authorization": "Bearer jwt"}))
@@ -104,7 +104,7 @@ async def test_slow_clerk_signin_does_not_freeze_health(slow_clerk):
     assert lat[-1] < 0.5, f"/health max {lat[-1]:.3f}s — event loop was blocked"
     assert len(lat) > 20, f"only {len(lat)} health calls completed"
     assert p99 < 0.25, f"/health p99 {p99:.3f}s during slow sign-in"
-    assert hammer_wall < SLOW_CLERK_S + 0.5, f"health hammer stalled {hammer_wall:.2f}s"
+    assert hammer_wall < SLOW_IDP_S + 0.5, f"health hammer stalled {hammer_wall:.2f}s"
 
 
 @pytest.mark.anyio
@@ -244,16 +244,16 @@ async def _loop_stall_during(coro_factory, n: int = 3) -> float:
     return worst
 
 
-def test_customer_contact_calls_clerk_before_first_query(monkeypatch):
+def test_customer_contact_calls_idp_before_first_query(monkeypatch):
     import porterchain_api.auth.customer as cust
     import porterchain_api.auth.email_identity as ei
 
     order: list[str] = []
-    monkeypatch.setattr(ei, "resolve_verified_clerk_email", lambda **k: order.append("identity_email") or "a@b.c")
+    monkeypatch.setattr(ei, "resolve_verified_idp_email", lambda **k: order.append("identity_email") or "a@b.c")
     monkeypatch.setattr(cust, "is_directory_configured", lambda s: True)
-    monkeypatch.setattr(cust, "fetch_identity_user", lambda s, uid: (order.append("clerk_phone") or {"x": 1}, "customer"))
+    monkeypatch.setattr(cust, "fetch_identity_user", lambda s, uid: (order.append("idp_phone") or {"x": 1}, "customer"))
     monkeypatch.setattr(cust.IdentityDirectory, "primary_phone", staticmethod(lambda u: "+14165550000"))
-    monkeypatch.setattr(cust._customers, "get_by_clerk", lambda db, uid: None)
+    monkeypatch.setattr(cust._customers, "get_by_idp", lambda db, uid: None)
     cust._phone_cache.clear()
     db = MagicMock()
     db.query.side_effect = lambda *a, **k: order.append("db") or MagicMock(
@@ -261,8 +261,8 @@ def test_customer_contact_calls_clerk_before_first_query(monkeypatch):
     )
     email, phone = cust.resolve_customer_contact(db, IdentityClaims(auth_subject="user_c", email=None), MagicMock())
     assert (email, phone) == ("a@b.c", "+14165550000")
-    assert order.index("clerk_phone") < order.index("db"), order
-    # cached: second call makes no Clerk request
+    assert order.index("idp_phone") < order.index("db"), order
+    # cached: second call makes no Keycloak request
     order.clear()
     cust.resolve_customer_contact(db, IdentityClaims(auth_subject="user_c", email=None), MagicMock())
     assert "clerk_phone" not in order
@@ -289,7 +289,7 @@ async def test_websocket_user_lookup_off_loop(monkeypatch):
     monkeypatch.setattr(dbmod, "SessionLocal", lambda: MagicMock())
 
     def slow_staff(db, claims):
-        time.sleep(SLOW_CLERK_S)  # sync DB lookup under pool pressure
+        time.sleep(SLOW_IDP_S)  # sync DB lookup under pool pressure
         return pr.NotificationUser("admin", "a1")
 
     monkeypatch.setattr(pr, "_admin_recipient_from_claims", slow_staff)
@@ -311,7 +311,7 @@ async def test_notification_http_dependency_off_loop(monkeypatch):
     from porterchain_api.notification_engine import principal as pr
 
     def slow_staff(db, claims):
-        time.sleep(SLOW_CLERK_S)
+        time.sleep(SLOW_IDP_S)
         return pr.NotificationUser("admin", "a1")
 
     monkeypatch.setattr(pr, "_admin_recipient_from_claims", slow_staff)
@@ -324,7 +324,7 @@ async def test_notification_http_dependency_off_loop(monkeypatch):
 
 
 def test_no_sync_db_or_http_in_async_defs():
-    """Static guard: no un-offloaded db/Clerk/httpx call inside any async def."""
+    """Static guard: no un-offloaded db/Keycloak/httpx call inside any async def."""
     import ast
     import pathlib
 

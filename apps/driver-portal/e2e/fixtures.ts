@@ -1,7 +1,7 @@
 /**
  * Shared Playwright fixtures for Driver portal P0 e2e.
  * Wire driver session via DRIVER_STORAGE_STATE (Playwright storageState JSON)
- * or DRIVER_RUN_LIVE=1 with local Clerk / email picker.
+ * or DRIVER_RUN_LIVE=1 with local Keycloak / email picker.
  *
  * Paths resolve from apps/driver-portal cwd (playwright config root).
  */

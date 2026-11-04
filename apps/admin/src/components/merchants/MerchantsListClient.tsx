@@ -1,4 +1,5 @@
 "use client";
+import { LogoImg } from "./LogoImg";
 
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -84,7 +85,7 @@ const STATUS_TONE: Record<string, string> = {
 const ONBOARDING_TONE: Record<string, "green" | "amber" | "red" | "slate" | "sky"> = {
   ready: "green",
   needs_invite: "amber",
-  awaiting_clerk: "sky",
+  awaiting_idp: "sky",
   needs_activation: "red",
   needs_approval: "amber",
   onboarding: "slate",
@@ -289,8 +290,8 @@ export default function MerchantsListClient() {
       } catch (e) {
         const msg = e instanceof Error ? e.message : `${action} failed`;
         setActionError(
-          msg === "owner_not_clerk_linked"
-            ? "Owner seat reserved — merchant stays Onboarding until the owner accepts Clerk and links."
+          msg === "owner_not_idp_linked"
+            ? "Owner seat reserved — merchant stays Onboarding until the owner accepts Keycloak and links."
             : msg
         );
       } finally {
@@ -338,12 +339,7 @@ export default function MerchantsListClient() {
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
             <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-secondary/10 text-secondary">
-              {row.original.logo_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={row.original.logo_url} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <Building2 className="h-4 w-4" />
-              )}
+              <LogoImg src={row.original.logo_url} iconClassName="h-4 w-4" />
             </span>
             <div>
               <p className="font-semibold text-primary">{row.original.company_name}</p>
@@ -600,8 +596,8 @@ export default function MerchantsListClient() {
     } catch (e) {
       const msg = e instanceof Error ? e.message : `Bulk ${action} failed`;
       setActionError(
-        msg === "owner_not_clerk_linked"
-          ? "Owner seat reserved — merchant stays Onboarding until the owner accepts Clerk and links."
+        msg === "owner_not_idp_linked"
+          ? "Owner seat reserved — merchant stays Onboarding until the owner accepts Keycloak and links."
           : msg
       );
     } finally {
@@ -704,7 +700,7 @@ export default function MerchantsListClient() {
         <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 shadow-sm">
           <div className="mb-2 flex items-center justify-between gap-2">
             <h2 className="text-sm font-semibold text-primary">
-              Unprovisioned Clerk signups
+              Unprovisioned Keycloak signups
               {unprovisioned && unprovisioned.length > 0 ? ` (${unprovisioned.length})` : ""}
             </h2>
             <p className="text-xs text-muted">
@@ -713,7 +709,7 @@ export default function MerchantsListClient() {
           </div>
           {unprovisionedError && (
             <p className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-red-700">
-              Could not load Clerk directory: {unprovisionedError}
+              Could not load Keycloak directory: {unprovisionedError}
             </p>
           )}
           {unprovisioned && unprovisioned.length > 0 && (
@@ -749,7 +745,7 @@ export default function MerchantsListClient() {
               ))}
               {unprovisioned.length > 8 && (
                 <p className="px-4 py-2 text-xs text-muted">
-                  +{unprovisioned.length - 8} more in Account Clerk directory
+                  +{unprovisioned.length - 8} more in Account Keycloak directory
                 </p>
               )}
             </div>
@@ -905,6 +901,7 @@ export default function MerchantsListClient() {
           <div className="flex items-center gap-2">
             {views.length > 0 && (
               <select
+                aria-label="Saved views"
                 onChange={(e) => {
                   const v = views.find((x) => x.name === e.target.value);
                   if (v) setVisibility(v.visibility);

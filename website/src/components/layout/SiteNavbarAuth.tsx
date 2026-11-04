@@ -2,11 +2,11 @@
 
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { isClerkClientShellPath } from "@/lib/clerk-shell";
-import { isClerkConfigured } from "@/lib/env";
+import { isAuthShellPath } from "@/lib/auth-shell";
+import { isAuthConfigured } from "@/lib/env";
 import LoginLink from "@/components/layout/SiteNavbarLoginLink";
 
-const SiteNavbarAuthClerk = dynamic(() => import("@/components/layout/SiteNavbarAuthClerk"), {
+const SiteNavbarAuthSession = dynamic(() => import("@/components/layout/SiteNavbarAuthSession"), {
   ssr: false,
   loading: () => (
     <span className="inline-block h-9 w-9 rounded-full bg-gray-bg animate-pulse" aria-hidden />
@@ -21,11 +21,11 @@ type NavbarAuthProps = {
 
 export default function SiteNavbarAuth(props: NavbarAuthProps) {
   const pathname = usePathname() ?? "";
-  const clerkShell = isClerkConfigured() && isClerkClientShellPath(pathname);
+  const authShell = isAuthConfigured() && isAuthShellPath(pathname);
 
-  if (!clerkShell) {
+  if (!authShell) {
     return <LoginLink {...props} />;
   }
 
-  return <SiteNavbarAuthClerk {...props} />;
+  return <SiteNavbarAuthSession {...props} />;
 }

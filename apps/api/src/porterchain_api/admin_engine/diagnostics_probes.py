@@ -174,17 +174,19 @@ class DiagnosticsProbesMixin:
     def _engine_support(self, db: Session) -> dict[str, Any]:
         return {"status": "healthy", "details": {"module": "admin_engine.support_service"}}
 
-    def _probe_google_maps(
+    def _probe_maps(
         self, platform: PlatformSettings, *, live: bool = False, app_env: str | None = None
     ) -> dict[str, Any]:
-        # Routing, ETA, and optimization never call Google. Do not probe the paid Geocoding API.
+        # Maps are self-hosted (PMTiles + Photon); routing is Valhalla/OSRM.
         del live, app_env
         return {
             "status": "healthy",
             "details": {
                 "used_for_routing": False,
                 "routing_engine": platform.routing_engine or "valhalla",
-                "note": "Valhalla, then OSRM. Optimization is OR-Tools. Google is not required.",
+                "tiles": "self-hosted PMTiles (MapLibre)",
+                "geocoder": "photon",
+                "note": "Valhalla, then OSRM. Optimization is OR-Tools.",
             },
         }
 
@@ -247,7 +249,7 @@ class DiagnosticsProbesMixin:
             "details": {"url": base, "local": local, "role": "primary_routing"},
         }
 
-    def _probe_clerk(self, settings: Settings, platform: PlatformSettings) -> dict[str, Any]:
+    def _probe_idp(self, settings: Settings, platform: PlatformSettings) -> dict[str, Any]:
         if settings.auth_dev_bypass and not is_identity_configured(settings):
             return {"status": "warning", "warnings": ["Auth dev bypass active"], "details": {"dev_bypass": True}}
         jwks_entries = identity_jwks_urls(settings)

@@ -20,7 +20,7 @@ def _uuid() -> str:
 
 class PorterchainUser(Base):
     """
-    Internal user record. Clerk owns credentials; Porterchain owns status + RBAC.
+    Internal user record. Keycloak owns credentials; Porterchain owns status + RBAC.
 
     Prefer ``id`` (UUID) for business FKs. ``auth_subject`` is a legacy link column
     retained for rollback; prefer ``identity_links`` issuer/subject (Phase 2+).

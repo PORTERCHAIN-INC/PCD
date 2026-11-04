@@ -19,4 +19,4 @@ Only encrypted files are committed. Plaintext and private keys never are (`.giti
 - Load into a dotenv file (mode 600): `bash scripts/secrets/sops-load.sh ubuntu /path/to/.env`
 - Run a command with the secrets in its env only: `bash scripts/secrets/sops-load.sh ubuntu --exec -- pnpm dev`
 - Droplet sync: `SOPS_SECRETS_FILE=secrets/droplet.enc.yaml bash infrastructure/deploy/sync-secrets.sh`
-  (SOPS is tried first; the Doppler paths stay as fallback until SOPS is verified, then get deleted per doc 37 weeks 1–2.)
+  (Deploy uses the same file: CI decrypts it with the `SOPS_AGE_KEY` GitHub secret.)

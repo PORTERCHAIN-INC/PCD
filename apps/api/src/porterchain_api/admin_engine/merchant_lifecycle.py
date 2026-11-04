@@ -165,7 +165,12 @@ def suspend_merchant(svc: Any, db: Session, ctx: AdminContext, merchant_id: str)
         aggregate_id=merchant_id,
         actor_type="admin",
         actor_id=ctx.user.id,
-        payload={"merchant_id": merchant_id, "company_name": merchant.company_name},
+        # merchant_email: the business is told by email as well as in-app (EN/FR).
+        payload={
+            "merchant_id": merchant_id,
+            "company_name": merchant.company_name,
+            "merchant_email": merchant.email,
+        },
     )
     return merchant
 
@@ -408,7 +413,7 @@ def complete_onboarding(
             merchant_id,
             {"email": target, "owner_linked": False},
         )
-        return merchant, "owner_not_clerk_linked"
+        return merchant, "owner_not_idp_linked"
 
     activate_seats(users)
 

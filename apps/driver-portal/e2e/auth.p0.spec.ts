@@ -21,7 +21,7 @@ test.describe(`UI-D-01 ${tcId("UI-D-01")} smoke-when-ready`, () => {
       !process.env.DRIVER_RUN_LIVE ||
         !!process.env.DRIVER_STORAGE_STATE ||
         process.env.DRIVER_E2E_LOCAL_BYPASS === "1",
-      "set DRIVER_RUN_LIVE=1 without storage (local Clerk bypass is always signed in)"
+      "set DRIVER_RUN_LIVE=1 without storage (local Keycloak bypass is always signed in)"
     );
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/login|sign-in|onboarding/);

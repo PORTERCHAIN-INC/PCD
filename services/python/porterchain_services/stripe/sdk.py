@@ -45,9 +45,12 @@ def retrieve_balance() -> None:
 
 def construct_webhook_event(payload: bytes, sig_header: str | None, webhook_secret: str) -> Any:
     try:
-        return stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+        event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
     except stripe.error.SignatureVerificationError as exc:
         raise StripeSdkSignatureError from exc
+    # stripe-python >= 12 StripeObjects are no longer dicts; handlers use dict access (.get / [...]).
+    to_dict = getattr(event, "to_dict", None)
+    return to_dict() if callable(to_dict) else event
 
 
 def create_identity_verification_session(**kwargs: Any) -> Any:

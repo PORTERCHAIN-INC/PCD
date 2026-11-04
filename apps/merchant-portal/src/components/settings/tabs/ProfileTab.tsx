@@ -1,5 +1,6 @@
 "use client";
 
+import { getLocale } from "@/i18n/core";
 import Link from "next/link";
 import { startTransition, useEffect, useOptimistic, useState } from "react";
 import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
@@ -7,6 +8,7 @@ import Button from "@/components/ui/Button";
 import { settingsApi, type AuditLogRow, type SettingsOverview } from "@/lib/settings";
 import { formatDate } from "@/lib/utils";
 import { Field } from "./Field";
+import { YourNameCard } from "./YourNameCard";
 
 export function ProfileTab({
   profile,
@@ -90,6 +92,7 @@ export function ProfileTab({
 
   return (
     <div className="space-y-4">
+      <YourNameCard getToken={getToken} orgId={orgId} />
       <CoverageCard coverage={profile.coverage} />
       <form
         onSubmit={(e) => void save(e)}
@@ -137,19 +140,26 @@ export function ProfileTab({
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <p className="text-sm font-medium">Payment terms</p>
-            <p className="mt-1 text-sm text-muted">{form.payment_terms.replace("_", " ")}</p>
+            <p className="mt-1 text-sm text-muted">{form.payment_terms.replace(/_/g, " ")}</p>
           </div>
           <div>
             <p className="text-sm font-medium">Billing cycle</p>
-            <p className="mt-1 text-sm text-muted">{form.billing_cycle || "—"}</p>
+            <p className="mt-1 text-sm text-muted">
+              {form.billing_cycle
+                ? form.billing_cycle.charAt(0) + form.billing_cycle.slice(1).toLowerCase()
+                : "—"}
+            </p>
           </div>
         </div>
         {form.identity_meta?.updated_at && (
           <p className="text-xs text-muted">
             Last updated by {form.identity_meta.updated_by || "someone"}{" "}
-            {new Date(form.identity_meta.updated_at).toLocaleString("en-CA", {
-              timeZone: "America/Toronto",
-            })}
+            {new Date(form.identity_meta.updated_at).toLocaleString(
+              getLocale() === "fr" ? "fr-CA" : "en-CA",
+              {
+                timeZone: "America/Toronto",
+              }
+            )}
           </p>
         )}
         <Button type="submit">Save profile</Button>

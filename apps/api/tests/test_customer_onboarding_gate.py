@@ -16,7 +16,7 @@ from porterchain_api.auth.customer_onboarding import (
 
 
 def _claims(*, auth_subject: str = "user_cust_1", email: str | None = "c@example.com") -> IdentityClaims:
-    return IdentityClaims(auth_subject=auth_subject, email=email, clerk_app="customer")
+    return IdentityClaims(auth_subject=auth_subject, email=email, idp_app="customer")
 
 
 def test_evaluate_ready_when_all_steps_complete() -> None:
@@ -45,7 +45,7 @@ def test_evaluate_ready_when_all_steps_complete() -> None:
     assert out["status"] == "active"
     assert out["blockers"] == []
     assert {s["id"] for s in out["steps"]} == {
-        "clerk_account",
+        "idp_account",
         "email_on_account",
         "customer_provisioned",
         "identity_authorized",
@@ -83,7 +83,7 @@ def test_evaluate_blocks_missing_email_and_customer() -> None:
     assert "customer_provisioned" in out["blockers"]
 
 
-def test_evaluate_pending_clerk_id_blocks_unless_dev_bypass() -> None:
+def test_evaluate_pending_idp_id_blocks_unless_dev_bypass() -> None:
     customer = SimpleNamespace(email="c@example.com")
     db = MagicMock()
     settings = MagicMock()
@@ -106,7 +106,7 @@ def test_evaluate_pending_clerk_id_blocks_unless_dev_bypass() -> None:
             db, claims, settings=settings, customer=customer, email="c@example.com"
         )
     assert out["identity_linked"] is False
-    assert "clerk_account" in out["blockers"]
+    assert "idp_account" in out["blockers"]
 
     with (
         patch(
@@ -211,10 +211,10 @@ def test_provision_returns_none_on_staff_conflict() -> None:
         assert provision_customer_for_onboarding(db, _claims(), settings) is None
 
 
-def test_provision_returns_none_without_clerk_id() -> None:
+def test_provision_returns_none_without_idp_id() -> None:
     db = MagicMock()
     settings = MagicMock()
-    claims = IdentityClaims(auth_subject="", email="c@example.com", clerk_app="customer")
+    claims = IdentityClaims(auth_subject="", email="c@example.com", idp_app="customer")
     assert provision_customer_for_onboarding(db, claims, settings) is None
 
 

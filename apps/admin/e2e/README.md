@@ -2,7 +2,7 @@
 
 ## Auth (staff IdP)
 
-Admin no longer uses Clerk on the shell. Playwright needs one of:
+Admin no longer uses Keycloak on the shell. Playwright needs one of:
 
 1. **Cookie jar** (preferred for live staff handshake)
 

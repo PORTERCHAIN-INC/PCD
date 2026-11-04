@@ -1,8 +1,8 @@
-"""Settings user directory — Clerk live sync for driver/merchant/customer.
+"""Settings user directory — Keycloak live sync for driver/merchant/customer.
 
 Staff provisioning and directory listing are Staff IdP only
 (``StaffIdpService`` / ``AdminSettingsService.list_platform_users``).
-This module must not treat staff as a Clerk application kind.
+This module must not treat staff as a Keycloak application kind.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 _PLATFORM_USER_TYPES = frozenset({"staff", "driver", "customer", "merchant"})
-_CLERK_DIRECTORY_TYPES = frozenset({"driver", "customer", "merchant"})
+_IDP_DIRECTORY_TYPES = frozenset({"driver", "customer", "merchant"})
 
 
 def require_platform_user_type(user_type: str) -> str:
@@ -39,10 +39,10 @@ def require_platform_user_type(user_type: str) -> str:
 
 
 def require_directory_user_type(user_type: str) -> str:
-    """Staff uses Staff IdP — never a Clerk directory application."""
+    """Staff uses Staff IdP — never a Keycloak directory application."""
     if user_type == "staff":
-        raise ValueError("staff_uses_staff_idp_not_clerk")
-    if user_type not in _CLERK_DIRECTORY_TYPES:
+        raise ValueError("staff_uses_staff_idp_not_idp")
+    if user_type not in _IDP_DIRECTORY_TYPES:
         raise ValueError("invalid_user_type")
     return user_type
 
@@ -59,7 +59,7 @@ def fetch_directory_snapshots(
     limit: int = 500,
     query: str | None = None,
 ) -> dict[str, Any]:
-    """Email → DirectoryUserSnapshot for the tab's Clerk application."""
+    """Email → DirectoryUserSnapshot for the tab's Keycloak application."""
     from porterchain_api.auth.identity_directory import DirectoryUserSnapshot
 
     require_directory_user_type(user_type)
@@ -82,7 +82,7 @@ def fetch_directory_snapshots(
 
 
 class DirectoryUserService:
-    """Create / update / delete users via Clerk + Porterchain provisioning."""
+    """Create / update / delete users via Keycloak + Porterchain provisioning."""
 
     def create_user(
         self,
@@ -126,8 +126,8 @@ class DirectoryUserService:
                 "email": normalized,
             }
 
-        # Merchant seats are always reserved locally — never Clerk-invite from Settings (M-16).
-        # Must run before identity_not_configured so Super Admin can add seats without Clerk.
+        # Merchant seats are always reserved locally — never Keycloak-invite from Settings (M-16).
+        # Must run before identity_not_configured so Super Admin can add seats without Keycloak.
         if user_type == "merchant":
             if not merchant_id:
                 raise ValueError("merchant_id_required")
@@ -152,7 +152,7 @@ class DirectoryUserService:
                 action="settings.user.seat_added",
                 resource_type="merchant",
                 resource_id=mu.id,
-                payload={"email": normalized, "clerk_invite": False, "role": m_role},
+                payload={"email": normalized, "idp_invite": False, "role": m_role},
             )
             db.commit()
             db.refresh(mu)
@@ -163,7 +163,7 @@ class DirectoryUserService:
                 "email": normalized,
             }
 
-        # Driver: local PENDING row when Super Admin skips Clerk, or when Clerk is down.
+        # Driver: local PENDING row when Super Admin skips Keycloak, or when Keycloak is down.
         if user_type == "driver" and not password and not send_invite:
             return create_local_driver(db, ctx, email=normalized, name=name)
         kind = directory_kind_for_user_type(user_type)
@@ -180,11 +180,11 @@ class DirectoryUserService:
             last_name = parts[1] if len(parts) > 1 else None
 
         client = directory_for_kind(settings, kind)
-        clerk_user: dict[str, Any] | None = None
+        idp_user: dict[str, Any] | None = None
         identity_action = "created"
 
         if password:
-            clerk_user = client.create_user(
+            idp_user = client.create_user(
                 normalized,
                 password=password,
                 first_name=first_name,
@@ -207,7 +207,7 @@ class DirectoryUserService:
                 return {"platform_user_id": driver.id, "identity_action": "invited", "email": normalized}
             raise ValueError(f"invite_unsupported_for_{user_type}")
         else:
-            clerk_user = client.create_user(
+            idp_user = client.create_user(
                 normalized,
                 first_name=first_name,
                 last_name=last_name,
@@ -215,11 +215,11 @@ class DirectoryUserService:
                 public_metadata={"user_type": user_type},
             )
 
-        if not clerk_user:
-            raise ValueError("clerk_create_failed")
+        if not idp_user:
+            raise ValueError("idp_create_failed")
 
-        subject_ref = str(clerk_user["id"])
-        platform_id = self._provision_from_clerk(
+        subject_ref = str(idp_user["id"])
+        platform_id = self._provision_from_idp(
             db,
             ctx,
             user_type,
@@ -258,7 +258,7 @@ class DirectoryUserService:
             db, ctx, settings, user_type, platform_user_id=platform_user_id
         )
 
-    def update_clerk_user(
+    def update_idp_user(
         self,
         db: Session,
         ctx: AdminContext,
@@ -274,7 +274,7 @@ class DirectoryUserService:
         if user_type == "staff":
             raise ValueError("staff_manage_via_staff_idp")
         if user_type in ("merchant", "customer"):
-            raise ValueError("clerk_manage_forbidden_for_retail")
+            raise ValueError("idp_manage_forbidden_for_retail")
         kind = directory_kind_for_user_type(user_type)
         client = directory_for_kind(settings, kind)
         first_name = None
@@ -306,7 +306,7 @@ class DirectoryUserService:
         snap = IdentityDirectory.snapshot(client.get_user(auth_subject) or {})
         return {"auth_subject": auth_subject, "directory_status": snap.status if snap else None}
 
-    def delete_clerk_user(
+    def delete_idp_user(
         self,
         db: Session,
         ctx: AdminContext,
@@ -318,9 +318,9 @@ class DirectoryUserService:
     ) -> None:
         require_platform_user_type(user_type)
         if not auth_subject and not platform_user_id:
-            raise ValueError("clerk_user_id_or_platform_user_id_required")
+            raise ValueError("idp_user_id_or_platform_user_id_required")
         if user_type == "customer":
-            # C-0: never wipe Platform Clerk retail identities from Admin Settings.
+            # C-0: never wipe Platform Keycloak retail identities from Admin Settings.
             # C-19: DSR hold also blocks any future tombstone path.
             if platform_user_id:
                 from porterchain_api.booking_models import Customer
@@ -349,33 +349,33 @@ class DirectoryUserService:
             db.commit()
             return
         kind = directory_kind_for_user_type(user_type)
-        resolved_clerk_id = auth_subject or self._clerk_id_for_platform(db, user_type, platform_user_id)
-        if resolved_clerk_id and is_directory_configured(settings, kind):
-            directory_for_kind(settings, kind).delete_user(resolved_clerk_id)
+        resolved_idp_id = auth_subject or self._idp_id_for_platform(db, user_type, platform_user_id)
+        if resolved_idp_id and is_directory_configured(settings, kind):
+            directory_for_kind(settings, kind).delete_user(resolved_idp_id)
         if platform_user_id:
             self._deactivate_platform_user(db, user_type, platform_user_id)
-            clerk_for_sync = resolved_clerk_id or self._clerk_id_for_platform(
+            idp_for_sync = resolved_idp_id or self._idp_id_for_platform(
                 db, user_type, platform_user_id
             )
-            if clerk_for_sync:
+            if idp_for_sync:
                 from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
-                sync_authz_after_persona_mutation(db, clerk_for_sync)
+                sync_authz_after_persona_mutation(db, idp_for_sync)
         log_admin_audit(
             db,
             ctx,
             action="settings.user.deleted",
             resource_type=user_type,
-            resource_id=platform_user_id or resolved_clerk_id or "",
-            payload={"auth_subject": resolved_clerk_id},
+            resource_id=platform_user_id or resolved_idp_id or "",
+            payload={"auth_subject": resolved_idp_id},
         )
         db.commit()
 
-    def _clerk_id_for_platform(self, db: Session, user_type: str, platform_user_id: str | None) -> str | None:
+    def _idp_id_for_platform(self, db: Session, user_type: str, platform_user_id: str | None) -> str | None:
         if not platform_user_id:
             return None
         if user_type == "staff":
-            # Staff IdP subject is not a Clerk user id — never send to Clerk APIs.
+            # Staff IdP subject is not a Keycloak user id — never send to Keycloak APIs.
             return None
         if user_type == "driver":
             d = db.query(Driver).filter(Driver.id == platform_user_id).first()
@@ -408,7 +408,7 @@ class DirectoryUserService:
             if mu:
                 deactivate_seat(db, mu.id)
 
-    def _provision_from_clerk(
+    def _provision_from_idp(
         self,
         db: Session,
         ctx: AdminContext,

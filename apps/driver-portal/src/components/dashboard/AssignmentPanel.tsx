@@ -30,7 +30,8 @@ function StopRow({ stop, highlight }: { stop: DriverStop; highlight?: boolean })
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{formatStopAddress(stop)}</p>
         <p className="text-xs text-[var(--muted)]">
-          {stop.order_number} · {stop.status.replace(/_/g, " ")}
+          {stop.order_number} ·{" "}
+          {stop.status.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase())}
         </p>
       </div>
     </li>

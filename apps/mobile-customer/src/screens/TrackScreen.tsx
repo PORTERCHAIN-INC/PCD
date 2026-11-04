@@ -1,3 +1,4 @@
+import { siteLocale } from "../lib/siteLocale";
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, Share, TextInput, View } from "react-native";
 import * as WebBrowser from "expo-web-browser";
@@ -34,7 +35,7 @@ type Props = {
 
 /** The one public tracking page (map, driver position, photo proof) lives on porterchain.com. */
 export function trackingUrl(tracking: string): string {
-  return `${websiteUrl}/en/track/${encodeURIComponent(tracking)}`;
+  return `${websiteUrl}/${siteLocale()}/track/${encodeURIComponent(tracking)}`;
 }
 
 export function TrackScreen({ initialTracking = "", onBack }: Props) {
@@ -57,7 +58,11 @@ export function TrackScreen({ initialTracking = "", onBack }: Props) {
   const headline = enhanced
     ? statusHeadline(enhanced)
     : (live?.live_tracking?.delivery_status?.label ?? status.label);
-  const eta = live?.live_tracking?.eta?.label ?? null;
+  // L179: no ETA until a driver has the job (it is a guess before that).
+  const awaitingDriver = ["BOOKED", "DISPATCH_READY", "DRIVER_REJECTED"].includes(
+    String(order?.state ?? "BOOKED").toUpperCase()
+  );
+  const eta = awaitingDriver ? null : (live?.live_tracking?.eta?.label ?? null);
   const tracking = order?.tracking_number ?? trimmed;
 
   const lookup = useCallback(async (number: string, mode: "lookup" | "refresh" = "lookup") => {

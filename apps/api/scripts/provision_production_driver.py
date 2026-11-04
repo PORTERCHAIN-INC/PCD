@@ -1,4 +1,4 @@
-"""Provision an approved driver in Porterchain + send Clerk driver invitation.
+"""Provision an approved driver in Porterchain + send Keycloak driver invitation.
 
 Intended for one-off production ops via:
 
@@ -43,18 +43,18 @@ def _bootstrap_admin_ctx(db) -> AdminContext | None:
     return AdminContext(user=user, role=role)
 
 
-def _send_clerk_invite(db, settings, driver: Driver) -> None:
+def _send_idp_invite(db, settings, driver: Driver) -> None:
     if not is_directory_configured(settings, "driver"):
-        print("Clerk driver secret not configured — skipped invite")
+        print("Keycloak driver secret not configured — skipped invite")
         return
     invitation = InvitationService().invite_driver(db, None, settings, driver)
     db.refresh(driver)
-    print(f"Clerk invitation sent: status={invitation.status}")
+    print(f"Keycloak invitation sent: status={invitation.status}")
     print(f"auth_subject: {driver.auth_subject or '(pending)'}")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Provision production driver + Clerk invite")
+    parser = argparse.ArgumentParser(description="Provision production driver + Keycloak invite")
     parser.add_argument("--email", required=True)
     parser.add_argument("--full-name", required=True)
     parser.add_argument("--phone", default="+1 416-555-0205")
@@ -75,7 +75,7 @@ def main() -> None:
         if existing:
             print(f"Driver already exists: {existing.id} ({existing.email}) status={existing.status}")
             if args.resend_invite or not existing.auth_subject:
-                _send_clerk_invite(db, settings, existing)
+                _send_idp_invite(db, settings, existing)
             return
 
         ctx = _bootstrap_admin_ctx(db)

@@ -1,4 +1,4 @@
-"""Users directory — DB-first visibility; Clerk enriches identity for non-staff."""
+"""Users directory — DB-first visibility; Keycloak enriches identity for non-staff."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import pytest
 
 from porterchain_api.admin_engine.settings_service import (
     AdminSettingsService,
-    _merge_clerk_directory,
+    _merge_idp_directory,
     _staff_identity_status,
     _staff_invite_status,
     _staff_status_label,
@@ -44,8 +44,8 @@ def _item(
 
 
 def test_merge_rejects_staff_user_type() -> None:
-    with pytest.raises(ValueError, match="staff_directory_is_staff_idp_not_clerk"):
-        _merge_clerk_directory(
+    with pytest.raises(ValueError, match="staff_directory_is_staff_idp_not_idp"):
+        _merge_idp_directory(
             [],
             settings=MagicMock(),
             user_type="staff",
@@ -71,15 +71,15 @@ def test_staff_status_helpers_use_staff_idp_subjects() -> None:
     assert "Clerk registered" not in legacy
 
 
-def test_list_platform_users_staff_skips_clerk_merge(db, settings) -> None:
-    """Staff directory must not call Clerk — even when Clerk is empty/down."""
+def test_list_platform_users_staff_skips_idp_merge(db, settings) -> None:
+    """Staff directory must not call Keycloak — even when Keycloak is empty/down."""
     with patch(
         "porterchain_api.admin_engine.settings_directory_merge.fetch_directory_snapshots",
-        side_effect=AssertionError("staff must not fetch Clerk"),
+        side_effect=AssertionError("staff must not fetch Keycloak"),
     ):
         resp = AdminSettingsService().list_platform_users(db, settings, "staff", limit=50)
-    assert resp.clerk_synced is False
-    assert resp.clerk_total is None
+    assert resp.idp_synced is False
+    assert resp.idp_total is None
     assert isinstance(resp.items, list)
     for item in resp.items:
         assert item.user_type == "staff"
@@ -88,7 +88,7 @@ def test_list_platform_users_staff_skips_clerk_merge(db, settings) -> None:
         assert "Clerk" not in item.status_label
 
 
-def test_merge_keeps_db_rows_missing_from_clerk() -> None:
+def test_merge_keeps_db_rows_missing_from_idp() -> None:
     snap = MagicMock(
         subject="user_real",
         first_name="Real",
@@ -103,10 +103,10 @@ def test_merge_keeps_db_rows_missing_from_clerk() -> None:
         "porterchain_api.admin_engine.settings_directory_merge.fetch_directory_snapshots",
         return_value={"real@example.com": snap},
     ):
-        merged, synced, total = _merge_clerk_directory(
+        merged, synced, total = _merge_idp_directory(
             [
                 _item(email="real@example.com", auth_subject="user_real"),
-                _item(email="ghost@example.com", auth_subject="clerk_fake_xyz"),
+                _item(email="ghost@example.com", auth_subject="idp_fake_xyz"),
             ],
             settings=MagicMock(),
             user_type="customer",
@@ -120,15 +120,15 @@ def test_merge_keeps_db_rows_missing_from_clerk() -> None:
     assert by_email["real@example.com"].identity_linked is True
     assert by_email["ghost@example.com"].identity_linked is False
     assert by_email["ghost@example.com"].identity_status == "not_registered"
-    assert "Not in Clerk" in by_email["ghost@example.com"].status_label
+    assert "Not in Keycloak" in by_email["ghost@example.com"].status_label
 
 
-def test_merge_keeps_db_rows_when_clerk_errors() -> None:
+def test_merge_keeps_db_rows_when_idp_errors() -> None:
     with patch(
         "porterchain_api.admin_engine.settings_directory_merge.fetch_directory_snapshots",
-        side_effect=RuntimeError("clerk down"),
+        side_effect=RuntimeError("keycloak down"),
     ):
-        merged, synced, total = _merge_clerk_directory(
+        merged, synced, total = _merge_idp_directory(
             [_item(email="anyone@example.com")],
             settings=MagicMock(),
             user_type="customer",
@@ -142,12 +142,12 @@ def test_merge_keeps_db_rows_when_clerk_errors() -> None:
     assert merged[0].identity_status == "not_registered"
 
 
-def test_merge_empty_clerk_still_shows_db_rows() -> None:
+def test_merge_empty_idp_still_shows_db_rows() -> None:
     with patch(
         "porterchain_api.admin_engine.settings_directory_merge.fetch_directory_snapshots",
         return_value={},
     ):
-        merged, synced, total = _merge_clerk_directory(
+        merged, synced, total = _merge_idp_directory(
             [_item(email="local-fixture@example.com")],
             settings=MagicMock(),
             user_type="customer",
@@ -158,10 +158,10 @@ def test_merge_empty_clerk_still_shows_db_rows() -> None:
     assert total == 0
     assert len(merged) == 1
     assert merged[0].email == "local-fixture@example.com"
-    assert "Not in Clerk" in merged[0].status_label
+    assert "Not in Keycloak" in merged[0].status_label
 
 
-def test_merge_clerk_does_not_inject_unprovisioned_on_customer_tab() -> None:
+def test_merge_idp_does_not_inject_unprovisioned_on_customer_tab() -> None:
     snap = MagicMock(
         subject="user_staff",
         first_name="Founder",
@@ -179,7 +179,7 @@ def test_merge_clerk_does_not_inject_unprovisioned_on_customer_tab() -> None:
             "porterchaininc@gmail.com": snap,
         },
     ):
-        merged, synced, total = _merge_clerk_directory(
+        merged, synced, total = _merge_idp_directory(
             [_item(email="real@example.com", auth_subject="user_staff")],
             settings=MagicMock(),
             user_type="customer",
@@ -224,7 +224,7 @@ def test_merchant_keeps_unlinked_seats_and_injects_unprovisioned() -> None:
             "orphan@example.com": orphan,
         },
     ):
-        merged, synced, total = _merge_clerk_directory(
+        merged, synced, total = _merge_idp_directory(
             [
                 _item(
                     email="live@example.com",
@@ -258,12 +258,12 @@ def test_merchant_keeps_unlinked_seats_and_injects_unprovisioned() -> None:
     assert by_email["orphan@example.com"].detail_href == "/merchants"
 
 
-def test_merchant_keep_unlinked_when_clerk_errors() -> None:
+def test_merchant_keep_unlinked_when_idp_errors() -> None:
     with patch(
         "porterchain_api.admin_engine.settings_directory_merge.fetch_directory_snapshots",
-        side_effect=RuntimeError("clerk down"),
+        side_effect=RuntimeError("keycloak down"),
     ):
-        merged, synced, total = _merge_clerk_directory(
+        merged, synced, total = _merge_idp_directory(
             [
                 _item(
                     email="seat@example.com",
@@ -315,7 +315,7 @@ def test_merchant_same_email_keeps_one_row_per_seat() -> None:
         "porterchain_api.admin_engine.settings_directory_merge.fetch_directory_snapshots",
         return_value={"ops@example.com": snap},
     ):
-        merged, synced, total = _merge_clerk_directory(
+        merged, synced, total = _merge_idp_directory(
             [seat_a, seat_b],
             settings=MagicMock(),
             user_type="merchant",
@@ -331,12 +331,12 @@ def test_merchant_same_email_keeps_one_row_per_seat() -> None:
     assert all(i.identity_linked for i in merged)
 
 
-def test_list_platform_users_customer_shows_db_when_clerk_empty(db, settings) -> None:
+def test_list_platform_users_customer_shows_db_when_idp_empty(db, settings) -> None:
     with patch(
         "porterchain_api.admin_engine.settings_directory_merge.fetch_directory_snapshots",
         return_value={},
     ):
         resp = AdminSettingsService().list_platform_users(db, settings, "customer", limit=50)
-    assert resp.clerk_synced is True
+    assert resp.idp_synced is True
     # May be empty DB in fresh fixture — must not raise / fail-closed to [].
     assert isinstance(resp.items, list)

@@ -17,7 +17,10 @@ case "${1:-up}" in
     docker rm -f "$NAME" >/dev/null 2>&1 || true
     docker run -d --name "$NAME" -p "127.0.0.1:${PORT}:8080" \
       -e KC_BOOTSTRAP_ADMIN_USERNAME=admin -e KC_BOOTSTRAP_ADMIN_PASSWORD=test-admin-only \
-      -v "$tmp:/opt/keycloak/data/import:ro" "$IMAGE" start-dev --import-realm --features=token-exchange,admin-fine-grained-authz:v1 >/dev/null
+      -v "$tmp:/opt/keycloak/data/import:ro" \
+      -v "$ROOT/infrastructure/keycloak/providers:/opt/keycloak/providers:ro" "$IMAGE" start-dev --import-realm --features=token-exchange,admin-fine-grained-authz:v1 >/dev/null
+    # Email-code step (L8): let the throwaway realm reach the local Mailpit when the stack is up.
+    docker network inspect pcd-ls >/dev/null 2>&1 && docker network connect pcd-ls "$NAME" >/dev/null 2>&1 || true
     for _ in $(seq 1 90); do
       curl -fsS "http://127.0.0.1:${PORT}/realms/porterchain/.well-known/openid-configuration" >/dev/null 2>&1 && { echo "keycloak up :$PORT"; exit 0; }
       sleep 2

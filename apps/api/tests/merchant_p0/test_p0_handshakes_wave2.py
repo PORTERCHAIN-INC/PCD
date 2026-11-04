@@ -1,4 +1,4 @@
-"""Wave-2 merchant handshakes: Clerk gate, Fleetbase enqueue, Shopify OAuth, Mailpit SMTP.
+"""Wave-2 merchant handshakes: Keycloak gate, Fleetbase enqueue, Shopify OAuth, Mailpit SMTP.
 
 Extends merchant_p0 — does not re-run shopify_phase4 HMAC or booking_sync_phase2 wholesale;
 those stay the deep suites. This pack wires SSOT IDs for the merchant matrix wave.
@@ -34,9 +34,9 @@ INFRA = REPO_ROOT / "infrastructure"
 
 
 @pytest.fixture(autouse=True)
-def _clear_clerk_env(monkeypatch: pytest.MonkeyPatch) -> None:
+def _clear_idp_env(monkeypatch: pytest.MonkeyPatch) -> None:
     for key in list(os.environ):
-        if key.startswith("CLERK_"):
+        if key.startswith("IDP_"):
             monkeypatch.delenv(key, raising=False)
 
 
@@ -55,9 +55,9 @@ def _merchant(db: Session, *, status: str = MerchantStatus.ACTIVE.value) -> Merc
 
 
 @pytest.mark.merchant_p0
-@pytest.mark.tc_id("HS-CLERK-002")
-def test_hs_clerk_portal_denies_suspended_and_closed(db: Session) -> None:
-    """Clerk seat alone is not enough — merchant status gates portal."""
+@pytest.mark.tc_id("HS-KEYCLOAK-002")
+def test_hs_idp_portal_denies_suspended_and_closed(db: Session) -> None:
+    """Keycloak seat alone is not enough — merchant status gates portal."""
     assert portal_access_denied(_merchant(db, status=MerchantStatus.SUSPENDED.value)) == "merchant_suspended"
     assert portal_access_denied(_merchant(db, status=MerchantStatus.CLOSED.value)) == "merchant_closed"
     assert portal_access_denied(_merchant(db, status=MerchantStatus.PENDING.value)) == "merchant_not_active"

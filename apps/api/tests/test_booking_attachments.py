@@ -49,7 +49,7 @@ def _driver(db, phone="+14165550101") -> Driver:
         email=f"d-{s}@test.local",
         full_name=f"Sam Driver{s}",
         status="APPROVED",
-        auth_subject=f"clerk_d_{s}",
+        auth_subject=f"idp_d_{s}",
         phone=phone,
     )
     db.add(d)

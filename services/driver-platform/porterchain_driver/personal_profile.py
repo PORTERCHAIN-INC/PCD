@@ -1,7 +1,7 @@
 """Driver personal profile (name, address, emergency contact, photo).
 
 Stored on ``driver.performance["personal"]`` (same JSON pattern as app_settings, no migration).
-Email and phone are NOT editable here: they change in Clerk with a verification code, then
+Email and phone are NOT editable here: they change in Keycloak with a verification code, then
 ``sync_identity`` copies the verified primary values onto the driver row.
 """
 
@@ -119,7 +119,7 @@ def read_profile(driver: Any) -> dict:
         "emergency_contact": _emergency(driver),
         "photo_url": personal.get("photo"),
         "updated_at": personal.get("updated_at"),
-        "identity_managed_by": "clerk",
+        "identity_managed_by": "keycloak",
     }
 
 
@@ -174,16 +174,16 @@ def update_profile(db: Any, driver: Any, body: dict) -> tuple[dict, list[str]]:
     return read_profile(driver), changed
 
 
-def verified_primary_phone(clerk_user: dict) -> str | None:
-    primary_id = clerk_user.get("primary_phone_number_id")
-    for entry in clerk_user.get("phone_numbers") or []:
+def verified_primary_phone(idp_user: dict) -> str | None:
+    primary_id = idp_user.get("primary_phone_number_id")
+    for entry in idp_user.get("phone_numbers") or []:
         if entry.get("id") == primary_id and (entry.get("verification") or {}).get("status") == "verified":
             return normalize_phone(entry.get("phone_number"))
     return None
 
 
 def sync_identity(db: Any, driver: Any, *, email: str | None, phone: str | None) -> list[str]:
-    """Copy Clerk-verified primary email/phone onto the driver. Only verified values arrive here."""
+    """Copy Keycloak-verified primary email/phone onto the driver. Only verified values arrive here."""
     changed: list[str] = []
     if email and email != (driver.email or "").lower():
         driver.email = email
@@ -196,7 +196,7 @@ def sync_identity(db: Any, driver: Any, *, email: str | None, phone: str | None)
     return changed
 
 
-def driver_for_clerk_user(db: Any, auth_subject: str) -> Any:
+def driver_for_idp_user(db: Any, auth_subject: str) -> Any:
     from porterchain_api.admin_models import Driver
 
     return db.query(Driver).filter(Driver.auth_subject == auth_subject).first()

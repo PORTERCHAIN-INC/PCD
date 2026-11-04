@@ -96,7 +96,7 @@ export function CustomerCreateModal({
       <div className="space-y-4">
         <p className="text-sm text-muted">
           Creates a retail customer for phone-book orders and care. They stay orphan until they
-          accept a Clerk invite or self SignUp on the customer portal.
+          accept a Keycloak invite or self SignUp on the customer portal.
         </p>
         <Field label="Email">
           <Input
@@ -130,9 +130,9 @@ export function CustomerCreateModal({
             onChange={(e) => setSendInvite(e.target.checked)}
           />
           <span>
-            Send Platform Clerk invite to sign up
+            Send Platform Keycloak invite to sign up
             <span className="block text-xs text-muted">
-              Requires Platform Clerk keys. Leave unchecked for phone-book only (orphan row).
+              Requires Platform Keycloak keys. Leave unchecked for phone-book only (orphan row).
             </span>
           </span>
         </label>

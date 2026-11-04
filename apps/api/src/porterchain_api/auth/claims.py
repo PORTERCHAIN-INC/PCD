@@ -1,4 +1,4 @@
-"""Clerk JWT claims extracted after verification."""
+"""Keycloak JWT claims extracted after verification."""
 
 from dataclasses import dataclass
 from typing import Any
@@ -13,8 +13,8 @@ class IdentityClaims:
     phone: str | None = None
     public_metadata: dict[str, Any] | None = None
     session_id: str | None = None
-    clerk_app: str | None = None
-    # Phase 3 — framework-neutral identity fields (still populated by Clerk adapter)
+    idp_app: str | None = None
+    # Phase 3 — framework-neutral identity fields (still populated by Keycloak adapter)
     issuer: str | None = None
     authorized_party: str | None = None
     auth_time: int | None = None

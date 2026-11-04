@@ -114,7 +114,7 @@ class ImpersonationService:
         return session.public_dict()
 
     def _resolve_target(self, db: Session, target_type: TargetType, target_id: str) -> dict[str, Any]:
-        if not target_id or target_id.startswith("clerk:"):
+        if not target_id or target_id.startswith("keycloak:"):
             raise ValueError("impersonation_target_not_provisioned")
 
         if target_type == "driver":

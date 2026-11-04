@@ -66,9 +66,6 @@ jobs:
         run: pnpm build
         env:
           NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://porterchain.com' }}
-          # Any portal publishable key is enough for ClerkProvider during monorepo build.
-          # Portals also guard hooks when this is empty (Clerk-off prerender).
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY || secrets.CLERK_ADMIN_PUBLISHABLE_KEY || '' }}
 
   admin-vitest:
     name: Admin (Vitest)
@@ -212,10 +209,9 @@ jobs:
             test: ""
     env:
       # Dummy public values only. Never real keys: builds just need a
-      # well-formed Clerk publishable key and a site URL.
+      # site URL (Keycloak client ids default per app).
       NEXT_PUBLIC_SITE_URL: https://porterchain.com
       NEXT_PUBLIC_API_URL: https://api.porterchain.com
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_Y2xlcmsuZXhhbXBsZS5jb20k
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7

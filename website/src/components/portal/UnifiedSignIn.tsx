@@ -1,26 +1,22 @@
 "use client";
 
-import { SignIn } from "@clerk/nextjs";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { porterchainClerkAppearance } from "@porterchain/auth";
+import { KeycloakSignInPanel } from "@porterchain/auth";
 import PlatformAuthLayout from "@/components/portal/PlatformAuthLayout";
 import { adminSignInUrl, driverSignInUrl } from "@/data/portal-links";
 
 type UnifiedSignInProps = {
-  /** Absolute path Clerk should open after auth (e.g. /en/login/continue). */
+  /** Path to open after Keycloak sign-in (e.g. /en/login/continue). */
   redirectUrl: string;
 };
 
 /**
- * Platform Clerk SignIn for retail (customer + merchant).
+ * Keycloak sign-in (pc-website) for retail (customer + merchant).
  * Open SignUp is on /sign-up. Admin and Driver use separate portal URLs.
  */
 export default function UnifiedSignIn({ redirectUrl }: UnifiedSignInProps) {
   const t = useTranslations("login");
-  const locale = useLocale();
-  const signInPath = `/${locale}/login`;
-  const signUpPath = `/${locale}/sign-up`;
 
   return (
     <PlatformAuthLayout
@@ -52,15 +48,7 @@ export default function UnifiedSignIn({ redirectUrl }: UnifiedSignInProps) {
         </div>
       }
     >
-      <SignIn
-        routing="path"
-        path={signInPath}
-        signUpUrl={signUpPath}
-        forceRedirectUrl={redirectUrl}
-        signUpForceRedirectUrl={redirectUrl}
-        fallbackRedirectUrl={redirectUrl}
-        appearance={porterchainClerkAppearance}
-      />
+      <KeycloakSignInPanel returnTo={redirectUrl} primaryLabel={t("title")} />
     </PlatformAuthLayout>
   );
 }

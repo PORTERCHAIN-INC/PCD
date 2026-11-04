@@ -21,8 +21,8 @@ def activate_pending_user(user: PorterchainUser) -> bool:
     return False
 
 
-def activate_user_for_clerk(db: Session, auth_subject: str | None) -> PorterchainUser | None:
-    """Activate the registry user bound to a Clerk subject (if present)."""
+def activate_user_for_idp(db: Session, auth_subject: str | None) -> PorterchainUser | None:
+    """Activate the registry user bound to a Keycloak subject (if present)."""
     if not auth_subject or auth_subject.startswith("pending:"):
         return None
     user = db.query(PorterchainUser).filter(PorterchainUser.auth_subject == auth_subject).first()

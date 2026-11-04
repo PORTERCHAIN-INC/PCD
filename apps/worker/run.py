@@ -19,6 +19,8 @@ _last_standing_orders_at = 0.0
 _last_interac_inbox_at = 0.0
 _last_billing_cycle_at = 0.0
 _last_finance_daily_at = 0.0
+_last_late_penalty_at = 0.0
+_last_translate_at = 0.0
 _last_notification_retry_at = 0.0
 _last_webhook_retry_at = 0.0
 _last_shopify_sync_retry_at = 0.0
@@ -32,6 +34,7 @@ _last_lead_inbound_email_at = 0.0
 _last_lead_archive_at = 0.0
 _last_deleted_purge_at = 0.0
 _last_shopify_retention_at = 0.0
+_last_shopify_reconcile_at = 0.0
 _last_lead_agent_at = 0.0
 _last_blog_schedule_at = 0.0
 _last_delivery_sla_at = 0.0
@@ -40,6 +43,9 @@ STANDING_ORDERS_INTERVAL_SECONDS = 300
 INTERAC_INBOX_INTERVAL_SECONDS = 300
 BILLING_CYCLE_INTERVAL_SECONDS = 3600
 FINANCE_DAILY_INTERVAL_SECONDS = 86400
+# Hourly so an invoice that passes its due date is penalised and the business suspended the same day.
+LATE_PENALTY_INTERVAL_SECONDS = int(os.environ.get("LATE_PENALTY_INTERVAL_SECONDS", "3600"))
+TRANSLATE_INTERVAL_SECONDS = int(os.environ.get("TRANSLATE_INTERVAL_SECONDS", "30"))
 NOTIFICATION_RETRY_INTERVAL_SECONDS = 60
 WEBHOOK_RETRY_INTERVAL_SECONDS = 60
 COMPLIANCE_EXPIRY_INTERVAL_SECONDS = 900
@@ -278,6 +284,48 @@ def _drain_finance_daily() -> int:
     return int(drafts.get("created", 0))
 
 
+def _drain_late_penalty() -> int:
+    """Overdue business invoices: add the 20% penalty once and suspend the business."""
+    global _last_late_penalty_at
+    now = time.monotonic()
+    if now - _last_late_penalty_at < LATE_PENALTY_INTERVAL_SECONDS:
+        return 0
+    _last_late_penalty_at = now
+    from porterchain_api.billing_engine.late_penalty import apply_due_penalties, auto_unsuspend
+    from porterchain_api.db import SessionLocal
+
+    with SessionLocal() as db:
+        result = apply_due_penalties(db)
+        # Paid in full by any route (card, Interac, admin) -> reinstate automatically.
+        reinstated = auto_unsuspend(db)
+    if reinstated:
+        logger.info("late penalty: reinstated %s", reinstated)
+    if result.get("penalised"):
+        logger.info("late penalty: %s", result)
+    return int(result.get("penalised", 0))
+
+
+def _drain_translations() -> int:
+    """Translate pending merchant/customer free text to English (self-hosted LibreTranslate)."""
+    global _last_translate_at
+    now = time.monotonic()
+    if now - _last_translate_at < TRANSLATE_INTERVAL_SECONDS:
+        return 0
+    _last_translate_at = now
+    from porterchain_api.config import get_settings
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.platform.free_text_translation import translate_pending
+
+    settings = get_settings()
+    if not settings.translate_url:
+        return 0
+    with SessionLocal() as db:
+        result = translate_pending(db, settings.translate_url)
+    if result.get("translated"):
+        logger.info("translations: %s", result)
+    return int(result.get("translated", 0))
+
+
 def _merchant_ops_drain() -> int:
     """Merchant credit auto-hold + churn/credit staff emails (own interval + flag)."""
     from processors.merchant_ops import drain_if_due
@@ -419,13 +467,11 @@ def _drain_lead_agent() -> int:
     _last_lead_agent_at = now
 
     from porterchain_api.collaboration_engine.lead_agent import process_lead_agent_batch
-    from porterchain_api.collaboration_engine.lead_enrich import process_lead_enrich_batch
     from porterchain_api.db import SessionLocal
 
     sent = 0
     with SessionLocal() as db:
         result = process_lead_agent_batch(db, limit=25)
-        enrich = process_lead_enrich_batch(db, limit=15)
     if result.get("sent") or result.get("scanned"):
         logger.info(
             "lead agent sweep: scanned=%s sent=%s skipped=%s",
@@ -433,15 +479,7 @@ def _drain_lead_agent() -> int:
             result.get("sent", 0),
             result.get("skipped", 0),
         )
-    if enrich.get("found") or enrich.get("scanned"):
-        logger.info(
-            "lead enrich sweep: scanned=%s found=%s failed=%s skipped=%s",
-            enrich.get("scanned", 0),
-            enrich.get("found", 0),
-            enrich.get("failed", 0),
-            enrich.get("skipped", 0),
-        )
-    return int(result.get("sent", 0)) + int(enrich.get("found", 0))
+    return int(result.get("sent", 0))
 
 
 def _drain_lead_sla_escalation() -> int:
@@ -565,6 +603,26 @@ def _drain_deleted_items_purge() -> int:
     return int(result.get("purged", 0))
 
 
+def _drain_shopify_reconcile() -> int:
+    """Review 139170: poll recent Shopify orders so a missed webhook never loses an order."""
+    global _last_shopify_reconcile_at
+    from porterchain_api.config import get_settings
+
+    settings = get_settings()
+    now = time.monotonic()
+    if now - _last_shopify_reconcile_at < int(settings.shopify_reconcile_interval_seconds or 900):
+        return 0
+    _last_shopify_reconcile_at = now
+    from porterchain_api.db import SessionLocal
+    from porterchain_api.merchant_engine.shopify_order_sync import reconcile_all
+
+    with SessionLocal() as db:
+        result = reconcile_all(db, settings)
+    if result.get("new") or result.get("failed"):
+        logger.info("shopify reconcile: %s", result)
+    return int(result.get("new", 0))
+
+
 def _drain_shopify_buyer_retention() -> int:
     """Wipe Shopify buyer contact 24 months after delivery."""
     global _last_shopify_retention_at
@@ -582,6 +640,30 @@ def _drain_shopify_buyer_retention() -> int:
     if result.get("wiped"):
         logger.info("shopify buyer retention: wiped=%s", result.get("wiped", 0))
     return int(result.get("wiped", 0))
+
+
+_last_auto_dispatch_at = 0.0
+AUTO_DISPATCH_INTERVAL_SECONDS = 30
+
+
+def _drain_auto_dispatch() -> int:
+    """L41: offer ready orders to the best driver (PORTERCHAIN_AUTO_DISPATCH=0 turns it off)."""
+    global _last_auto_dispatch_at
+    if os.environ.get("PORTERCHAIN_AUTO_DISPATCH", "1").strip().lower() in ("0", "false", "off", "no"):
+        return 0
+    now = time.monotonic()
+    if now - _last_auto_dispatch_at < AUTO_DISPATCH_INTERVAL_SECONDS:
+        return 0
+    _last_auto_dispatch_at = now
+
+    from porterchain_api.admin_engine.job_offers_service import JobOffersService
+    from porterchain_api.db import SessionLocal
+
+    with SessionLocal() as db:
+        made = JobOffersService().auto_offer_ready(db)
+    if made:
+        logger.info("auto dispatch: offers created=%s", made)
+    return made
 
 
 def _drain_job_offer_sweep() -> int:
@@ -700,6 +782,8 @@ def sweep_table() -> list[tuple[str, Callable[[], int]]]:
         ("interac_inbox", _drain_interac_inbox),
         ("billing_cycle", _drain_billing_cycle),
         ("finance_daily", _drain_finance_daily),
+        ("late_penalty", _drain_late_penalty),
+        ("translations", _drain_translations),
         ("notification_retries", _drain_notification_retries),
         ("merchant_webhook_retries", _drain_merchant_webhook_retries),
         ("shopify_fulfillment_retries", _drain_shopify_fulfillment_retries),
@@ -712,9 +796,11 @@ def sweep_table() -> list[tuple[str, Callable[[], int]]]:
         ("lead_soft_archive", _drain_lead_soft_archive),
         ("deleted_items_purge", _drain_deleted_items_purge),
         ("shopify_buyer_retention", _drain_shopify_buyer_retention),
+        ("shopify_reconcile", _drain_shopify_reconcile),
         ("blog_scheduled_publish", _drain_blog_scheduled_publish),
         ("merchant_ops", _merchant_ops_drain),
         ("job_offer_sweep", _drain_job_offer_sweep),
+        ("auto_dispatch", _drain_auto_dispatch),
         ("retention", _drain_retention),
         ("stop_time_learning", _drain_stop_time_learning),
     ]

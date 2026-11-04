@@ -159,7 +159,9 @@ class StartBookingRequest(BaseModel):
     privacy_accepted: bool = False
     dangerous_goods_confirmed: bool = False
     consent_at: str | None = None
-    checkout_channel: Literal["retail", "customer"] = "retail"
+    # customer_app / customer_app_beta: Stripe returns to the mobile app via its own
+    # fixed deep link (allowlisted server-side, never client-supplied URLs).
+    checkout_channel: Literal["retail", "customer", "customer_app", "customer_app_beta"] = "retail"
 
 
 class BookingResponse(BaseModel):
@@ -280,6 +282,8 @@ class CustomerInvoiceDetailResponse(CustomerInvoiceListItem):
     lines: list[CustomerInvoiceLine] = Field(default_factory=list)
     credited_cents: int = 0
     credit_notes: list[dict[str, Any]] = Field(default_factory=list)
+    supplier_legal_name: str | None = None
+    supplier_gst_hst_number: str | None = None
 
 
 class CustomerSupportTicketRequest(BaseModel):

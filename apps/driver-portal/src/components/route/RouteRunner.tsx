@@ -379,7 +379,7 @@ function StopCard({
                 ref={missingFile}
                 type="file"
                 accept="image/*"
-                capture="environment"
+                // L190: no capture attr — phones offer camera OR photo library
                 className="sr-only"
                 aria-label="Photo of missing box spot"
                 onChange={async (e) => {
@@ -431,7 +431,7 @@ function StopCard({
             ref={fileRef}
             type="file"
             accept="image/*"
-            capture="environment"
+            // L190: no capture attr — phones offer camera OR photo library
             className="sr-only"
             aria-label="Delivery photo"
             onChange={async (e) => {

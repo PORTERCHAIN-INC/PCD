@@ -8,7 +8,7 @@ Optimize the network: utilization, trust, automation, merchant/driver retention 
 - Node 24 LTS · pnpm 11 · Next 16 · React 19 · TypeScript 6 · Tailwind 4
 - Python 3.14 · FastAPI · Pydantic v2 · SQLAlchemy 2 · Postgres 18 · Redis 8 · Mailpit
 - Expo SDK 57 for mobile shells
-- Auth: Clerk (CLERK_<PORTAL>_* keys; local bypass Bearer `dev`)
+- Auth: Keycloak (IDP_<PORTAL>_* keys; local bypass Bearer `dev`)
 - No SocketCluster in web apps; no Fleetbase HTTP from frontends
 
 ## Dispatch ownership (hard rule)

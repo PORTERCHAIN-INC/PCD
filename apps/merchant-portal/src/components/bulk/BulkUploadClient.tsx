@@ -123,6 +123,50 @@ export default function BulkPage() {
     void loadProfiles().catch(() => setProfiles([]));
   }, [isLoaded, isSignedIn, orgId, loadProfiles]);
 
+  // L200: keep the unconfirmed route import across reloads / leaving the page.
+  const draftKey = orgId ? `pc.routeImportDraft.${orgId}` : null;
+  const [restoredDraftId, setRestoredDraftId] = useState<string | null>(null);
+  const restoredDraft = !!routeJob && restoredDraftId === routeJob.job_id;
+  useEffect(() => {
+    if (!draftKey || typeof window === "undefined") return;
+    if (routeJob && String(routeJob.status).toUpperCase() === "PREVIEW") {
+      window.localStorage.setItem(draftKey, routeJob.job_id);
+    } else if (routeJob) {
+      window.localStorage.removeItem(draftKey);
+    }
+  }, [draftKey, routeJob?.job_id, routeJob?.status]);
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || !orgId || !draftKey || routeJob) return;
+    const saved = typeof window !== "undefined" ? window.localStorage.getItem(draftKey) : null;
+    if (!saved) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const token = await getApiToken();
+        const job = await getRouteImport(token, saved, orgId);
+        if (cancelled) return;
+        if (String(job.status).toUpperCase() === "PREVIEW") {
+          setRouteJob(job);
+          setTab("route");
+          setRestoredDraftId(job.job_id);
+        } else {
+          window.localStorage.removeItem(draftKey);
+        }
+      } catch {
+        window.localStorage.removeItem(draftKey);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, isSignedIn, orgId, draftKey]);
+  function discardDraft() {
+    if (draftKey) window.localStorage.removeItem(draftKey);
+    setRouteJob(null);
+    setRestoredDraftId(null);
+  }
+
   useEffect(() => {
     if (!routeJob || !isSignedIn || !orgId) return;
     const geoPending =
@@ -470,6 +514,20 @@ export default function BulkPage() {
             {error && <p className="text-sm text-red-600">{error}</p>}
           </div>
 
+          {routeJob && restoredDraft && (
+            <div
+              role="status"
+              className="mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"
+            >
+              <span>
+                Restored your unfinished route import ({routeJob.stops.length} stops). Nothing is
+                booked until you confirm.
+              </span>
+              <button type="button" className="font-semibold underline" onClick={discardDraft}>
+                Discard draft
+              </button>
+            </div>
+          )}
           {routeJob && (
             <div className="space-y-4 rounded-2xl border border-primary/10 bg-white p-6">
               <p className="text-sm text-muted">{routeJob.route_explanation}</p>
@@ -640,6 +698,25 @@ export default function BulkPage() {
                             ) : (
                               geo
                             )}
+                            {Array.isArray(stop.issues) &&
+                              (stop.issues as unknown[])
+                                .map(String)
+                                .includes("address.postal_mismatch") && (
+                                <span
+                                  className="ml-1 block text-xs font-medium text-amber-800"
+                                  title="The map found this street in a different postal area than the one given — check the pin."
+                                >
+                                  Postal differs — check pin
+                                </span>
+                              )}
+                            {Array.isArray(stop.issues) &&
+                              (stop.issues as unknown[])
+                                .map(String)
+                                .includes("address.approximate") && (
+                                <span className="ml-1 block text-xs font-medium text-amber-800">
+                                  Approximate pin
+                                </span>
+                              )}
                           </td>
                           <td className="py-2">
                             <button

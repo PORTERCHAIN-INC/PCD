@@ -9,21 +9,21 @@
 
 ## Posture (coded)
 
-| Area          | Rule                                                    | SoT                                    |
-| ------------- | ------------------------------------------------------- | -------------------------------------- |
-| Portal authn  | Clerk JWKS/secret per portal                            | `Settings` `CLERK_*` · `auth/clerk.py` |
-| Admin authn   | Staff IdP (Clerk retired for staff login)               | `staff_idp_service.py`                 |
-| Authz         | SpiceDB live Check; deny if down; no Check-result cache | `authz/client.py` · `require_module`   |
-| Dev bypass    | Only `APP_ENV=local` + `clerk_dev_bypass` / portal flag | `auth/dev.py` · `packages/auth`        |
-| Secrets       | Doppler prod; `env/clerk.env` + `pnpm clerk:sync` local | deploy SECRETS docs                    |
-| Network       | Browsers → API only                                     | no Fleetbase/SocketCluster SDK in web  |
-| Retired flags | `CLERK_UNIFIED_MODE` must remain false                  | config validator                       |
+| Area          | Rule                                                                                    | SoT                                     |
+| ------------- | --------------------------------------------------------------------------------------- | --------------------------------------- |
+| Portal authn  | Keycloak JWKS/secret per portal                                                         | `Settings` `IDP_*` · `auth/keycloak.py` |
+| Admin authn   | Staff IdP (Keycloak retired for staff login)                                            | `staff_idp_service.py`                  |
+| Authz         | SpiceDB live Check; deny if down; no Check-result cache                                 | `authz/client.py` · `require_module`    |
+| Dev bypass    | Only `APP_ENV=local` + `idp_dev_bypass` / portal flag                                   | `auth/dev.py` · `packages/auth`         |
+| Secrets       | SOPS + age prod (`secrets/*.enc.yaml`); `env/keycloak.env` + `pnpm keycloak:sync` local | deploy SECRETS docs                     |
+| Network       | Browsers → API only                                                                     | no Fleetbase/SocketCluster SDK in web   |
+| Retired flags | `IDP_UNIFIED_MODE` must remain false                                                    | config validator                        |
 
 ---
 
 ## Explicit non-goals
 
-- Homegrown session crypto replacing Clerk/Staff IdP
+- Homegrown session crypto replacing Keycloak/Staff IdP
 - Module catalogs as authorization SoT
 - Check allow-caching
 - Prod auth bypass

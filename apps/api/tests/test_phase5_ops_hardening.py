@@ -1,4 +1,4 @@
-"""Phase 5 — sequence version lock, idempotent apply, rollback, NIM/stub freeze."""
+"""Phase 5 — sequence version lock, idempotent apply, rollback, LLM/stub freeze."""
 
 from __future__ import annotations
 

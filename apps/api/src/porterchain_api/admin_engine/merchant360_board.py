@@ -287,7 +287,7 @@ def batch_onboarding_summaries(db: Session, merchants: list[Merchant]) -> dict[s
         elif not owner or owner_invite in ("not_invited", "invite_failed", "revoked"):
             phase = "needs_invite"
         elif not owner_linked:
-            phase = "awaiting_clerk"
+            phase = "awaiting_idp"
         elif not user_active:
             phase = "needs_activation"
         elif not merchant_active:
@@ -302,7 +302,7 @@ def batch_onboarding_summaries(db: Session, merchants: list[Merchant]) -> dict[s
             "onboarding_progress": int(steps_complete / len(steps) * 100),
             "owner_email": owner.email if owner else merchant.email,
             "owner_invite_status": owner_invite,
-            "owner_clerk_linked": owner_linked,
+            "owner_idp_linked": owner_linked,
             "owner_active": user_active,
             "team_count": len(users),
             "blockers_count": 0 if ready else len(steps) - steps_complete,
@@ -364,7 +364,7 @@ def detail_payload(
     company = svc._linked_company(db, merchant_id)
     metrics = svc._metrics(db, merchant, company)
     health = svc._health(merchant, metrics)
-    # Heuristic only on this GET — NIM paraphrase is 12s×retries and trips the
+    # Heuristic only on this GET — LLM paraphrase is 12s×retries and trips the
     # admin 15s fetch abort (`porterchain_api_timeout` / endless Loading merchant).
     ai = svc._ai_insights(merchant, company, metrics, health, db=None, flags=flags)
     row = svc._row(db, merchant, light=False)
@@ -465,8 +465,8 @@ def onboarding_payload(db: Session, merchant: Merchant) -> dict[str, Any]:
             "complete": owner_provisioned and owner_invite != "not_invited",
         },
         {
-            "id": "clerk_activated",
-            "label": "Owner signed in (Clerk linked)",
+            "id": "idp_activated",
+            "label": "Owner signed in (Keycloak linked)",
             "complete": owner_linked,
         },
         {
@@ -495,7 +495,7 @@ def onboarding_payload(db: Session, merchant: Merchant) -> dict[str, Any]:
         "owner_email": owner.email if owner else merchant.email,
         "owner_invite_status": owner_invite,
         "owner_invite_status_label": invite_status_label(owner_invite),
-        "owner_clerk_linked": owner_linked,
+        "owner_idp_linked": owner_linked,
         "team_count": len(users),
         "steps": steps,
         "blockers": blockers,

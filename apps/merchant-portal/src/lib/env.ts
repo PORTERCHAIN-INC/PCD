@@ -25,16 +25,16 @@ export function isAuthConfigured(): boolean {
 }
 
 /**
- * Local only: Bearer `dev` when the API has CLERK_DEV_BYPASS=true.
+ * Local only: Bearer `dev` when the API has IDP_DEV_BYPASS=true.
  *
  * Gated on the build, not just the variable — a production bundle always returns
  * false even if the variable leaks into the deploy (BJ).
  */
-export function useClerkDevApiBypass(): boolean {
+export function useIdpDevApiBypass(): boolean {
   return authDevBypassEnabled();
 }
 
-/** Local portals skip the Clerk sign-in widget and use the API bypass session. */
+/** Local portals skip the Keycloak sign-in widget and use the API bypass session. */
 export function useLocalDevAuth(): boolean {
-  return useClerkDevApiBypass();
+  return useIdpDevApiBypass();
 }

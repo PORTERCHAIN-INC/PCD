@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, wait
 from datetime import UTC, datetime
 from typing import Any, Callable
 
@@ -118,6 +118,45 @@ def _portal_component(
         warnings=warnings,
         details={"url": url},
     )
+
+
+UNREACHABLE_PROBE_TIMEOUT_SEC = 1.5
+
+
+def _unreachable_probe(timeout_sec: float, *, local: bool = False) -> dict[str, Any]:
+    return {
+        "status": "warning" if local else "critical",
+        "errors": [f"unreachable (no response within {timeout_sec:g}s)"],
+        "details": {"reachability": "unreachable"},
+    }
+
+
+class ProbeBatch:
+    """Start probes in background threads now; collect them later with one shared deadline.
+
+    Probes still running at the deadline are reported as unreachable and abandoned (the pool is
+    shut down without waiting), so one slow target can no longer hold the whole page.
+    """
+
+    def __init__(self, probes: list[tuple[str, str, Callable[[], dict[str, Any]]]], *, max_workers: int = 8) -> None:
+        self._started = time.monotonic()
+        self._pool = ThreadPoolExecutor(max_workers=max(1, min(max_workers, len(probes) or 1)))
+        self._futures = {self._pool.submit(fn): (cid, name) for cid, name, fn in probes}
+
+    def collect(self, timeout_sec: float = UNREACHABLE_PROBE_TIMEOUT_SEC) -> dict[str, tuple[str, dict[str, Any] | None]]:
+        remaining = max(0.0, timeout_sec - (time.monotonic() - self._started))
+        done, _ = wait(list(self._futures), timeout=remaining)
+        out: dict[str, tuple[str, dict[str, Any] | None]] = {}
+        for fut, (cid, name) in self._futures.items():
+            if fut in done:
+                try:
+                    out[cid] = (name, fut.result())
+                except Exception as exc:  # noqa: BLE001
+                    out[cid] = (name, {"status": "critical", "errors": [str(exc)]})
+            else:
+                out[cid] = (name, None)
+        self._pool.shutdown(wait=False, cancel_futures=True)
+        return out
 
 
 def _run_probe_batch(

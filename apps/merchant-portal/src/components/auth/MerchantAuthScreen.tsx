@@ -1,5 +1,7 @@
 "use client";
 
+import { LanguageSwitcher } from "@/i18n/LanguageSwitcher";
+
 import type { ReactNode } from "react";
 import { publicEnv } from "@/lib/env";
 
@@ -17,7 +19,7 @@ type Props = {
 
 /**
  * Merchant portal auth chrome — brand plane + form, one composition.
- * Capacity-network messaging; Clerk widget stays the only interactive card.
+ * Capacity-network messaging; Keycloak widget stays the only interactive card.
  */
 export function MerchantAuthScreen({ title, subtitle, mode = "sign-in", footer, children }: Props) {
   return (
@@ -25,6 +27,9 @@ export function MerchantAuthScreen({ title, subtitle, mode = "sign-in", footer, 
       <BrandPanel mode={mode} />
 
       <section className="relative z-10 flex flex-1 flex-col justify-center px-5 py-10 sm:px-8 lg:px-12 xl:px-16">
+        <div className="absolute right-5 top-5 sm:right-8">
+          <LanguageSwitcher />
+        </div>
         <div className="merchant-auth-rise mx-auto w-full max-w-[26rem]">
           <header className="mb-8 lg:mb-10">
             <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-secondary lg:hidden">

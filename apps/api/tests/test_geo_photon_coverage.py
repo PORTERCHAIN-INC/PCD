@@ -166,27 +166,13 @@ def test_number_not_invented_on_far_apart_segments(
     assert "North York, Toronto" in out[0]["formatted"]
 
 
-def test_google_fallback_capped(monkeypatch: pytest.MonkeyPatch) -> None:
-    from porterchain_api import geo_google
+def test_no_third_party_geocoder_module() -> None:
+    import importlib.util
+    from pathlib import Path
 
-    class R:
-        n = 0
-
-        def incr(self, _k):
-            R.n += 1
-            return R.n
-
-        def expire(self, *_a):
-            return True
-
-    monkeypatch.setenv("GOOGLE_MAPS_SERVER_API_KEY", "k")
-    monkeypatch.setenv("GEO_GOOGLE_FALLBACK", "1")
-    monkeypatch.setenv("GEO_GOOGLE_DAILY_CAP", "1")
-    monkeypatch.setattr(geo_google, "_redis", lambda: R())
-    assert geo_google._take_slot() is True
-    assert geo_google._take_slot() is False
-    monkeypatch.setenv("GEO_GOOGLE_FALLBACK", "0")
-    assert geo_google.suggest("x", 3, geo.BBOX) == []
+    assert importlib.util.find_spec("porterchain_api.geo_" + "google") is None
+    src = Path(geo.__file__).read_text()
+    assert "places." + "googleapis" not in src and "photon+" not in src
 
 
 def test_leading_city_moved_last() -> None:

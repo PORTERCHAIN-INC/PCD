@@ -10,7 +10,7 @@ from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.dev import allow_auth_dev_bypass
 from porterchain_api.auth.persona_bundle import load_persona_bundle
 from porterchain_api.auth.portal_guard import subject_staff_portal
-from porterchain_api.auth.user_sync_service import _is_pending_clerk_id
+from porterchain_api.auth.user_sync_service import _is_pending_idp_id
 from porterchain_api.config import Settings
 from porterchain_api.booking_models import Customer
 
@@ -23,7 +23,7 @@ def evaluate_customer_onboarding(
     customer: Customer | None = None,
     email: str | None = None,
 ) -> dict[str, Any]:
-    identity_linked = not _is_pending_clerk_id(claims.auth_subject)
+    identity_linked = not _is_pending_idp_id(claims.auth_subject)
     if settings and allow_auth_dev_bypass(settings):
         identity_linked = True
 
@@ -40,8 +40,8 @@ def evaluate_customer_onboarding(
 
     steps: list[dict[str, Any]] = [
         {
-            "id": "clerk_account",
-            "label": "Clerk account connected",
+            "id": "idp_account",
+            "label": "Sign-in account connected",
             "description": "Sign in with your Porterchain customer account.",
             "complete": identity_linked,
             "status": "complete" if identity_linked else "pending",
@@ -63,7 +63,7 @@ def evaluate_customer_onboarding(
         {
             "id": "identity_authorized",
             "label": "Customer identity authorized",
-            "description": "This Clerk account must not be provisioned as staff, merchant, or driver.",
+            "description": "This Keycloak account must not be provisioned as staff, merchant, or driver.",
             "complete": conflict is None,
             "status": "complete" if conflict is None else f"conflict_{conflict}",
         },
@@ -106,7 +106,7 @@ def provision_customer_for_onboarding(
     claims: IdentityClaims,
     settings: Settings,
 ) -> Customer | None:
-    """Create/link the customers row when this Clerk id is allowed on the customer portal."""
+    """Create/link the customers row when this Keycloak id is allowed on the customer portal."""
     from fastapi import HTTPException
 
     from porterchain_api.auth.customer import require_customer

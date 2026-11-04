@@ -65,7 +65,7 @@ def test_ensure_user_writes_driver_spicedb_tuple(db: Session, settings) -> None:
     )
 
     suffix = uuid4().hex[:8]
-    subject_ref = f"clerk_hybrid_{suffix}"
+    subject_ref = f"idp_hybrid_{suffix}"
     email = f"driver-{suffix}@hybrid.test"
     driver = Driver(
         auth_subject=subject_ref,
@@ -78,8 +78,8 @@ def test_ensure_user_writes_driver_spicedb_tuple(db: Session, settings) -> None:
     db.flush()
 
     identity = AuthenticatedIdentity(
-        provider="clerk",
-        issuer="https://clerk.test",
+        provider="keycloak",
+        issuer="https://keycloak.test",
         subject=subject_ref,
         email=email,
         email_verified=True,
@@ -114,7 +114,7 @@ def test_ensure_user_org_tuple_and_cross_org_isolation(db: Session) -> None:
     )
 
     suffix = uuid4().hex[:8]
-    subject_ref = f"clerk_m_{suffix}"
+    subject_ref = f"idp_m_{suffix}"
     email = f"ops-{suffix}@hybrid.test"
     org_a = Merchant(
         company_name=f"Org A {suffix}",
@@ -142,8 +142,8 @@ def test_ensure_user_org_tuple_and_cross_org_isolation(db: Session) -> None:
     db.flush()
 
     identity = AuthenticatedIdentity(
-        provider="clerk",
-        issuer="https://clerk.test",
+        provider="keycloak",
+        issuer="https://keycloak.test",
         subject=subject_ref,
         email=email,
         email_verified=True,
@@ -174,15 +174,15 @@ def test_customer_spicedb_self_scope(db: Session) -> None:
     )
 
     suffix = uuid4().hex[:8]
-    subject_ref = f"clerk_c_{suffix}"
+    subject_ref = f"idp_c_{suffix}"
     email = f"cust-{suffix}@hybrid.test"
     customer = Customer(auth_subject=subject_ref, email=email)
     db.add(customer)
     db.flush()
 
     identity = AuthenticatedIdentity(
-        provider="clerk",
-        issuer="https://clerk.test",
+        provider="keycloak",
+        issuer="https://keycloak.test",
         subject=subject_ref,
         email=email,
         email_verified=True,

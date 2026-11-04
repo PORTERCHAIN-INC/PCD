@@ -13,7 +13,7 @@ DEV_STAFF_EMAIL = "admin@porterchain.com"
 DEV_MERCHANT_EMAIL = "merchant@porterchain.com"
 DEV_CUSTOMER_EMAIL = "customer@porterchain.com"
 
-DEV_LEGACY_SUBJECT = "dev_clerk_user"
+DEV_LEGACY_SUBJECT = "dev_idp_user"
 DEV_MERCHANT_SUBJECT = "dev_merchant_user"
 DEV_CUSTOMER_SUBJECT = "dev_customer_user"
 DEV_PORTAL_HEADER = "x-porterchain-portal"
@@ -31,7 +31,7 @@ def allow_auth_dev_bypass(settings: Settings) -> bool:
 
 
 def is_dev_bypass_subject(auth_subject: str | None) -> bool:
-    """Synthetic local Bearer-dev Clerk ids — no SpiceDB tuples by design."""
+    """Synthetic local Bearer-dev Keycloak ids — no SpiceDB tuples by design."""
     return bool(auth_subject) and auth_subject in _DEV_SUBJECTS
 
 
@@ -66,7 +66,7 @@ def resolve_dev_portal(*, path: str = "", header: str | None = None) -> str:
 
 
 def dev_claims_for(portal: str) -> IdentityClaims:
-    """One synthetic Clerk subject per portal — never reuse staff email on merchant/customer."""
+    """One synthetic Keycloak subject per portal — never reuse staff email on merchant/customer."""
     if portal == "merchant":
         return IdentityClaims(
             auth_subject=DEV_MERCHANT_SUBJECT,
@@ -75,8 +75,8 @@ def dev_claims_for(portal: str) -> IdentityClaims:
             org_role="org:admin",
             public_metadata={"role": "merchant_owner"},
             session_id="dev_session_merchant",
-            clerk_app="merchant",
-            issuer="https://clerk.porterchain.local",
+            idp_app="merchant",
+            issuer="https://keycloak.porterchain.local",
             authorized_party="pk_dev",
             auth_time=0,
         )
@@ -87,8 +87,8 @@ def dev_claims_for(portal: str) -> IdentityClaims:
             phone="+1 416-555-4401",
             public_metadata={"role": "customer"},
             session_id="dev_session_customer",
-            clerk_app="customer",
-            issuer="https://clerk.porterchain.local",
+            idp_app="customer",
+            issuer="https://keycloak.porterchain.local",
             authorized_party="pk_dev",
             auth_time=0,
         )
@@ -99,8 +99,8 @@ def dev_claims_for(portal: str) -> IdentityClaims:
         org_role="dispatcher",
         public_metadata={"role": "dispatcher"},
         session_id="dev_session",
-        clerk_app="admin",
-        issuer="https://clerk.porterchain.local",
+        idp_app="admin",
+        issuer="https://keycloak.porterchain.local",
         authorized_party="pk_dev",
         auth_time=0,
     )

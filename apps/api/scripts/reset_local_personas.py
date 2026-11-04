@@ -230,8 +230,8 @@ def _pc_user(
     db.add(
         IdentityLink(
             auth_subject=auth_subject,
-            provider="clerk",
-            issuer="https://clerk.porterchain.local",
+            provider="keycloak",
+            issuer="https://keycloak.porterchain.local",
             subject=auth_subject,
             is_current=True,
             is_legacy=False,
@@ -284,7 +284,7 @@ def seed_merchant(db, admin: AdminUser) -> tuple:
                     "channels": {"email": True, "in_app": True},
                 },
                 "branding": {
-                    "logo_url": "https://storage.porterchain.local/seed/maple-leaf-logo.png",
+                    "logo_url": None,  # L161: no fake host; upload the logo in Settings → Branding
                     "primary_color": "#1e3a5f",
                     "accent_color": "#f59e0b",
                     "tracking_page_message": "Maple Leaf Wholesale — on the way.",
@@ -439,7 +439,7 @@ def seed_merchant(db, admin: AdminUser) -> tuple:
     company = project_merchant_company(db, merchant)
     company.operating_name = "Maple Leaf Wholesale"
     company.linkedin_url = "https://www.linkedin.com/company/maple-leaf-wholesale"
-    company.logo_url = "https://storage.porterchain.local/seed/maple-leaf-logo.png"
+    company.logo_url = None  # L161
     company.business_type = "corporation"
     company.branches = [
         {

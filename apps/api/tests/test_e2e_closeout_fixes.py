@@ -82,7 +82,7 @@ def test_complete_pod_from_at_destination_walks_delivered(monkeypatch: pytest.Mo
     monkeypatch.setattr("porterchain_driver.pod_policy.assert_on_duty", lambda *_a, **_k: None)
 
     result = ProofOfDeliveryService().complete_pod(
-        MagicMock(), SimpleNamespace(id="d1"), "o1-dropoff", otp="123456"
+        MagicMock(), SimpleNamespace(id="d1", wallet_balance_cents=0), "o1-dropoff", otp="123456"
     )
     assert result.success is True
     assert calls == [OrderState.DELIVERED, OrderState.POD_COMPLETED]
@@ -115,7 +115,7 @@ def test_complete_pod_already_completed_is_idempotent(monkeypatch: pytest.Monkey
     )
 
     result = ProofOfDeliveryService().complete_pod(
-        MagicMock(), SimpleNamespace(id="d1"), "o1-dropoff"
+        MagicMock(), SimpleNamespace(id="d1", wallet_balance_cents=0), "o1-dropoff"
     )
     assert result.success is True
     assert calls == []

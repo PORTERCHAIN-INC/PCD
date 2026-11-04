@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Post-Clerk continue — no SignIn widget, no #/factor-one.
+ * Post-sign-in continue — no SignIn widget, no #/factor-one.
  * Resolves session-context and sends the user to their module.
  */
 

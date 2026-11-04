@@ -36,7 +36,7 @@ def list_approved_drivers(db: Session, *, limit: int = 50) -> list[Driver]:
     )
 
 
-def get_driver_by_clerk(db: Session, auth_subject: str) -> Driver | None:
+def get_driver_by_idp(db: Session, auth_subject: str) -> Driver | None:
     return db.query(Driver).filter(Driver.auth_subject == auth_subject).first()
 
 

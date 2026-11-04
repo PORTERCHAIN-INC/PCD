@@ -3,6 +3,8 @@ import { test } from "node:test";
 import {
   authorizeUrl,
   b64url,
+  flowCookieName,
+  sessionCookieName,
   chunkCookies,
   decodeJwt,
   needsRefresh,
@@ -135,4 +137,18 @@ test("logout url ends the Keycloak session and returns to the app", () => {
   const u = new URL(logoutUrl(cfg, "https://m.example/sign-in", "idt"));
   assert.equal(u.searchParams.get("post_logout_redirect_uri"), "https://m.example/sign-in");
   assert.equal(u.searchParams.get("id_token_hint"), "idt");
+});
+
+test("session cookie name is per app when AUTH_COOKIE_NAME is set (same host, different ports)", () => {
+  assert.equal(sessionCookieName({}), "pc_session");
+  assert.equal(flowCookieName({}), "pc_oidc_flow");
+  assert.equal(
+    sessionCookieName({ AUTH_COOKIE_NAME: "pc_session_customer" }),
+    "pc_session_customer"
+  );
+  assert.equal(
+    flowCookieName({ AUTH_COOKIE_NAME: "pc_session_customer" }),
+    "pc_session_customer_flow"
+  );
+  assert.equal(sessionCookieName({ AUTH_COOKIE_NAME: "bad name;" }), "pc_session");
 });

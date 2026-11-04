@@ -34,15 +34,18 @@ export function resolveApiBaseUrl(
   return trimSlash(url && !isLocal(url) ? url : PROD_API);
 }
 
+/** Local Beta (APP_ENV=local, .env.beta only) is a Release build that talks to the Mac stack. */
+const localBeta = appEnv === "local";
+
 export const apiBaseUrl = resolveApiBaseUrl(
   process.env.EXPO_PUBLIC_API_URL,
-  __DEV__ && appEnv !== "production" && appEnv !== "preview"
+  (__DEV__ || localBeta) && appEnv !== "production" && appEnv !== "preview"
 );
 
 /** Public website: the one tracking page (map, photo, rating, receipt, cancel, report a problem). */
 export const websiteUrl = (() => {
   const u = trimSlash((process.env.EXPO_PUBLIC_WEBSITE_URL ?? "").trim());
-  return u && (__DEV__ || !isLocal(u)) ? u : "https://porterchain.com";
+  return u && (__DEV__ || localBeta || !isLocal(u)) ? u : "https://porterchain.com";
 })();
 
 /** Customer web portal: documents are attached there (file picking + secure upload). */

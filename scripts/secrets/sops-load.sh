@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Decrypt secrets/<name>.enc.yaml with SOPS + age (doc 37). Replaces `doppler run` / download.
+# Decrypt secrets/<name>.enc.yaml with SOPS + age (doc 37).
 #   sops-load.sh <name> <out.env>          write a dotenv file (umask 077, atomic)
 #   sops-load.sh <name> --exec -- <cmd…>   run cmd with secrets in its env only (nothing on disk)
 # Needs: sops, and an age private key in $SOPS_AGE_KEY_FILE (default ~/.config/sops/age/keys.txt)

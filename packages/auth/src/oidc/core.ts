@@ -4,7 +4,23 @@
  * same code runs in middleware (Edge) and route handlers (Node). No React / Next imports.
  */
 
+/**
+ * Cookie names. Browsers scope cookies by host, not port, so apps served from one host on
+ * different ports (LAN local stack) would share one session and silently sign a persona app in
+ * as whoever used another app. AUTH_COOKIE_NAME (e.g. pc_session_customer) keeps them apart;
+ * production apps live on separate hosts and keep the default.
+ */
+export function sessionCookieName(env: Record<string, string | undefined> = process.env): string {
+  const n = (env.AUTH_COOKIE_NAME ?? "").trim();
+  return /^[A-Za-z0-9_-]+$/.test(n) ? n : "pc_session";
+}
+export function flowCookieName(env: Record<string, string | undefined> = process.env): string {
+  const n = sessionCookieName(env);
+  return n === "pc_session" ? "pc_oidc_flow" : `${n}_flow`;
+}
+/** @deprecated default name only; use sessionCookieName() */
 export const SESSION_COOKIE = "pc_session";
+/** @deprecated default name only; use flowCookieName() */
 export const FLOW_COOKIE = "pc_oidc_flow";
 const CHUNK = 3800;
 const MAX_CHUNKS = 6;
@@ -179,7 +195,7 @@ export function readChunks(cookies: CookieReader, name: string): string {
 }
 
 export function hasSessionCookie(cookies: CookieReader): boolean {
-  return Boolean(cookies.get(`${SESSION_COOKIE}.0`)?.value);
+  return Boolean(cookies.get(`${sessionCookieName()}.0`)?.value);
 }
 
 // ---------- tokens ----------

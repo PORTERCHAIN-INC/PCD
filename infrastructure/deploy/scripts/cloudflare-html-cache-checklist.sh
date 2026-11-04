@@ -23,7 +23,7 @@ Goal: edge HIT on public HTML; bypass dynamic quote/book/auth paths.
    - If: URI Path contains /blog
    - Then: Cache everything + Edge TTL = 30 minutes (website uses tagged revalidate)
 4. Bypass rule (higher priority):
-   - If: URI Path starts with /api/ OR Cookie contains __session (Clerk)
+   - If: URI Path starts with /api/ OR Cookie contains __session (Keycloak)
    - Then: Bypass cache
 5. Verify:
    bash scripts/verify_website_cf_cache.sh

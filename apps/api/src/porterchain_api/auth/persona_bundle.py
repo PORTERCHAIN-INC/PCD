@@ -1,4 +1,4 @@
-"""Single-flight persona lookup for a Clerk subject.
+"""Single-flight persona lookup for a Keycloak subject.
 
 All auth hot-path callers (portal_guard, EnsureUser role hint, principal
 resolution, conflict checks) should use ``load_persona_bundle`` instead of
@@ -36,7 +36,7 @@ class PersonaBundle:
         }
 
     def staff_portal(self) -> str | None:
-        """First non-customer portal this Clerk id is provisioned for."""
+        """First non-customer portal this Keycloak id is provisioned for."""
         if self.admin is not None:
             return "admin"
         if self.merchant_users:
@@ -64,7 +64,7 @@ class PersonaBundle:
 
 
 def load_persona_bundle(db: Session, auth_subject: str, *, force: bool = False) -> PersonaBundle:
-    """Load (and request-cache) persona rows for a Clerk subject."""
+    """Load (and request-cache) persona rows for a Keycloak subject."""
     if not auth_subject or auth_subject.startswith("pending:") or is_dev_bypass_subject(auth_subject):
         return PersonaBundle(auth_subject=auth_subject or "")
 

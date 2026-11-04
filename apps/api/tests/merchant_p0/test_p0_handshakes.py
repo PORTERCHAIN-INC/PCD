@@ -31,9 +31,9 @@ NAV_TS = REPO_ROOT / "apps" / "merchant-portal" / "src" / "lib" / "merchant-nav.
 
 
 @pytest.fixture(autouse=True)
-def _clear_clerk_env(monkeypatch: pytest.MonkeyPatch) -> None:
+def _clear_idp_env(monkeypatch: pytest.MonkeyPatch) -> None:
     for key in list(os.environ):
-        if key.startswith("CLERK_"):
+        if key.startswith("IDP_"):
             monkeypatch.delenv(key, raising=False)
 
 

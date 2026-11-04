@@ -18,7 +18,7 @@ from porterchain_api.merchant_engine.import_mapping_profiles import save_profile
 from porterchain_api.merchant_engine.import_quote import split_stops
 from porterchain_api.merchant_engine.import_rows import optional_float, optional_text
 from porterchain_api.merchant_engine.rbac import MerchantContext
-from porterchain_api.merchant_engine.stop_cargo import cargo_stop
+from porterchain_api.merchant_engine.stop_cargo import cargo_stop, route_parcel_rows
 from porterchain_api.merchant_models import BulkImportJob
 from porterchain_api.schemas_merchant import AddressInput, MerchantBookDeliveryRequest
 
@@ -122,6 +122,7 @@ def confirm_import(
         internal_reference=cfg.get("internal_reference"),
         cost_centre=cfg.get("cost_centre"),
         special_instructions=driver_notes(stops),
+        route_parcels=route_parcel_rows(dropoff, additional),
     )
     order = booking.create_shipment(
         db,

@@ -55,7 +55,7 @@ def _route_exists(href: str) -> bool:
     direct = APP / path / "page.tsx"
     if direct.is_file():
         return True
-    # Clerk catch-alls: sign-up/[[...sign-up]]/page.tsx
+    # Keycloak catch-alls: sign-up/[[...sign-up]]/page.tsx
     if path:
         segment_dir = APP / path
         if segment_dir.is_dir():

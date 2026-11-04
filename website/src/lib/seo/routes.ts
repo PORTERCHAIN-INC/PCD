@@ -170,7 +170,7 @@ export function capabilitySlug(locale: Locale, slug: string): string {
   return localePath(locale, `${PATHS.CAPABILITIES}/${slug}`);
 }
 
-/** Capacity quote — Platform Clerk sign-up → customer portal book. */
+/** Capacity quote — Keycloak sign-up → customer portal book. */
 export function quoteContact(locale: Locale, from: string, query?: RouteQuery): string {
   return withQuery(localePath(locale, "sign-up"), { from, intent: "quote", ...query });
 }

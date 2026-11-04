@@ -109,7 +109,7 @@ export const PRIVACY_NOTICE: ConsentDocument = {
       list: [
         "Keycloak (self-hosted by PorterChain) — sign-in and account security",
         "Stripe — payment processing",
-        "Google Maps — address autocomplete and mapping",
+        "OpenStreetMap data (self-hosted by PorterChain) — maps and address search",
         "Zoho Mail — transactional email delivery",
         "PorterChain API — dispatch, routing, and shipment operations",
       ],

@@ -1,6 +1,6 @@
 """Audited impersonation sessions (Redis) — break-glass \"open as user\".
 
-Staff never receives a forged Clerk JWT. Portals accept ``Bearer pc_imp_<id>``
+Staff never receives a forged Keycloak JWT. Portals accept ``Bearer pc_imp_<id>``
 which resolves to the target persona for a short absolute TTL. Every start/stop
 is written to AdminAuditLog; request.state carries the session for engines.
 """

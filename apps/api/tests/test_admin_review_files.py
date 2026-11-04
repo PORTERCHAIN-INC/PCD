@@ -270,3 +270,18 @@ def test_abstract_verify_with_file_needs_no_note() -> None:
     entry = driver.documents["abstract"]
     assert entry["verified"] is True
     assert entry["verified_without_file"] is False
+
+
+def test_driver_reupload_shows_next_to_older_admin_file():
+    from porterchain_api.admin_engine.driver_documents import admin_review_files
+    docs = {
+        "files": [{"doc_type": "driver_license", "file_url": "https://old.example/l.pdf", "status": "verified",
+                   "uploaded_at": "2026-10-29T10:00:00+00:00"}],
+        "license": {"url": "data:image/png;base64,AAAA", "status": "pending_review",
+                    "uploaded_at": "2026-10-31T22:00:00+00:00"},
+    }
+    out = admin_review_files(docs)
+    urls = [f["file_url"] for f in out]
+    assert "data:image/png;base64,AAAA" in urls and "https://old.example/l.pdf" in urls
+    same = admin_review_files({"files": [{"doc_type": "license", "file_url": "u1"}], "license": {"url": "u1"}})
+    assert len(same) == 1

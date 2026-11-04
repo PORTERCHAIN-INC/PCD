@@ -207,3 +207,12 @@ def uncapped_plan_pool(monkeypatch):
     from porterchain_api.admin_engine import fleet_plan_service
 
     monkeypatch.setattr(fleet_plan_service, "MAX_ORDERS", 1_000_000)
+
+
+@pytest.fixture
+def legacy_pricing(monkeypatch):
+    """Pin a test to the previous distance/FSA/contract engine (Standard card off)."""
+    from porterchain_api.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "pricing_standard_card_live", False)
+    yield

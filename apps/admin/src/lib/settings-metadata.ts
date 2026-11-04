@@ -91,7 +91,7 @@ export const SECTION_ICONS: Record<string, LucideIcon> = {
   driver: Truck,
   customer: Users,
   dispatch: Truck,
-  google_maps: Map,
+  maps: Map,
   stripe: CreditCard,
   firebase: Zap,
   storage: Server,
@@ -106,19 +106,20 @@ export const SECTION_ICONS: Record<string, LucideIcon> = {
 export const SECTION_DESCRIPTIONS: Record<string, string> = {
   dashboard: "Readiness of wired commercial settings and connection health.",
   general: "Company name and support email are wired into invoice events and driver statements.",
-  users: "Every PorterChain persona in the DB — Staff IdP for staff; Clerk identity for others.",
+  users: "Every PorterChain persona in the DB — Staff IdP for staff; Keycloak identity for others.",
   roles: "Staff role → module catalog (read-only). SpiceDB Checks are the authorization SoT.",
   authentication:
     "All portals sign in with Keycloak. Staff use the pc-admin client (authenticator app required for admin roles).",
   security:
-    "API rate limits from Doppler/env. Staff sessions from IdP; portal passwords from Clerk.",
+    "API rate limits from SOPS/env. Staff sessions from IdP; portal passwords from Keycloak.",
   vehicles:
     "Quote vehicle catalog. Enabled flags gate retail quotes. Physical fleet is PorterChain.",
   carriage: "Conditions of Carriage — waiting, returns, claims, coverage; contracts override.",
   driver_gps: "Live driver GPS — global switch and per-driver overrides.",
   admin_access: "Optional IP allowlist for Admin (off by default).",
   route_pricing: "Smart route coefficients with a live current-vs-new preview.",
-  pricing: "GTA matrix, FSA, liftgate/weight card, tax, and fuel — quotes use these immediately.",
+  pricing:
+    "Live pricing: $6 / $9 parcels + handling, hourly vehicles, and per-merchant custom prices. The old GTA matrix, rate card and price book are retired (read only).",
   coverage:
     "Active service cities gate retail quotes (empty = unrestricted). Zones remain ops notes.",
   booking: "Instant delivery SLA is wired. Quote/draft TTL are environment-owned.",
@@ -133,14 +134,14 @@ export const SECTION_DESCRIPTIONS: Record<string, string> = {
     "Upload size and allowed types gate blog media and POD downloads. Retention remains policy.",
   claims: "Investigation SLA stamps due-at on open; max compensation caps approved payouts.",
   dispatch: "Dispatch is the PorterChain day plan.",
-  google_maps: "Places autocomplete and map tiles only — not a routing engine.",
+  maps: "Self-hosted PMTiles + Photon address search — not a routing engine.",
   stripe: "Payments — secrets never exposed in UI.",
   firebase: "Mobile push — project status only.",
   storage: "Document storage backend status.",
   channels:
     "Email / SMS / push health plus the locked staff push alert budget. Template ops under Notifications.",
   lead_ingest:
-    "Lead webhook secrets, Meta/LinkedIn CAPI, territory map, and referral credits — saved to Doppler on write.",
+    "Lead webhook secrets, Meta/LinkedIn CAPI, territory map, and referral credits — kept in the SOPS secrets file (checked here, set with sops).",
   automation: "Dispatch retry settings stay on the PorterChain worker.",
   deleted_items:
     "Restore deleted items, or delete them for good. Finance and audit records are never deleted.",

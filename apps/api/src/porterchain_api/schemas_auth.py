@@ -75,7 +75,7 @@ class PortalOnboardingResponse(BaseModel):
     merchant_id: str | None = None
     vertical: str | None = None
     vertical_label: str | None = None
-    vertical_options: list[dict[str, str]] = Field(default_factory=list)
+    vertical_options: list[dict[str, str | None]] = Field(default_factory=list)  # note may be null (L163)
     status_label: str | None = None
     role: str | None = None
     role_label: str | None = None

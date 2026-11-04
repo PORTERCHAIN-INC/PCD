@@ -10,7 +10,7 @@ from porterchain_api.admin_engine.audit import log_admin_audit
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import Driver
 from porterchain_api.auth.identity_directory import is_directory_configured
-from porterchain_api.auth.invitation_service import InvitationService, pending_clerk_id
+from porterchain_api.auth.invitation_service import InvitationService, pending_idp_id
 from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import DriverStatus
 
@@ -22,7 +22,7 @@ def _identity_linked(auth_subject: str | None) -> bool:
     return not (s.startswith("pending:") or s.startswith("staff:") or s.startswith("impersonation:"))
 
 
-_CLERK_DIRECTORY_TYPES = frozenset({"driver", "customer", "merchant"})
+_IDP_DIRECTORY_TYPES = frozenset({"driver", "customer", "merchant"})
 
 
 def invite_directory_user(
@@ -33,8 +33,8 @@ def invite_directory_user(
     *,
     platform_user_id: str,
 ) -> dict[str, Any]:
-    """Re-send Clerk invite for an existing driver or customer (Settings → Users)."""
-    if user_type not in _CLERK_DIRECTORY_TYPES:
+    """Re-send Keycloak invite for an existing driver or customer (Settings → Users)."""
+    if user_type not in _IDP_DIRECTORY_TYPES:
         raise ValueError("invalid_user_type")
     if user_type == "merchant":
         raise ValueError("merchant_seats_bind_on_signin_not_invite")
@@ -59,7 +59,7 @@ def create_local_driver(
     email: str,
     name: str | None,
 ) -> dict[str, Any]:
-    """PENDING driver row without Clerk — Super Admin can approve / assign before portal login."""
+    """PENDING driver row without Keycloak — Super Admin can approve / assign before portal login."""
     existing = db.query(Driver).filter(Driver.email == email).first()
     if existing:
         return {
@@ -71,7 +71,7 @@ def create_local_driver(
     driver = Driver(
         full_name=name or email.split("@")[0],
         email=email,
-        auth_subject=pending_clerk_id(email),
+        auth_subject=pending_idp_id(email),
         status=DriverStatus.PENDING.value,
     )
     db.add(driver)

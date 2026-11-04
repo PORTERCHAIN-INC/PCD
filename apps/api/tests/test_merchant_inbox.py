@@ -1,4 +1,4 @@
-"""Merchant inbox is company-scoped via X-Merchant-Id, not Clerk orgs."""
+"""Merchant inbox is company-scoped via X-Merchant-Id, not Keycloak orgs."""
 
 from __future__ import annotations
 
@@ -37,10 +37,10 @@ def _seat(db, *, subject_ref: str, company: str, status: str = MerchantStatus.AC
     return merchant
 
 
-def test_inbox_follows_x_merchant_id_not_clerk_org(db):
-    clerk = f"user_{uuid4().hex[:10]}"
-    first = _seat(db, subject_ref=clerk, company="North Co")
-    second = _seat(db, subject_ref=clerk, company="South Co")
+def test_inbox_follows_x_merchant_id_not_idp_org(db):
+    keycloak = f"user_{uuid4().hex[:10]}"
+    first = _seat(db, subject_ref=keycloak, company="North Co")
+    second = _seat(db, subject_ref=keycloak, company="South Co")
     settings = Settings(app_env="local", auth_dev_bypass=False)
 
     db.add(
@@ -69,8 +69,8 @@ def test_inbox_follows_x_merchant_id_not_clerk_org(db):
     )
     db.flush()
 
-    north = _resolve_merchant_recipient(db, settings, clerk, first.id)
-    south = _resolve_merchant_recipient(db, settings, clerk, second.id)
+    north = _resolve_merchant_recipient(db, settings, keycloak, first.id)
+    south = _resolve_merchant_recipient(db, settings, keycloak, second.id)
     assert north is not None and north.user_id == first.id
     assert south is not None and south.user_id == second.id
 
@@ -80,26 +80,26 @@ def test_inbox_follows_x_merchant_id_not_clerk_org(db):
     assert {item["title"] for item in north_box["items"]} == {"North booked"}
     assert {item["title"] for item in south_box["items"]} == {"South booked"}
 
-    # Clerk Organization id is not a company selector.
-    assert _resolve_merchant_recipient(db, settings, clerk, first.external_org_id) is None
-    assert _resolve_merchant_recipient(db, settings, clerk, "org_someone_else") is None
+    # Keycloak Organization id is not a company selector.
+    assert _resolve_merchant_recipient(db, settings, keycloak, first.external_org_id) is None
+    assert _resolve_merchant_recipient(db, settings, keycloak, "org_someone_else") is None
 
 
 def test_onboarding_merchant_can_open_inbox(db):
-    clerk = f"user_{uuid4().hex[:10]}"
-    merchant = _seat(db, subject_ref=clerk, company="Onboarding Co", status=MerchantStatus.ONBOARDING.value)
+    keycloak = f"user_{uuid4().hex[:10]}"
+    merchant = _seat(db, subject_ref=keycloak, company="Onboarding Co", status=MerchantStatus.ONBOARDING.value)
     settings = Settings(app_env="local", auth_dev_bypass=False)
-    user = _resolve_merchant_recipient(db, settings, clerk, merchant.id)
+    user = _resolve_merchant_recipient(db, settings, keycloak, merchant.id)
     assert user is not None
     assert user.user_id == merchant.id
 
 
 def test_settings_overview_includes_quiet_hours(db):
-    clerk = f"user_{uuid4().hex[:10]}"
-    merchant = _seat(db, subject_ref=clerk, company="Quiet Co")
+    keycloak = f"user_{uuid4().hex[:10]}"
+    merchant = _seat(db, subject_ref=keycloak, company="Quiet Co")
     user = (
         db.query(MerchantUser)
-        .filter(MerchantUser.merchant_id == merchant.id, MerchantUser.auth_subject == clerk)
+        .filter(MerchantUser.merchant_id == merchant.id, MerchantUser.auth_subject == keycloak)
         .one()
     )
     ctx = MerchantContext(merchant=merchant, user=user, role=MerchantRole.OWNER)

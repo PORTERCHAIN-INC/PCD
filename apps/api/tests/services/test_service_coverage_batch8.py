@@ -101,8 +101,8 @@ def test_merchant_tracking_dashboard_mocked(
 
 @patch("porterchain_api.admin_engine.identity_directory_service.directory_for_kind")
 @patch("porterchain_api.admin_engine.identity_directory_service.is_directory_configured", return_value=True)
-def test_clerk_directory_create_driver_password(mock_cfg, mock_client, db, admin_ctx, settings) -> None:
-    subject_ref = f"user_drv_clerk_{datetime.now(UTC).timestamp()}"
+def test_idp_directory_create_driver_password(mock_cfg, mock_client, db, admin_ctx, settings) -> None:
+    subject_ref = f"user_drv_idp_{datetime.now(UTC).timestamp()}"
     mock_client.return_value.create_user.return_value = {"id": subject_ref}
     svc = DirectoryUserService()
     email = f"driver-pw-{datetime.now(UTC).timestamp()}@svc.test"

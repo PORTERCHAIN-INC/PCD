@@ -37,7 +37,7 @@ def _admin_ctx(*, role: AdminRole, uid: str) -> AdminContext:
     suffix = uuid4().hex[:8]
     user = AdminUser(
         id=f"adm-{suffix}",
-        auth_subject=f"clerk_{suffix}",
+        auth_subject=f"idp_{suffix}",
         email=f"{role.value}-{suffix}@test.local",
         name=role.value,
         role=role.value,

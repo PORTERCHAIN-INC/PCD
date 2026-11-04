@@ -5,6 +5,8 @@ The point is for Valhalla/OSRM. CSV-supplied lat/lng skip the lookup.
 
 from __future__ import annotations
 
+import re
+
 import hashlib
 import json
 import logging
@@ -118,6 +120,31 @@ def _nominatim_search(query: str) -> dict[str, Any] | None:
     return hit
 
 
+_ORD_RE = re.compile(r"^(\d+[A-Za-z]?\s+)(\d+)(\s+(?:Line|Concession|Conc|Sideroad|Side Road)\b)", re.I)
+_POSTAL_RE = re.compile(r"\b([A-Z]\d[A-Z])\s?\d[A-Z]\d\b", re.I)
+
+
+def _ordinal_street(street: str) -> str:
+    """'3075 8 Line' -> '3075 8th Line' (OSM names numbered concession roads this way)."""
+    def suffix(n: int) -> str:
+        return "th" if 10 <= n % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+
+    m = _ORD_RE.match(street or "")
+    if not m:
+        return street
+    n = int(m.group(2))
+    return f"{m.group(1)}{n}{suffix(n)}{m.group(3)}{street[m.end():]}"
+
+
+def _postal_mismatch(postal: str | None, display: Any) -> bool:
+    """L197c: the hit's forward sortation area differs from the one the merchant gave."""
+    if not postal or not isinstance(display, str):
+        return False
+    want = _POSTAL_RE.search(postal)
+    got = _POSTAL_RE.search(display)
+    return bool(want and got and want.group(1).upper() != got.group(1).upper())
+
+
 def geocode_stop(
     *,
     address: str,
@@ -171,6 +198,15 @@ def geocode_stop(
             ),
         ),
     ]
+    # L197b: Nominatim often has no Canadian postcode for a building -> retry without it,
+    # and spell concession roads the OSM way ("8 Line" -> "8th Line").
+    # The street may carry the town itself ("3075 8 Line, Bradford") when no city column is set.
+    if norm.street:
+        base = [p for p in [norm.street, norm.city, norm.province or "ON", "Canada"] if p]
+        attempts.append(("ok", 0.75, ", ".join(base)))
+        ordinal = _ordinal_street(norm.street)
+        if ordinal != norm.street:
+            attempts.append(("ok", 0.75, ", ".join([ordinal, *base[1:]])))
     if norm.postal and norm.city:
         attempts.append(
             (
@@ -200,7 +236,9 @@ def geocode_stop(
                 unit=norm.unit,
                 raw=norm.raw,
                 geocode_query=q,
-                issues=issues + (["address.approximate"] if status == "approximate" else []),
+                issues=issues
+                + (["address.approximate"] if status == "approximate" else [])
+                + (["address.postal_mismatch"] if _postal_mismatch(norm.postal, hit.get("display_name")) else []),
                 source="nominatim",
                 city=norm.city,
                 postal=norm.postal,

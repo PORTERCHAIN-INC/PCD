@@ -1,4 +1,4 @@
-"""User invitations — Clerk invite tracking (invitation-only roles)."""
+"""User invitations — Keycloak invite tracking (invitation-only roles)."""
 
 import uuid
 from datetime import datetime
@@ -15,7 +15,7 @@ def _uuid() -> str:
 
 
 class UserInvitation(Base):
-    """Audit log for Clerk invitations sent by Porterchain staff."""
+    """Audit log for Keycloak invitations sent by Porterchain staff."""
 
     __tablename__ = "user_invitations"
 

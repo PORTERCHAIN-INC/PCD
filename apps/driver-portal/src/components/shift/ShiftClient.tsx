@@ -203,12 +203,27 @@ export default function ShiftClient() {
         </div>
       </section>
 
+      {snap.long_shift_warning && (
+        <p
+          role="alert"
+          className="mt-6 rounded-lg border border-amber-400 bg-amber-50 p-3 text-sm text-amber-900"
+        >
+          You have been on shift for over 14 hours. Please finish up and take a rest. Your shift
+          ends automatically at 16 hours.
+        </p>
+      )}
+      {snap.auto_clocked_out && (
+        <p role="status" className="mt-6 rounded-lg border border-[var(--border)] p-3 text-sm">
+          Your shift was ended automatically after 16 hours on shift.
+        </p>
+      )}
+
       <section className="mt-6 grid gap-4 lg:grid-cols-3">
         <InfoCard title="Working Hours" icon={Clock}>
           <p className="text-3xl font-bold">{snap.working_hours_label}</p>
           <p className="mt-1 text-sm text-[var(--muted)]">
             {snap.shift?.started_at
-              ? `Started ${new Date(snap.shift.started_at).toLocaleTimeString()}`
+              ? `Started ${new Date(snap.shift.started_at).toLocaleTimeString("en-CA")}`
               : "Start a shift to track time"}
           </p>
           {snap.shift && snap.shift.break_minutes > 0 && (
@@ -246,7 +261,12 @@ export default function ShiftClient() {
             <dl className="space-y-2 text-sm">
               <Row label="Unit" value={snap.current_vehicle.make_model} />
               <Row label="Plate" value={snap.current_vehicle.plate_number} />
-              <Row label="Class" value={snap.current_vehicle.vehicle_class} />
+              <Row
+                label="Class"
+                value={String(snap.current_vehicle.vehicle_class ?? "")
+                  .replace(/_/g, " ")
+                  .replace(/^./, (c) => c.toUpperCase())}
+              />
             </dl>
           ) : (
             <p className="text-sm text-[var(--muted)]">No active vehicle</p>

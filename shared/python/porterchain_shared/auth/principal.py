@@ -1,4 +1,4 @@
-"""Authenticated principal — supports multiple roles per user (Clerk JWT + metadata)."""
+"""Authenticated principal — supports multiple roles per user (Keycloak JWT + metadata)."""
 
 from dataclasses import dataclass, field
 

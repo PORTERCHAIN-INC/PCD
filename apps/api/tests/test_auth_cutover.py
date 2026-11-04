@@ -58,7 +58,7 @@ def test_get_customer_context_deleted() -> None:
     assert hasattr(customer_mod, "require_customer")
 
 
-def test_architecture_census_staff_not_clerk() -> None:
+def test_architecture_census_staff_not_idp() -> None:
     from pathlib import Path
 
     text = Path(__file__).resolve().parents[3].joinpath("ARCHITECTURE.md").read_text()
@@ -88,7 +88,7 @@ def test_ensure_staff_identity_prefers_existing_staff_subject(db) -> None:
         name="Dev Ops",
         role="admin",
         is_active=True,
-        auth_subject=f"dev_clerk_user_{suffix}",
+        auth_subject=f"dev_idp_user_{suffix}",
     )
     db.add(admin)
     db.flush()
@@ -101,7 +101,7 @@ def test_ensure_staff_identity_prefers_existing_staff_subject(db) -> None:
         default_workspace="admin",
     )
     legacy_pc = PorterchainUser(
-        auth_subject=f"legacy_clerk_{suffix}",
+        auth_subject=f"legacy_idp_{suffix}",
         email=admin.email,
         role="unprovisioned",
         status="active",

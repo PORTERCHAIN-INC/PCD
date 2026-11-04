@@ -81,7 +81,7 @@ def push_fulfillment(
 
     First call (no ``fulfillment_id`` yet) creates the fulfillment via FO line
     items. Later lifecycle events (picked up / in transit / delivered) update
-    tracking only so the buyer sees mid-flight status — Stripe-like trust.
+    tracking only so the buyer sees mid-flight status — clear, trustworthy status.
     Silent no-ops persist ``last_fulfillment_error`` so admin can see why.
     """
     if order.order_source != OrderSource.SHOPIFY.value:
@@ -268,6 +268,11 @@ def _register_webhooks(shop: ShopifyShop, settings: Settings) -> None:
         "fulfillment_orders/order_routing_complete",
         "fulfillment_orders/scheduled_fulfillment_order_ready",
     ]
+    from porterchain_api.merchant_engine.shopify_billing import billing_applies
+
+    if billing_applies(shop, settings):  # review 139170: approve / decline / cancel
+        topics.append("app_subscriptions/update")
+        topics.append("app_subscriptions/approaching_capped_amount")
     if settings.shopify_fulfillment_service_enabled:
         topics.extend(
             [
@@ -735,8 +740,13 @@ SYNC_RETRY_BACKOFF_SECONDS = (60, 300, 900, 3600, 10800, 21600)
 
 def public_tracking_url(settings: Settings, tracking: str) -> str:
     """Buyer-facing PorterChain tracking page (website /track/{number})."""
-    base = settings.website_url.rstrip("/")
+    base = tracking_base_url(settings)
     return f"{base}/track/{tracking}" if tracking else f"{base}/track"
+
+
+def tracking_base_url(settings: Settings) -> str:
+    """L121: PUBLIC_TRACKING_BASE_URL per environment, else website_url."""
+    return (getattr(settings, "public_tracking_base_url", "") or settings.website_url).rstrip("/")
 
 
 def schedule_sync_retry(

@@ -29,7 +29,7 @@ Verdict: **accurate but not easy.** The engine is careful (integer cents, versio
 | P Pallet          | ≤ 500 kg, 120×100 cm | —            | warehouse pallet (GS1 SSCC)         |
 | Vehicle           | whole van/truck      | —            | moves, multi-pallet (gta_rate card) |
 
-- **Add-ons (clear, upfront, toggles with price shown; approved values in §8):** 2-person (+$60), stairs per floor without elevator (+$10/floor), assembly simple (+$35) or standard (+$65), white-glove unpack (+$25), time window ≤ 2 h (+$15), same-day/rush (+$20), upright/perishable/food handling (incl. for bakery/flowers, $0, it's a promise), signature/ID (+$3), liftgate (not offered until available, contract `liftgate_available=false`), waiting beyond free time ($30/h per 15 min, B2B only, shown in contract), return to sender on failed attempt (B2B per contract; retail: one free re-attempt). **No retail cancellation fee** (D-68-5).
+- **Add-ons (clear, upfront, toggles with price shown; approved values in §8):** dolly (+$20, replaces 2-person, doc 84 §8.1 Q4), stairs per floor without elevator (+$10/floor), assembly simple (+$35) or standard (+$65), ~~white-glove unpack (+$25)~~ retired, time window ≤ 2 h (+$15), same-day/rush (+$20), upright/perishable/food handling (incl. for bakery/flowers, $0, it's a promise), signature/ID (+$3), liftgate (not offered until available, contract `liftgate_available=false`), waiting beyond free time ($30/h per 15 min, B2B only, shown in contract), return to sender on failed attempt (B2B per contract; retail: one free re-attempt). **No retail cancellation fee** (D-68-5).
 - **Competition Act drip pricing:** since June 2022 the Competition Act treats a price unattainable because of added mandatory fixed charges as false/misleading (s. 74.01(1.1), s. 52(1.2)); Competition Bureau guidance: https://competition-bureau.canada.ca/how-we-foster-competition/education-and-outreach/drip-pricing. Rule: every mandatory charge (fuel, zone, minimum, handling) is inside the headline price; only taxes and optional add-ons the user chooses are separate. Fuel surcharge becomes part of the zone base (reviewed monthly), not a later line.
 
 Numbers above are the **approved starting rate card** (D-72-2 decided by Ravi on 29 Oct 2026, §8). §8 shows each margin. The yellow items are B2B S at low density and pallet; XS moved to $17 and is now green.
@@ -51,11 +51,11 @@ Margin colour bands (never block): green ≥ 50 %, yellow < 50 %, red ≤ 35 %; 
 ```
 Sofa · 1 item · XL Furniture (billable 96 kg)      $129.00
  Toronto → Mississauga (Zone GTA)                  included
- 2-person delivery                                  +$45.00
+ Dolly handling                                     +$20.00
  Stairs: 2 floors, no elevator                      +$20.00
-Total before tax                                    $194.00
-HST 13%                                              $25.22
-Total                                               $219.22   Valid 72 h
+Total before tax                                    $169.00
+HST 13%                                              $21.97
+Total                                               $190.97   Valid 72 h
 [Why this price?] → "Size is the bigger of weight and space it takes in the van…"
 ```
 
@@ -65,13 +65,13 @@ Shopify checkout shows one line ("PorterChain Local Delivery · $X") and the mer
 
 Approved Z1 band bases (D-72-2): XS $17, S $18, M $26, L $49, XL $129, P $95/pallet. Z2 +$15, Z3 +$30.
 
-| Case                                                   | Billable                                                                           | Lines                            | Price | Est. cost (driver $30/h + van $0.45/km)     | Margin      |
-| ------------------------------------------------------ | ---------------------------------------------------------------------------------- | -------------------------------- | ----- | ------------------------------------------- | ----------- |
-| Furniture sofa 213×91×86 cm, 60 kg, 2 floors, 2 people | dim 333 kg → over XL by weight → XL + "oversize" handled as XL (longest 213 ≤ 250) | XL 129 + 2-person 60 + stairs 20 | $209  | 1.5 h×2 drivers $90 + 25 km $11 = $101      | 52 % green  |
-| Flowers bouquet in box 40×30×60 cm, 3 kg               | dim 14.4 kg → M                                                                    | M 26 + 2 h window 15             | $41   | multi-stop share 20 min $10 + 5 km $2 = $12 | 71 % green  |
-| Cake 2 kg, upright, food handling                      | S                                                                                  | S 18 + food handling 0           | $18   | $9                                          | 50 % green  |
-| Pet food 20 kg bag 70×45×12 cm                         | dim 7.6, actual 20 → M                                                             | M 26                             | $26   | $12                                         | 54 % green  |
-| Warehouse pallet 120×100×150 cm, 380 kg, dock appt     | P                                                                                  | P 95 + Z2 15                     | $110  | van not enough → box/partner $60 cost       | 45 % yellow |
+| Case                                                | Billable                                                                           | Lines                         | Price | Est. cost (driver $30/h + van $0.45/km)     | Margin      |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------- | ----- | ------------------------------------------- | ----------- |
+| Furniture sofa 213×91×86 cm, 60 kg, 2 floors, dolly | dim 333 kg → over XL by weight → XL + "oversize" handled as XL (longest 213 ≤ 250) | XL 129 + dolly 20 + stairs 20 | $169  | 1.5 h×1 driver $45 + 25 km $11 = $56        | 67 % green  |
+| Flowers bouquet in box 40×30×60 cm, 3 kg            | dim 14.4 kg → M                                                                    | M 26 + 2 h window 15          | $41   | multi-stop share 20 min $10 + 5 km $2 = $12 | 71 % green  |
+| Cake 2 kg, upright, food handling                   | S                                                                                  | S 18 + food handling 0        | $18   | $9                                          | 50 % green  |
+| Pet food 20 kg bag 70×45×12 cm                      | dim 7.6, actual 20 → M                                                             | M 26                          | $26   | $12                                         | 54 % green  |
+| Warehouse pallet 120×100×150 cm, 380 kg, dock appt  | P                                                                                  | P 95 + Z2 15                  | $110  | van not enough → box/partner $60 cost       | 45 % yellow |
 
 Note on the sofa: dimensional weight would exceed XL if applied raw; furniture is priced by **item class** (XL) not dim weight above 120 kg billable, because volume is the constraint, not weight. This is the one explicit exception (D-72-3, decided yes 29 Oct 2026; item classes in §8.3). The flowers row shows why dim weight matters: a light but tall box takes van space. All five run as tests in 76 §9.
 
@@ -133,18 +133,25 @@ Extra items to the same address cost 50 % of their class price. Pianos, safes an
 
 ### 8.4 Add-ons (optional, chosen by the customer, shown before booking)
 
-| Add-on                              | Price                    | Cost basis              | Margin              | Competitor check                     |
-| ----------------------------------- | ------------------------ | ----------------------- | ------------------- | ------------------------------------ |
-| 2-person                            | +$60                     | 2nd person 1 h $30      | 50 % green          | Cargaroo $60 min; RoadRunners $135/h |
-| Stairs, per floor without elevator  | +$10                     | 2 × 5 min = $5          | 50 % green          | Rustic Classics $35/flight over 2    |
-| Assembly simple (≤ 30 min)          | +$35                     | $15                     | 57 % green          | RoadRunners $65/h, 1.5 h min         |
-| Assembly standard (≤ 60 min)        | +$65                     | $30                     | 54 % green          | same                                 |
-| White-glove unpack + packaging away | +$25                     | 10 min $5 + disposal $5 | 60 % green          | included in Eupen $195               |
-| Time window ≤ 2 h                   | +$15                     | routing loss ~$6        | 60 % green          | 1Courier 2-hour $14.75               |
-| Same-day rush                       | +$20                     | ~$8                     | 60 % green          | Cargaroo +40 % ($10 min)             |
-| Signature / ID check                | +$3                      | 1 min                   | green               | —                                    |
-| Waiting beyond free time (B2B)      | $7.50 per 15 min ($30/h) | $30/h                   | 0 % (cost recovery) | Cargaroo $1/min                      |
-| Food / upright / perishable         | $0 (a promise)           | —                       | —                   | —                                    |
+| Add-on                                 | Price                                       | Cost basis                            | Margin              | Competitor check                            |
+| -------------------------------------- | ------------------------------------------- | ------------------------------------- | ------------------- | ------------------------------------------- |
+| Dolly (replaces 2-person)              | +$20                                        | dolly wear, 10 min $5                 | 75 % green          | Cargaroo $60 min; RoadRunners $135/h        |
+| Stairs, per floor without elevator     | +$10                                        | 2 × 5 min = $5                        | 50 % green          | Rustic Classics $35/flight over 2           |
+| Assembly simple (≤ 30 min)             | +$35                                        | $15                                   | 57 % green          | RoadRunners $65/h, 1.5 h min                |
+| Assembly standard (≤ 60 min)           | +$65                                        | $30                                   | 54 % green          | same                                        |
+| White-glove unpack + packaging away    | +$25                                        | 10 min $5 + disposal $5               | 60 % green          | included in Eupen $195                      |
+| Time window ≤ 2 h                      | +$15                                        | routing loss ~$6                      | 60 % green          | 1Courier 2-hour $14.75                      |
+| Same-day rush                          | +$20                                        | ~$8                                   | 60 % green          | Cargaroo +40 % ($10 min)                    |
+| Signature / ID check                   | +$3                                         | 1 min                                 | green               | —                                           |
+| Waiting beyond free time (B2B)         | $7.50 per 15 min ($30/h)                    | $30/h                                 | 0 % (cost recovery) | Cargaroo $1/min                             |
+| Food / upright / perishable            | $0 (a promise)                              | —                                     | —                   | —                                           |
+| Declared-value cover (flag off, G-INS) | 1.5 % of declared value, min $3, per parcel | insurer premium (unknown until G-INS) | set after G-INS     | carriers sell declared value / excess cover |
+
+**Declared-value cover (decided by Ravi, 29 Oct 2026).** This add-on is optional. It costs 1.5 % of the declared value per parcel, with a $3 minimum. The most a parcel can be covered for is $2,500. A higher declared value is rejected (`declared_value_over_max`). Cash, jewellery, medicines and perishables can't be covered (`declared_value_excluded_goods`). To claim, the customer needs proof of value. Without cover, liability is $4.41/kg (O. Reg. 643/05 Sch. 1, D-68-1). The flag `declared_value.enabled` stays **off** until cargo insurance is confirmed (G-INS). While it is off, asking for cover blocks the booking with `declared_value_cover_unavailable`, and nothing is charged. The single source is `services/pricing-engine/porterchain_pricing/declared_value.py`, used by the engine, the Standard card (`declared_values=`), booking, Shopify, the simulator and the claims cap. Ravi confirmed (29 Oct 2026) that this **replaces** the earlier B4 "$2,500 free / $25,000 for $10 per stop" model; contract `coverage` overrides now tune these declared-value rules, not B4 values.
+
+**HST on the cover fee (decided by Ravi, 29 Oct 2026).** The cover charge is part of the taxable delivery supply: HST applies to it, taxed with the subtotal (engine line `coverage_upgrade`, Standard card `declared_value`). Quotes and invoices show it before tax.
+
+**G-INS gate (enforced in code).** Cover can only be on when both (1) the `parcel_coverage` setting or a contract override asks for `enabled: true` **and** (2) the `cargo_insurance` setting is `confirmed: true` with an insurer and policy reference. Only a super admin can write `cargo_insurance` (reason required, audited). Without it, `enabled` in `parcel_coverage`, a contract override or a Standard card line has no effect. Code: `declared_value.rules(..., insurance)`, `coverage.normalize_coverage(raw, insurance)`, `PricingContext.cargo_insurance`.
 
 ### 8.5 B2B cancellation fees (merchants and partners only; retail has none, D-68-5)
 

@@ -10,6 +10,7 @@ import CustomerPricingPanel from "./CustomerPricingPanel";
 import FsaRatesCard from "./FsaRatesCard";
 import PriceBookPanel from "./PriceBookPanel";
 import DeliveryPromisePanel from "./DeliveryPromisePanel";
+import LivePricingTable, { RetiredBanner } from "@/components/pricing/LivePricingTable";
 
 import { DEFAULT_DOWNTOWN_FEE_CAD } from "@porterchain/types";
 
@@ -169,8 +170,8 @@ export default function PricingPanel({
   }));
   const [rateCard, setRateCard] = useState<RateCardConfig>(() => normalizeRateCard(rateCardData));
   const [reason, setReason] = useState("");
-  const [audience, setAudience] = useState<"merchant" | "customer" | "book" | "promise">(
-    "customer"
+  const [audience, setAudience] = useState<"live" | "merchant" | "customer" | "book" | "promise">(
+    "live"
   );
   const [dirty, setDirty] = useState<"gta" | "tax" | "fuel" | "card" | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -226,7 +227,7 @@ export default function PricingPanel({
             </Button>
             <Button
               variant="primary"
-              disabled={audience !== "merchant" || !dirty || saving}
+              disabled // 2026-10-31: customer/merchant pricing settings are retired (read only)
               onClick={() => void save()}
             >
               <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save"}
@@ -236,6 +237,12 @@ export default function PricingPanel({
       />
 
       <div className="flex gap-2">
+        <Button
+          variant={audience === "live" ? "primary" : "outline"}
+          onClick={() => setAudience("live")}
+        >
+          Live pricing
+        </Button>
         <Button
           variant={audience === "customer" ? "primary" : "outline"}
           onClick={() => setAudience("customer")}
@@ -281,270 +288,285 @@ export default function PricingPanel({
           onSaveDriverPay={onSaveDriverPay}
         />
       )}
+      {audience === "live" && <LivePricingTable />}
       {audience === "customer" && onSaveCustomer && (
-        <CustomerPricingPanel data={customerData} saving={saving} onSave={onSaveCustomer} />
+        <fieldset disabled aria-label="Retired customer pricing (read only)" className="space-y-3">
+          <RetiredBanner what="Customer pricing" />
+          <div className="opacity-70">
+            <CustomerPricingPanel data={customerData} saving={saving} onSave={onSaveCustomer} />
+          </div>
+        </fieldset>
       )}
       {audience !== "merchant" ? null : (
-        <>
-          {toast && <p className="text-sm text-secondary">{toast}</p>}
-          {missing.length > 0 && (
-            <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-              Missing rates for: {missing.join(", ")}. Add rows or disable those classes under
-              Vehicles.
-            </p>
-          )}
+        <fieldset
+          disabled
+          aria-label="Retired merchant GTA matrix and rate card (read only)"
+          className="space-y-6"
+        >
+          <RetiredBanner what="GTA matrix, per-km and vehicle-class rate card" />
+          <div className="space-y-6 opacity-70">
+            {toast && <p className="text-sm text-secondary">{toast}</p>}
+            {missing.length > 0 && (
+              <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                Missing rates for: {missing.join(", ")}. Add rows or disable those classes under
+                Vehicles.
+              </p>
+            )}
 
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Field label="Base km included">
-              <Input
-                type="number"
-                value={config.base_km_limit}
-                onChange={(e) => {
-                  setConfig({ ...config, base_km_limit: num(e.target.value, 20) });
-                  setDirty("gta");
-                }}
-              />
-            </Field>
-            <Field label="Downtown fee (CAD)">
-              <Input
-                type="number"
-                value={config.downtown_fee_cad}
-                onChange={(e) => {
-                  setConfig({ ...config, downtown_fee_cad: num(e.target.value, 0) });
-                  setDirty("gta");
-                }}
-              />
-            </Field>
-            <Field label="Upper zone fee (CAD)">
-              <Input
-                type="number"
-                value={config.upper_zone_fee_cad}
-                onChange={(e) => {
-                  setConfig({ ...config, upper_zone_fee_cad: num(e.target.value, 0) });
-                  setDirty("gta");
-                }}
-              />
-            </Field>
-          </div>
-
-          <SettingsCard
-            title="GTA vehicle matrix"
-            description={`Sample 28 km downtown cargo/sedan ≈ $${preview} CAD (preview only)`}
-          >
-            <div className="ops-table-scroll">
-              <table className="w-full min-w-[36rem] text-left text-sm">
-                <thead>
-                  <tr className="border-b border-primary/10 text-xs uppercase text-muted">
-                    <th className="py-2 pr-2">Vehicle</th>
-                    <th className="py-2 pr-2">Base</th>
-                    <th className="py-2 pr-2">Extra km</th>
-                    <th className="py-2 pr-2">Extra pick</th>
-                    <th className="py-2">Extra drop</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.keys(config.vehicles).map((id) => {
-                    const row = config.vehicles[id]!;
-                    return (
-                      <tr key={id} className="border-b border-primary/5">
-                        <td className="py-2 pr-2 font-medium">{labels[id] ?? id}</td>
-                        {(
-                          [
-                            "base_price",
-                            "extra_km_rate",
-                            "extra_pick_fee",
-                            "extra_drop_fee",
-                          ] as const
-                        ).map((field) => (
-                          <td key={field} className="py-2 pr-2">
-                            <Input
-                              type="number"
-                              step="0.01"
-                              value={row[field]}
-                              onChange={(e) => {
-                                const n = num(e.target.value, row[field]);
-                                setConfig({
-                                  ...config,
-                                  vehicles: {
-                                    ...config.vehicles,
-                                    [id]: { ...row, [field]: n },
-                                  },
-                                });
-                                setDirty("gta");
-                              }}
-                            />
-                          </td>
-                        ))}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            <p className="mt-3 text-xs text-muted">
-              Linked:{" "}
-              <button
-                type="button"
-                className="font-medium text-secondary"
-                onClick={() =>
-                  window.dispatchEvent(new CustomEvent("settings-navigate", { detail: "vehicles" }))
-                }
-              >
-                Vehicle classes
-              </button>
-            </p>
-          </SettingsCard>
-
-          <FsaRatesCard vehicleCatalog={catalog} />
-
-          <SettingsCard
-            collapsed
-            title="Liftgate, extra stop, and weight"
-            description="Platform defaults on every quote. Dollars here, cents in the API. Driver payout stays off this screen."
-          >
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Liftgate (CAD)">
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={(rateCard.liftgate_cents / 100).toFixed(2)}
-                  onChange={(e) => {
-                    setRateCard({
-                      ...rateCard,
-                      liftgate_cents: Math.max(0, Math.round(num(e.target.value, 0) * 100)),
-                    });
-                    setDirty("card");
-                  }}
-                />
-              </Field>
-              <Field label="Extra stop (CAD)">
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={(rateCard.extra_stop_cents / 100).toFixed(2)}
-                  onChange={(e) => {
-                    setRateCard({
-                      ...rateCard,
-                      extra_stop_cents: Math.max(0, Math.round(num(e.target.value, 0) * 100)),
-                    });
-                    setDirty("card");
-                  }}
-                />
-              </Field>
-              <Field label="Weight threshold (kg)">
-                <Input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  value={rateCard.weight_threshold_kg}
-                  onChange={(e) => {
-                    setRateCard({
-                      ...rateCard,
-                      weight_threshold_kg: Math.max(0, num(e.target.value, 0)),
-                    });
-                    setDirty("card");
-                  }}
-                />
-              </Field>
-              <Field label="Over-weight (CAD / kg)">
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={(rateCard.weight_cents_per_kg / 100).toFixed(2)}
-                  onChange={(e) => {
-                    setRateCard({
-                      ...rateCard,
-                      weight_cents_per_kg: Math.max(0, Math.round(num(e.target.value, 0) * 100)),
-                    });
-                    setDirty("card");
-                  }}
-                />
-              </Field>
-            </div>
-          </SettingsCard>
-
-          <SettingsCard
-            collapsed
-            title="Tax (HST)"
-            description="Wired into pricing engine tax config"
-          >
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="HST %">
-                <Input
-                  type="number"
-                  step="0.1"
-                  value={tax.hst_percent}
-                  onChange={(e) => {
-                    setTax({ ...tax, hst_percent: num(e.target.value, 0) });
-                    setDirty("tax");
-                  }}
-                />
-              </Field>
-            </div>
-          </SettingsCard>
-
-          <SettingsCard
-            collapsed
-            title="Fuel surcharge"
-            description="Wired into pricing engine fuel config"
-          >
             <div className="grid gap-3 sm:grid-cols-3">
-              <Field label="Surcharge %">
+              <Field label="Base km included">
                 <Input
                   type="number"
-                  step="0.1"
-                  value={fuel.surcharge_percent}
+                  value={config.base_km_limit}
                   onChange={(e) => {
-                    setFuel({ ...fuel, surcharge_percent: num(e.target.value, 0) });
-                    setDirty("fuel");
+                    setConfig({ ...config, base_km_limit: num(e.target.value, 20) });
+                    setDirty("gta");
                   }}
                 />
               </Field>
-              <Field label="Base fuel ($/L)">
+              <Field label="Downtown fee (CAD)">
                 <Input
                   type="number"
-                  step="0.01"
-                  value={fuel.base_fuel_price_cents / 100}
+                  value={config.downtown_fee_cad}
                   onChange={(e) => {
-                    setFuel({
-                      ...fuel,
-                      base_fuel_price_cents: Math.round(num(e.target.value, 0) * 100),
-                    });
-                    setDirty("fuel");
+                    setConfig({ ...config, downtown_fee_cad: num(e.target.value, 0) });
+                    setDirty("gta");
                   }}
                 />
               </Field>
-              <Field label="Current fuel ($/L)">
+              <Field label="Upper zone fee (CAD)">
                 <Input
                   type="number"
-                  step="0.01"
-                  value={fuel.current_fuel_price_cents / 100}
+                  value={config.upper_zone_fee_cad}
                   onChange={(e) => {
-                    setFuel({
-                      ...fuel,
-                      current_fuel_price_cents: Math.round(num(e.target.value, 0) * 100),
-                    });
-                    setDirty("fuel");
+                    setConfig({ ...config, upper_zone_fee_cad: num(e.target.value, 0) });
+                    setDirty("gta");
                   }}
                 />
               </Field>
             </div>
-          </SettingsCard>
 
-          <label className="block text-sm">
-            <span className="text-xs font-medium text-muted">Change reason (required)</span>
-            <Textarea
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              rows={2}
-              className="mt-1"
-              placeholder="e.g. Q3 GTA rate adjustment"
-            />
-          </label>
-        </>
+            <SettingsCard
+              title="GTA vehicle matrix"
+              description={`Sample 28 km downtown cargo/sedan ≈ $${preview} CAD (preview only)`}
+            >
+              <div className="ops-table-scroll">
+                <table className="w-full min-w-[36rem] text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-primary/10 text-xs uppercase text-muted">
+                      <th className="py-2 pr-2">Vehicle</th>
+                      <th className="py-2 pr-2">Base</th>
+                      <th className="py-2 pr-2">Extra km</th>
+                      <th className="py-2 pr-2">Extra pick</th>
+                      <th className="py-2">Extra drop</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.keys(config.vehicles).map((id) => {
+                      const row = config.vehicles[id]!;
+                      return (
+                        <tr key={id} className="border-b border-primary/5">
+                          <td className="py-2 pr-2 font-medium">{labels[id] ?? id}</td>
+                          {(
+                            [
+                              "base_price",
+                              "extra_km_rate",
+                              "extra_pick_fee",
+                              "extra_drop_fee",
+                            ] as const
+                          ).map((field) => (
+                            <td key={field} className="py-2 pr-2">
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={row[field]}
+                                onChange={(e) => {
+                                  const n = num(e.target.value, row[field]);
+                                  setConfig({
+                                    ...config,
+                                    vehicles: {
+                                      ...config.vehicles,
+                                      [id]: { ...row, [field]: n },
+                                    },
+                                  });
+                                  setDirty("gta");
+                                }}
+                              />
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-3 text-xs text-muted">
+                Linked:{" "}
+                <button
+                  type="button"
+                  className="font-medium text-secondary"
+                  onClick={() =>
+                    window.dispatchEvent(
+                      new CustomEvent("settings-navigate", { detail: "vehicles" })
+                    )
+                  }
+                >
+                  Vehicle classes
+                </button>
+              </p>
+            </SettingsCard>
+
+            <FsaRatesCard vehicleCatalog={catalog} />
+
+            <SettingsCard
+              collapsed
+              title="Liftgate, extra stop, and weight"
+              description="Platform defaults on every quote. Dollars here, cents in the API. Driver payout stays off this screen."
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Liftgate (CAD)">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={(rateCard.liftgate_cents / 100).toFixed(2)}
+                    onChange={(e) => {
+                      setRateCard({
+                        ...rateCard,
+                        liftgate_cents: Math.max(0, Math.round(num(e.target.value, 0) * 100)),
+                      });
+                      setDirty("card");
+                    }}
+                  />
+                </Field>
+                <Field label="Extra stop (CAD)">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={(rateCard.extra_stop_cents / 100).toFixed(2)}
+                    onChange={(e) => {
+                      setRateCard({
+                        ...rateCard,
+                        extra_stop_cents: Math.max(0, Math.round(num(e.target.value, 0) * 100)),
+                      });
+                      setDirty("card");
+                    }}
+                  />
+                </Field>
+                <Field label="Weight threshold (kg)">
+                  <Input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={rateCard.weight_threshold_kg}
+                    onChange={(e) => {
+                      setRateCard({
+                        ...rateCard,
+                        weight_threshold_kg: Math.max(0, num(e.target.value, 0)),
+                      });
+                      setDirty("card");
+                    }}
+                  />
+                </Field>
+                <Field label="Over-weight (CAD / kg)">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={(rateCard.weight_cents_per_kg / 100).toFixed(2)}
+                    onChange={(e) => {
+                      setRateCard({
+                        ...rateCard,
+                        weight_cents_per_kg: Math.max(0, Math.round(num(e.target.value, 0) * 100)),
+                      });
+                      setDirty("card");
+                    }}
+                  />
+                </Field>
+              </div>
+            </SettingsCard>
+
+            <SettingsCard
+              collapsed
+              title="Tax (HST)"
+              description="Wired into pricing engine tax config"
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="HST %">
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={tax.hst_percent}
+                    onChange={(e) => {
+                      setTax({ ...tax, hst_percent: num(e.target.value, 0) });
+                      setDirty("tax");
+                    }}
+                  />
+                </Field>
+              </div>
+            </SettingsCard>
+
+            <SettingsCard
+              collapsed
+              title="Fuel surcharge"
+              description="Wired into pricing engine fuel config"
+            >
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Field label="Surcharge %">
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={fuel.surcharge_percent}
+                    onChange={(e) => {
+                      setFuel({ ...fuel, surcharge_percent: num(e.target.value, 0) });
+                      setDirty("fuel");
+                    }}
+                  />
+                </Field>
+                <Field label="Base fuel ($/L)">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={fuel.base_fuel_price_cents / 100}
+                    onChange={(e) => {
+                      setFuel({
+                        ...fuel,
+                        base_fuel_price_cents: Math.round(num(e.target.value, 0) * 100),
+                      });
+                      setDirty("fuel");
+                    }}
+                  />
+                </Field>
+                <Field label="Current fuel ($/L)">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={fuel.current_fuel_price_cents / 100}
+                    onChange={(e) => {
+                      setFuel({
+                        ...fuel,
+                        current_fuel_price_cents: Math.round(num(e.target.value, 0) * 100),
+                      });
+                      setDirty("fuel");
+                    }}
+                  />
+                </Field>
+              </div>
+            </SettingsCard>
+
+            <label className="block text-sm">
+              <span className="text-xs font-medium text-muted">Change reason (required)</span>
+              <Textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                rows={2}
+                className="mt-1"
+                placeholder="e.g. Q3 GTA rate adjustment"
+              />
+            </label>
+          </div>
+        </fieldset>
       )}
     </div>
   );

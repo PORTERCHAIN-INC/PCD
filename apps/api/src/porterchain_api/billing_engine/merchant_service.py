@@ -67,6 +67,11 @@ def invoice_status(
             return "pending"
     if getattr(invoice, "due_at", None):
         due = invoice.due_at.replace(tzinfo=None) if invoice.due_at.tzinfo else invoice.due_at
+    elif getattr(invoice, "merchant_id", None) and (terms or "").upper() != "PREPAID":
+        # Weekly billing: a merchant invoice is due end of day on the next Wednesday (Toronto).
+        from porterchain_api.billing_engine.weekly_billing import due_at_for_issue
+
+        due = due_at_for_issue(invoice.created_at) if invoice.created_at else None
     else:
         due = invoice_due_date(invoice.created_at, terms or (order.payment_terms if order else None))
     if due and now > due:
@@ -185,7 +190,7 @@ def serialize_invoice_row(
         "currency": invoice.currency,
         "status": status,
         "payment_terms": terms or (order.payment_terms if order else "NET_30"),
-        "due_date": due.isoformat() if due else None,
+        "due_date": (due if due.tzinfo else due.replace(tzinfo=UTC)).isoformat() if due else None,
         "last_reminded_at": invoice.last_reminded_at.isoformat() if getattr(invoice, "last_reminded_at", None) else None,
         "pdf_url": invoice.pdf_url,
         "created_at": invoice.created_at,
@@ -194,8 +199,6 @@ def serialize_invoice_row(
         "credited_cents": int(getattr(invoice, "credited_cents", 0) or 0),
         "billing_kind": getattr(invoice, "billing_kind", None) or "order",
     }
-    if invoice.stripe_receipt_url:
-        row["stripe_receipt_url"] = invoice.stripe_receipt_url
     return row
 
 

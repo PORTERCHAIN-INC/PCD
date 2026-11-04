@@ -1,7 +1,7 @@
-"""Optional NVIDIA NIM language enrichers — never decide money or dispatch.
+"""Optional an LLM (FEATURE_AI, off in Phase 0) language enrichers — never decide money or dispatch.
 
 Risk enums / scores stay rule-based. Fail soft to heuristics when phase2 is off,
-NIM is missing, or the circuit is open.
+LLM is missing, or the circuit is open.
 """
 
 from __future__ import annotations
@@ -42,12 +42,12 @@ def _phase2_ready(flags: dict[str, bool] | None) -> bool:
     return phase2_intelligence_enabled(flags or {})
 
 
-def _can_call_nim(db: Session | None) -> bool:
+def _can_call_llm(db: Session | None) -> bool:
     if db is None:
         return False
-    from porterchain_api.intelligence_engine import nim_client
+    from porterchain_api.intelligence_engine import llm as llm_client
 
-    status = nim_client.nim_status()
+    status = llm_client.llm_status()
     return bool(status.get("configured") and not status.get("circuit_open"))
 
 
@@ -65,7 +65,7 @@ def _parse_json_object(content: str) -> dict[str, Any]:
     return data if isinstance(data, dict) else {}
 
 
-def _call_nim(
+def _call_llm(
     db: Session,
     *,
     feature: str,
@@ -76,7 +76,7 @@ def _call_nim(
     actor_id: str | None = None,
 ) -> dict[str, Any] | None:
     from porterchain_api.db import SessionLocal
-    from porterchain_api.intelligence_engine import nim_client
+    from porterchain_api.intelligence_engine import llm as llm_client
     from porterchain_api.intelligence_engine.usage import record_ai_usage
 
     def _persist_usage(**kwargs: Any) -> None:
@@ -94,7 +94,7 @@ def _call_nim(
 
     del db  # request session reserved for domain reads; metering is isolated
     try:
-        result = nim_client.chat_completion(
+        result = llm_client.chat_completion(
             messages=[
                 {"role": "system", "content": system},
                 {"role": "user", "content": user[:3500]},
@@ -106,7 +106,7 @@ def _call_nim(
             max_retries=1,
         )
         _persist_usage(
-            provider="nvidia_nim",
+            provider="llm",
             model=result["model"],
             feature=feature,
             prompt_tokens=result["prompt_tokens"],
@@ -119,14 +119,14 @@ def _call_nim(
         )
         return result
     except Exception as exc:  # noqa: BLE001
-        logger.warning("NIM enricher %s failed: %s", feature, exc)
+        logger.warning("LLM enricher %s failed: %s", feature, exc)
         try:
             from porterchain_shared.config.settings import get_platform_settings
 
             settings = get_platform_settings()
             _persist_usage(
-                provider="nvidia_nim",
-                model=getattr(settings, "nvidia_model", "unknown") or "unknown",
+                provider="llm",
+                model="none",
                 feature=feature,
                 status="error",
                 error=str(exc),
@@ -146,11 +146,11 @@ def paraphrase_merchant_actions(
     actor_type: str | None = None,
     actor_id: str | None = None,
 ) -> dict[str, Any]:
-    """Keep risk enums; optionally paraphrase suggested_actions via NIM."""
+    """Keep risk enums; optionally paraphrase suggested_actions via LLM."""
     out = dict(insights)
     out.setdefault("actions_source", "heuristic")
     actions = [str(a) for a in (insights.get("suggested_actions") or []) if str(a).strip()]
-    if not actions or not _phase2_ready(flags) or not _can_call_nim(db):
+    if not actions or not _phase2_ready(flags) or not _can_call_llm(db):
         return out
     assert db is not None
     payload = {
@@ -160,7 +160,7 @@ def paraphrase_merchant_actions(
         "revenue_trend": insights.get("revenue_trend"),
         "suggested_actions": actions,
     }
-    result = _call_nim(
+    result = _call_llm(
         db,
         feature="merchant360_actions",
         system=_M360_SYSTEM,
@@ -182,7 +182,7 @@ def paraphrase_merchant_actions(
     if not cleaned:
         return out
     out["suggested_actions"] = cleaned
-    out["actions_source"] = "nvidia_nim"
+    out["actions_source"] = "llm"
     out["actions_model"] = result.get("model")
     return out
 
@@ -200,10 +200,10 @@ def polish_message_draft(
 ) -> dict[str, Any]:
     """Return polished sms/email_body + draft_source; falls back to inputs."""
     base: dict[str, Any] = {"sms": sms, "email_body": email_body, "draft_source": "heuristic"}
-    if not _phase2_ready(flags) or not _can_call_nim(db):
+    if not _phase2_ready(flags) or not _can_call_llm(db):
         return base
     assert db is not None
-    result = _call_nim(
+    result = _call_llm(
         db,
         feature="order_assist_draft",
         system=_ASSIST_SYSTEM,
@@ -234,7 +234,7 @@ def polish_message_draft(
     if new_email:
         base["email_body"] = new_email[:2000]
     if new_sms or new_email:
-        base["draft_source"] = "nvidia_nim"
+        base["draft_source"] = "llm"
     return base
 
 
@@ -248,10 +248,10 @@ def explain_dispatch_rationale(
 ) -> str | None:
     """Optional one-line narrative after score — never changes ranking."""
     bits = [str(b).strip() for b in reason_bits if str(b).strip()]
-    if not bits or not _phase2_ready(flags) or not _can_call_nim(db):
+    if not bits or not _phase2_ready(flags) or not _can_call_llm(db):
         return None
     assert db is not None
-    result = _call_nim(
+    result = _call_llm(
         db,
         feature="dispatch_rationale",
         system=_RATIONALE_SYSTEM,

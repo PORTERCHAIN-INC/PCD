@@ -1,9 +1,9 @@
-"""Characterization tests for Phase 1 Clerk consolidation audit (Phase D3 updated).
+"""Characterization tests for Phase 1 Keycloak consolidation audit (Phase D3 updated).
 
 Locks Platform / unified behavior. Enterprise 4-app exclusivity and app-mismatch
-guards are retired — see docs/runbooks/clerk-consolidation.md.
+guards are retired — see docs/runbooks/keycloak-consolidation.md.
 
-Settings helpers clear Clerk-related process env and skip ``.env`` so local
+Settings helpers clear Keycloak-related process env and skip ``.env`` so local
 ``apps/api/.env`` does not pollute registry mode assertions.
 """
 
@@ -29,13 +29,13 @@ from porterchain_api.config import Settings
 from porterchain_api.domain.admin_states import AdminRole
 from porterchain_api.domain.merchant_states import MerchantRole
 
-_CLERK_ENV_PREFIXES = ("CLERK_", "NEXT_PUBLIC_CLERK_")
+_IDP_ENV_PREFIXES = ("IDP_", "NEXT_PUBLIC_IDP_")
 
 
 @pytest.fixture(autouse=True)
-def _clear_clerk_env(monkeypatch: pytest.MonkeyPatch) -> None:
+def _clear_idp_env(monkeypatch: pytest.MonkeyPatch) -> None:
     for key in list(os.environ):
-        if key.startswith(_CLERK_ENV_PREFIXES):
+        if key.startswith(_IDP_ENV_PREFIXES):
             monkeypatch.delenv(key, raising=False)
 
 
@@ -45,21 +45,21 @@ def _settings(**overrides: object) -> Settings:
         "app_env": "local",
         "auth_dev_bypass": False,
         "jwt_secret": "a" * 32,
-        "clerk_secret_key": "",
-        "clerk_publishable_key": "",
-        "clerk_jwks_url": "",
-        "clerk_customer_secret_key": "",
-        "clerk_customer_publishable_key": "",
-        "clerk_customer_jwks_url": "",
-        "clerk_merchant_secret_key": "",
-        "clerk_merchant_publishable_key": "",
-        "clerk_merchant_jwks_url": "",
-        "clerk_admin_secret_key": "",
-        "clerk_admin_publishable_key": "",
-        "clerk_admin_jwks_url": "",
-        "clerk_driver_secret_key": "",
-        "clerk_driver_publishable_key": "",
-        "clerk_driver_jwks_url": "",
+        "idp_secret_key": "",
+        "idp_publishable_key": "",
+        "idp_jwks_url": "",
+        "idp_customer_secret_key": "",
+        "idp_customer_publishable_key": "",
+        "idp_customer_jwks_url": "",
+        "idp_merchant_secret_key": "",
+        "idp_merchant_publishable_key": "",
+        "idp_merchant_jwks_url": "",
+        "idp_admin_secret_key": "",
+        "idp_admin_publishable_key": "",
+        "idp_admin_jwks_url": "",
+        "idp_driver_secret_key": "",
+        "idp_driver_publishable_key": "",
+        "idp_driver_jwks_url": "",
     }
     base.update(overrides)
     return Settings(_env_file=None, **base)  # type: ignore[arg-type]
@@ -68,27 +68,27 @@ def _settings(**overrides: object) -> Settings:
 def _unified_settings(**overrides: object) -> Settings:
     """Platform + Driver layout (name kept for call-site compat)."""
     sk = "sk_platform"
-    jwks = "https://platform.clerk.accounts.dev/.well-known/jwks.json"
+    jwks = "https://platform.keycloak.accounts.dev/.well-known/jwks.json"
     pk = "pk_platform"
     dsk = "sk_driver"
-    djwks = "https://driver.clerk.accounts.dev/.well-known/jwks.json"
+    djwks = "https://driver.keycloak.accounts.dev/.well-known/jwks.json"
     return _settings(
-        clerk_unified_mode=False,
-        clerk_secret_key=sk,
-        clerk_publishable_key=pk,
-        clerk_jwks_url=jwks,
-        clerk_customer_secret_key=sk,
-        clerk_customer_jwks_url=jwks,
-        clerk_customer_publishable_key=pk,
-        clerk_merchant_secret_key=sk,
-        clerk_merchant_jwks_url=jwks,
-        clerk_merchant_publishable_key=pk,
-        clerk_admin_secret_key=sk,
-        clerk_admin_jwks_url=jwks,
-        clerk_admin_publishable_key=pk,
-        clerk_driver_secret_key=dsk,
-        clerk_driver_jwks_url=djwks,
-        clerk_driver_publishable_key="pk_driver",
+        idp_unified_mode=False,
+        idp_secret_key=sk,
+        idp_publishable_key=pk,
+        idp_jwks_url=jwks,
+        idp_customer_secret_key=sk,
+        idp_customer_jwks_url=jwks,
+        idp_customer_publishable_key=pk,
+        idp_merchant_secret_key=sk,
+        idp_merchant_jwks_url=jwks,
+        idp_merchant_publishable_key=pk,
+        idp_admin_secret_key=sk,
+        idp_admin_jwks_url=jwks,
+        idp_admin_publishable_key=pk,
+        idp_driver_secret_key=dsk,
+        idp_driver_jwks_url=djwks,
+        idp_driver_publishable_key="pk_driver",
         **overrides,
     )
 
@@ -114,11 +114,11 @@ def _db_membership(*, admin=False, merchant=False, driver=False, customer=False)
 # --- Registry / env topology ---
 
 
-def test_four_clerk_app_kinds_are_customer_merchant_admin_driver() -> None:
+def test_four_idp_app_kinds_are_customer_merchant_admin_driver() -> None:
     assert ALL_USER_KINDS == ("customer", "merchant", "admin", "driver")
 
 
-def test_clerk_staff_invite_retired() -> None:
+def test_idp_staff_invite_retired() -> None:
     """A6 — staff provision is IdP enroll only; InvitationService has no admin invite."""
     assert not hasattr(InvitationService, "invite_admin_staff")
     assert hasattr(InvitationService, "invite_driver")

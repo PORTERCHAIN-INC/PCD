@@ -752,6 +752,35 @@ def pickup_from_rate_quote(quote: Any) -> tuple[AddressInput, str] | None:
     return addr, str(snap.get("source") or PICKUP_SOURCE_PORTERCHAIN)
 
 
+def flat_rate_fallback(db: Session, settings: Settings) -> dict[str, Any] | None:
+    """Doc 72 §9: when pricing itself fails (engine error, not a refusal), checkout still
+    shows one flat PorterChain rate: the Standard card's Z3 bulky (L) price incl. HST,
+    unless ``shopify_flat_rate_fallback_cents`` overrides it (0 = off). No quote is
+    stored, so booking re-prices on the card."""
+    override = getattr(settings, "shopify_flat_rate_fallback_cents", None)
+    if override == 0:
+        return None
+    cents = int(override or 0)
+    if not cents:
+        try:
+            from porterchain_api.pricing_engine.standard_live import published_lines
+            from porterchain_pricing.standard_card import Item, quote
+
+            lines, _v = published_lines(db)
+            cents = int(quote([Item(weight_kg=40, length_cm=150, width_cm=50, height_cm=20)], "Z3",
+                              lines=lines)["total_cents"])
+        except Exception:  # noqa: BLE001
+            logger.exception("flat rate fallback unavailable")
+            return None
+    start, end = _delivery_window()
+    return {"rates": [{
+        "service_name": "PorterChain Delivery", "service_code": "porterchain_flat_rate",
+        "total_price": str(cents), "currency": RATE_CURRENCY,
+        "description": "Flat rate (final price confirmed on booking)", "phone_required": True,
+        "min_delivery_date": start, "max_delivery_date": end,
+    }]}
+
+
 def carrier_service_rates(
     db: Session,
     settings: Settings,
@@ -853,6 +882,10 @@ def carrier_service_rates(
             note_commerce_event("shopify_quote", "error")
         except Exception:
             pass
+        flat = flat_rate_fallback(db, settings)
+        if flat is not None:
+            logger.info("shopify_carrier_flat_fallback shop=%s", getattr(shop, "shop_domain", shop.id))
+            return flat
         return _empty(shop, "pricing_error")
     finally:
         try:

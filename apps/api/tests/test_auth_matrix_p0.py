@@ -1,7 +1,7 @@
-"""P0 auth matrix regressions — Staff IdP + driver Clerk seams.
+"""P0 auth matrix regressions — Staff IdP + driver Keycloak seams.
 
 Maps to docs/AUTHENTICATION_DRIVER_ADMIN_DEV_TEST_MATRIX.md:
-AD-AUTH-002/003/005 · DR-AUTH-002/003/005/007 · X-001 (via Clerk-on-admin).
+AD-AUTH-002/003/005 · DR-AUTH-002/003/005/007 · X-001 (via Keycloak-on-admin).
 
 Does not duplicate cutover/phase5 suites — only holes those leave open.
 """
@@ -202,7 +202,7 @@ def test_dr_auth_002_driver_auth_required_when_bypass_off() -> None:
     from porterchain_api.auth.driver import get_driver_context
 
     async def _run() -> None:
-        # local + bypass false — no production Clerk triad required
+        # local + bypass false — no production Keycloak triad required
         with pytest.raises(HTTPException) as exc:
             await get_driver_context(
                 db=MagicMock(),
@@ -246,15 +246,15 @@ def test_dr_auth_007_email_mismatch_403() -> None:
 
     async def _run() -> None:
         claims = IdentityClaims(
-            auth_subject="clerk_drv",
-            email="clerk@example.com",
+            auth_subject="idp_drv",
+            email="keycloak@example.com",
         )
         driver = Driver(
             id="drv-1",
             email="other@example.com",
             full_name="Drv",
             status=DriverStatus.APPROVED.value,
-            auth_subject="clerk_drv",
+            auth_subject="idp_drv",
         )
         bundle = MagicMock()
         bundle.driver = driver

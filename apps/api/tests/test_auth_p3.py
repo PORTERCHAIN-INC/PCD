@@ -75,9 +75,9 @@ def test_multi_persona_session_projects_admin_and_merchant_workspaces() -> None:
             }
         ),
         organization_ids=frozenset({"org-1"}),
-        auth_subject="clerk_multi",
+        auth_subject="idp_multi",
         auth_issuer=None,
-        auth_provider="clerk",
+        auth_provider="keycloak",
         legacy_profile_ids={},
     )
     ctx = principal.session_context()
@@ -97,9 +97,9 @@ def test_multi_persona_session_projects_admin_and_merchant_workspaces() -> None:
         role_assignments=(),
         permissions=frozenset({UnifiedPermission.SYSTEM_ALL}),
         organization_ids=frozenset(),
-        auth_subject="clerk_sa",
+        auth_subject="idp_sa",
         auth_issuer=None,
-        auth_provider="clerk",
+        auth_provider="keycloak",
         legacy_profile_ids={},
     )
     assert [w["kind"] for w in _workspaces_for(sa)] == ["platform"]

@@ -54,6 +54,20 @@ def invoice_detail_extras(db: Session, invoice: Invoice) -> dict[str, Any]:
                 "tax_cents": int(ln.tax_cents or 0),
             }
         )
+    from porterchain_api.billing_engine.late_penalty import penalty_fields
+
+    pen = penalty_fields(db, invoice)
+    if pen["penalty_cents"]:
+        lines.append(
+            {
+                "line_id": None,
+                "order_id": None,
+                "order_number": None,
+                "description": pen["penalty_label"],
+                "amount_cents": pen["penalty_cents"],
+                "tax_cents": 0,
+            }
+        )
     payments = (
         db.query(Payment)
         .filter(Payment.invoice_id == invoice.id, Payment.status == "SUCCEEDED")

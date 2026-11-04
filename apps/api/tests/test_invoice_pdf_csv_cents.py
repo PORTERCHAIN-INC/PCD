@@ -140,7 +140,7 @@ def test_invoice_email_opens_portal_without_pdf_url():
             "merchant_deep_link": "http://localhost:3001/billing/invoices/abc",
         },
     )
-    assert "Open invoice" in merchant_html
+    assert "View invoice" in merchant_html  # merchants pay by Interac (2026-11-03), no "Pay now"
     assert "http://localhost:3001/billing/invoices/abc" in merchant_html
 
 

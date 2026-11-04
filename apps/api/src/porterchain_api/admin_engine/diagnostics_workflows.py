@@ -28,7 +28,7 @@ class DiagnosticsWorkflowsMixin:
                 "steps": [
                     "Quote",
                     "Booking Draft",
-                    "Clerk Authentication",
+                    "Keycloak Authentication",
                     "Stripe Sandbox Payment",
                     "Order Creation",
                     "Operations Queue",
@@ -205,7 +205,7 @@ class DiagnosticsWorkflowsMixin:
         if scenario_id == "retail_customer":
             step("Quote", True, "QuoteService via booking_engine")
             step("Booking Draft", True, "Server-persisted drafts")
-            step("Clerk Authentication", is_identity_configured(settings) or settings.auth_dev_bypass, "Clerk or dev bypass")
+            step("Keycloak Authentication", is_identity_configured(settings) or settings.auth_dev_bypass, "Keycloak or dev bypass")
             step("Stripe Sandbox Payment", settings.stripe_secret or settings.stripe_mock, "Stripe or mock", warn=settings.stripe_mock)
             step("Order Creation", True, "PaymentService webhook flow")
             step("Operations Queue", True, "Control Tower")

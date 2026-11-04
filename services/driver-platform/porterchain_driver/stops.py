@@ -317,7 +317,12 @@ class StopsService:
                 _validate_current_stop(db, driver, stop_id)
             return multi_stops.arrive(db, driver, order, stop_id, skip_presence=skip_presence)
         _validate_stop_action(order, stop_id, "arrive")
-        if not stop_id.endswith("-pickup"):
+        if stop_id.endswith("-pickup"):
+            # L99: the shift is required from the first step, not only at Confirm Delivery.
+            from porterchain_driver.pod_policy import assert_on_duty
+
+            assert_on_duty(db, driver)
+        else:
             multi_stops.assert_final_drop_ready(db, order)
         if enforce_sequence:
             _validate_current_stop(db, driver, stop_id)
@@ -501,6 +506,14 @@ class StopsService:
             raise ValueError("photo_required")
 
         order = self._order_for_stop(db, driver.id, stop_id)
+        # A drop-off can't fail (or go RTS) for a parcel that was never collected.
+        from porterchain_api.order_engine.buckets import PICKUP_LEG
+
+        _state = str(order.state).upper()
+        if not stop_id.endswith("-pickup") and (
+            _state in PICKUP_LEG or _state in ("BOOKED", "DISPATCH_READY", "DRIVER_ASSIGNED")
+        ):
+            raise ValueError("pickup_required")
         prior = prior_attempt_rows(
             db.query(OrderException).filter(OrderException.order_id == order.id).all()
         )

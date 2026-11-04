@@ -22,11 +22,11 @@ class PlatformSettings(BaseSettings):
     # Redis — cache, events, queues
     redis_url: str = "redis://localhost:6379/0"
 
-    # Clerk — sole authentication provider
-    clerk_publishable_key: str = ""
-    clerk_secret_key: str = ""
-    clerk_jwks_url: str = ""
-    clerk_dev_bypass: bool = False
+    # Keycloak — sole authentication provider
+    idp_publishable_key: str = ""
+    idp_secret_key: str = ""
+    idp_jwks_url: str = ""
+    idp_dev_bypass: bool = False
 
     # Stripe
     stripe_secret: str = ""
@@ -34,18 +34,12 @@ class PlatformSettings(BaseSettings):
     stripe_mock: bool = True
 
     # Maps / routing
-    google_maps_api_key: str = Field(
-        default="",
-        validation_alias=AliasChoices(
-            "google_maps_api_key",
-            "GOOGLE_MAPS_API_KEY",
-            "GOOGLE_MAPS_SERVER_API_KEY",
-        ),
-    )
     valhalla_url: str = Field(
         default="http://localhost:8002",
         validation_alias=AliasChoices("valhalla_url", "VALHALLA_BASE_URL", "VALHALLA_BASE_URI"),
     )
+    #: Self-hosted VROOM (vroom-express over local OSRM). Empty -> built-in VRP heuristic.
+    vroom_url: str = Field(default="", validation_alias=AliasChoices("vroom_url", "VROOM_URL"))
     osrm_url: str = Field(
         default="http://localhost:5000",
         validation_alias=AliasChoices("osrm_url", "OSRM_HOST", "OSRM_URL"),
@@ -84,34 +78,9 @@ class PlatformSettings(BaseSettings):
         default="",
         validation_alias=AliasChoices("sms_provider", "PORTERCHAIN_SMS_PROVIDER"),
     )
-    twilio_account_sid: str = Field(
-        default="",
-        validation_alias=AliasChoices("twilio_account_sid", "TWILIO_ACCOUNT_SID"),
-    )
-    twilio_auth_token: str = Field(
-        default="",
-        validation_alias=AliasChoices("twilio_auth_token", "TWILIO_AUTH_TOKEN"),
-    )
-    twilio_from_number: str = Field(
-        default="",
-        validation_alias=AliasChoices("twilio_from_number", "TWILIO_FROM_NUMBER"),
-    )
 
-    # NVIDIA NIM (OpenAI-compatible) — intelligence_engine only; not on pay path
-    nvidia_api_key: str = Field(
-        default="",
-        validation_alias=AliasChoices("nvidia_api_key", "NVIDIA_API_KEY", "NGC_API_KEY"),
-    )
-    nvidia_api_base: str = Field(
-        default="https://integrate.api.nvidia.com/v1",
-        validation_alias=AliasChoices("nvidia_api_base", "NVIDIA_API_BASE"),
-    )
-    nvidia_model: str = Field(
-        default="openai/gpt-oss-20b",
-        validation_alias=AliasChoices("nvidia_model", "NVIDIA_MODEL"),
-    )
 
-    # SMTP / ZeptoMail transactional (auth is Clerk-only)
+    # SMTP / ZeptoMail transactional (auth is Keycloak-only)
     smtp_host: str = Field(default="", validation_alias=AliasChoices("smtp_host", "MAIL_HOST"))
     smtp_port: int = Field(default=587, validation_alias=AliasChoices("smtp_port", "MAIL_PORT"))
     smtp_user: str = Field(default="", validation_alias=AliasChoices("smtp_user", "MAIL_USERNAME"))

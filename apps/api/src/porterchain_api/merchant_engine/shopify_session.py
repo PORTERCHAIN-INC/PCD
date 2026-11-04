@@ -83,7 +83,7 @@ def is_unclaimed_install_merchant(db: Session, merchant_id: str, shop_domain: st
     """True for the placeholder company a Shopify install made that no one has signed in to.
 
     ``_merchant_for_install`` creates it (profile.source = Shopify install, this shop)
-    with only ``pending:``/``shopify:`` seats. A real Clerk seat means a person owns it.
+    with only ``pending:``/``shopify:`` seats. A real Keycloak seat means a person owns it.
     """
     from porterchain_api.merchant_engine.activation_service import SIGNUP_SOURCE_SHOPIFY
     from porterchain_api.merchant_engine.shopify_urls import normalize_shop_domain
@@ -190,6 +190,9 @@ def install_from_session_token(
         if fallback:
             row.default_pickup_address_id = fallback.id
     apply_signup_policy(db, merchant, source=SIGNUP_SOURCE_SHOPIFY)
+    from porterchain_api.org_engine.service import ensure_org_for_shopify_safe
+
+    ensure_org_for_shopify_safe(db, merchant, shop)
     db.commit()
     db.refresh(row)
     if full_hooks:
@@ -334,9 +337,16 @@ def open_embedded(
             if on_install:
                 on_install(bg, bg_row)
             shopify._post_install_hooks(bg_row, settings)  # webhooks (+ carrier, idempotent)
+            # Review 139170: pull orders placed while the app was away (reinstall / missed hooks).
+            from porterchain_api.merchant_engine.shopify_order_sync import reconcile_shop
+
+            reconcile_shop(bg, settings, bg_row, days=7)
 
         defer(_in_new_session(_after_install))
     merchant = db.get(Merchant, row.merchant_id) if row else None
+    from porterchain_api.merchant_engine import shopify_billing
+
+    billing = shopify_billing.status_payload(db, settings, row)
     linked = bool(row) and not is_unclaimed_install_merchant(db, row.merchant_id, shop)
     return {
         "shop_domain": shop,
@@ -347,6 +357,7 @@ def open_embedded(
         # G20: the install auto-provisioned an organisation for this store (idempotent on
         # shop domain), so the embedded UI is usable without any login or link step.
         "account_ready": bool(row) and getattr(row, "uninstalled_at", None) is None,
+        "billing": billing,
     }
 
 

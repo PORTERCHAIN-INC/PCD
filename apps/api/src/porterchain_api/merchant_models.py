@@ -85,7 +85,7 @@ class Merchant(SoftDeleteMixin, Base):
 class MerchantUser(Base):
     __tablename__ = "merchant_users"
     __table_args__ = (
-        # M-26: same Clerk subject may hold seats on multiple merchants.
+        # M-26: same Keycloak subject may hold seats on multiple merchants.
         UniqueConstraint("auth_subject", "merchant_id", name="uq_merchant_users_subject_merchant"),
     )
 
@@ -320,7 +320,54 @@ class ShopifyShop(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
+    # Shopify Billing API (review 139170): usage subscription approved by the merchant.
+    # NULL = never asked; pending | active | declined | cancelled | frozen | not_required.
+    billing_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    billing_subscription_gid: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    billing_usage_line_item_gid: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    billing_test: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    billing_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_reconciled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
     merchant: Mapped[Merchant] = relationship(back_populates="shopify_shops")
+
+
+class ShopifyOrderSync(Base):
+    """Every Shopify order we saw (webhook or reconcile) and what PorterChain did with it.
+
+    Review 139170 (2.1.4): an order must never vanish. Orders that are not booked
+    (other shipping rate, outside area, unpaid, billing not approved) stay visible
+    to the merchant with the reason and a "Book with PorterChain" action.
+    """
+
+    __tablename__ = "shopify_order_syncs"
+    __table_args__ = (UniqueConstraint("shop_domain", "shopify_order_id", name="uq_shopify_order_sync"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
+    shop_domain: Mapped[str] = mapped_column(String(255))
+    shopify_order_id: Mapped[str] = mapped_column(String(64))
+    order_name: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # booked | not_booked | cancelled | error
+    status: Mapped[str] = mapped_column(String(32), default="not_booked")
+    reason_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    is_test: Mapped[bool] = mapped_column(Boolean, default=False)
+    financial_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    shipping_title: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    ship_to: Mapped[str | None] = mapped_column(Text, nullable=True)
+    customer_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    line_items: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    currency: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    subtotal_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    shipping_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    total_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    porterchain_order_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    source: Mapped[str] = mapped_column(String(16), default="webhook")
+    shopify_created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 class ShopifyIngressDlq(Base):

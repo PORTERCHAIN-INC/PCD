@@ -12,7 +12,7 @@ import {
 } from "./fixtures";
 
 /**
- * P0 golden slice — money path under real Clerk auth.
+ * P0 golden slice — money path under real Keycloak auth.
  * Skips at describe level when jars/Chromium prerequisites are missing.
  */
 

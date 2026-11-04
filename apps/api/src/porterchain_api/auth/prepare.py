@@ -1,4 +1,4 @@
-"""Request-scoped auth prepare — UserSync + principal resolve once per Clerk subject."""
+"""Request-scoped auth prepare — UserSync + principal resolve once per Keycloak subject."""
 
 from __future__ import annotations
 

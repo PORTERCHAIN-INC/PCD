@@ -5,7 +5,7 @@ import { useLocale } from "next-intl";
 import { BaseLink } from "./base-navigation";
 import { canonicalInternalHref } from "@/lib/seo/internal-href";
 import { readQuoteIntent, rememberQuoteIntent } from "@/lib/visitor-tracking";
-import { isClerkClientShellPath } from "@/lib/clerk-shell";
+import { isAuthShellPath } from "@/lib/auth-shell";
 
 type LinkProps = ComponentProps<typeof BaseLink>;
 
@@ -14,8 +14,8 @@ type LinkProps = ComponentProps<typeof BaseLink>;
  *  - never renders `?from=` (CTA source is handed over in sessionStorage on click)
  *  - an href that already carries a locale (/en/faq) is not prefixed twice (/en/en/faq)
  *  - renamed / retired / gated targets are rewritten to where the 301 would land
- *  - links into the Clerk shell (/login, /sign-up) are NOT prefetched: their layout carries the
- *    Clerk browser SDK (~190 KB), which would otherwise download on every marketing page
+ *  - links into the auth shell (/login, /sign-up) are NOT prefetched: their layout carries the
+ *    auth session provider, which would otherwise download on every marketing page
  */
 export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
   { href, onClick, locale: localeProp, prefetch: prefetchProp, ...rest },
@@ -29,7 +29,7 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
         ? String((value as { pathname?: unknown }).pathname ?? "")
         : "";
   const prefetchFor = (target: unknown) =>
-    prefetchProp ?? (isClerkClientShellPath(pathOf(target)) ? false : undefined);
+    prefetchProp ?? (isAuthShellPath(pathOf(target)) ? false : undefined);
   if (typeof href !== "string") {
     return (
       <BaseLink

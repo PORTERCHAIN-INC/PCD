@@ -25,7 +25,7 @@ from porterchain_api.auth.dependencies import (
     require_all_permissions,
     require_permission,
 )
-from porterchain_api.auth.identity_fk_backfill import PROFILE_TARGETS, _is_skippable_clerk_id
+from porterchain_api.auth.identity_fk_backfill import PROFILE_TARGETS, _is_skippable_idp_id
 from porterchain_api.auth.unified_catalog import (
     AssignableRole,
     UnifiedPermission,
@@ -48,7 +48,7 @@ PHASE9_MATRIX = (
     ("idempotency", "duplicate Svix claim returns False / duplicate status"),
     ("session-context", "no token/secret material in payload"),
     ("invite-only", "admin/super_admin not open signup"),
-    ("fk-backfill", "profile targets defined; pending clerk ids skipped"),
+    ("fk-backfill", "profile targets defined; pending keycloak ids skipped"),
     ("client-parity", "portal access permission keys match UnifiedPermission"),
 )
 
@@ -58,20 +58,20 @@ def _settings(**overrides: object) -> Settings:
         "app_env": "local",
         "auth_dev_bypass": False,
         "jwt_secret": "a" * 32,
-        "clerk_audience": "",
-        "clerk_authorized_parties": "",
-        "clerk_authorized_issuers": "",
-        "clerk_secret_key": "",
-        "clerk_jwks_url": "",
-        "clerk_customer_secret_key": "",
-        "clerk_customer_jwks_url": "",
-        "clerk_merchant_secret_key": "",
-        "clerk_merchant_jwks_url": "",
-        "clerk_admin_secret_key": "",
-        "clerk_admin_jwks_url": "",
-        "clerk_driver_secret_key": "",
-        "clerk_driver_jwks_url": "",
-        "clerk_webhook_signing_secret": "",
+        "idp_audience": "",
+        "idp_authorized_parties": "",
+        "idp_authorized_issuers": "",
+        "idp_secret_key": "",
+        "idp_jwks_url": "",
+        "idp_customer_secret_key": "",
+        "idp_customer_jwks_url": "",
+        "idp_merchant_secret_key": "",
+        "idp_merchant_jwks_url": "",
+        "idp_admin_secret_key": "",
+        "idp_admin_jwks_url": "",
+        "idp_driver_secret_key": "",
+        "idp_driver_jwks_url": "",
+        "idp_webhook_signing_secret": "",
     }
     base.update(overrides)
     return Settings(_env_file=None, **base)  # type: ignore[arg-type]
@@ -94,7 +94,7 @@ def _principal(
         roles=frozenset(roles),
         permissions=perms,
         organization_ids=frozenset(organization_ids or ()),
-        auth_subject="clerk_subj",
+        auth_subject="idp_subj",
         auth_issuer="https://iss.example",
     )
 
@@ -301,9 +301,9 @@ def test_session_context_never_leaks_secrets() -> None:
 def test_fk_backfill_targets_and_skips() -> None:
     assert "admin_users" in PROFILE_TARGETS
     assert "customers" in PROFILE_TARGETS
-    assert _is_skippable_clerk_id("pending:x")
-    assert _is_skippable_clerk_id("dev_clerk_user")
-    assert not _is_skippable_clerk_id("user_live")
+    assert _is_skippable_idp_id("pending:x")
+    assert _is_skippable_idp_id("dev_idp_user")
+    assert not _is_skippable_idp_id("user_live")
 
 
 # --- Client permission key parity (portal AccessGates / packages/auth) ---

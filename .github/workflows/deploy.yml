@@ -155,13 +155,13 @@ jobs:
 
       # The composite action also checks this. The string has to live in this
       # file: scripts/verify_enterprise_security.py reads deploy.yml only.
-      - name: Require Doppler token before image builds
+      - name: Require SOPS age key before image builds
         if: steps.check.outputs.ready == 'true' && steps.plan.outputs.skip != 'true'
         env:
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
         run: |
-          if [ -z "${DOPPLER_TOKEN}" ]; then
-            echo "::error::DOPPLER_TOKEN is required. Runtime secrets are in Doppler, not GitHub. See docs/SECRETS_MAP.md"
+          if [ -z "${SOPS_AGE_KEY}" ]; then
+            echo "::error::SOPS_AGE_KEY is required. Runtime secrets are in secrets/droplet.enc.yaml (SOPS + age). See secrets/README.md"
             exit 1
           fi
 
@@ -275,8 +275,7 @@ jobs:
             ${{ matrix.image }}:cid-${{ matrix.cid }}
           build-args: |
             NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL || 'https://porterchain.com' }}
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY || secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
-            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
+            NEXT_PUBLIC_GLITCHTIP_DSN=${{ vars.NEXT_PUBLIC_GLITCHTIP_DSN }}
             NEXT_PUBLIC_APP_ENV=production
             NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED=${{ vars.NEXT_PUBLIC_ZOHO_SALESIQ_ENABLED || 'false' }}
             NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE=${{ secrets.NEXT_PUBLIC_ZOHO_SALESIQ_WIDGET_CODE }}
@@ -306,9 +305,8 @@ jobs:
           build-args: |
             NEXT_PUBLIC_SITE_URL=${{ matrix.id == 'admin' && 'https://admin.porterchain.com' || matrix.id == 'merchant' && 'https://merchant.porterchain.com' || matrix.id == 'driver' && 'https://driver.porterchain.com' || 'https://customer.porterchain.com' }}
             NEXT_PUBLIC_PORTERCHAIN_API_URL=${{ env.PROD_API_URL }}
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ matrix.id == 'driver' && secrets.CLERK_DRIVER_PUBLISHABLE_KEY || secrets.CLERK_PUBLISHABLE_KEY || secrets.CLERK_ADMIN_PUBLISHABLE_KEY }}
             NEXT_PUBLIC_WEBSITE_URL=${{ env.PROD_SITE_URL }}
-            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || secrets.SENTRY_DSN }}
+            NEXT_PUBLIC_GLITCHTIP_DSN=${{ vars.NEXT_PUBLIC_GLITCHTIP_DSN }}
             NEXT_PUBLIC_APP_ENV=production
           cache-from: type=gha,scope=${{ matrix.id }}
           cache-to: type=gha,mode=max,scope=${{ matrix.id }}
@@ -328,13 +326,12 @@ jobs:
         with:
           ref: ${{ needs.plan.outputs.sha }}
 
-      - name: Download Doppler env (once)
-        uses: ./.github/actions/stage-doppler-env
+      - name: Decrypt SOPS env (once)
+        uses: ./.github/actions/stage-sops-env
         with:
-          doppler_token: ${{ secrets.DOPPLER_TOKEN }}
-          doppler_project: ${{ vars.DOPPLER_PROJECT || 'pcd' }}
-          doppler_config: ${{ vars.DOPPLER_CONFIG || 'prd' }}
-          require_keys: POSTGRES_PASSWORD
+          age_key: ${{ secrets.SOPS_AGE_KEY }}
+          sops_file: secrets/droplet.enc.yaml
+          require_keys: POSTGRES_PASSWORD,KEYCLOAK_ADMIN_CLIENT_SECRET,AUTH_SESSION_SECRET
           upload: "false"
 
       - name: Copy full-stack deploy manifests to droplet
@@ -345,7 +342,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
-          source: "infrastructure/deploy/docker-compose.prod.yml,infrastructure/deploy/Caddyfile,infrastructure/deploy/sync-secrets.sh,infrastructure/deploy/scripts/deploy-paths.sh,infrastructure/deploy/scripts/verify-clerk.sh,infrastructure/deploy/scripts/verify-routing.sh,infrastructure/deploy/scripts/recover-prod-stack.sh,infrastructure/deploy/scripts/backup-porterchain-postgres.sh,infrastructure/deploy/scripts/backup-offsite-postgres.sh,infrastructure/deploy/scripts/restore-porterchain-postgres.sh,infrastructure/deploy/scripts/snapshot-before-migrate.sh,infrastructure/deploy/scripts/rollback-prod.sh,infrastructure/deploy/scripts/tune-valhalla-ram.sh,infrastructure/deploy/scripts/rebuild-valhalla-gta.sh,infrastructure/docker/scripts/tune-valhalla-json.py,infrastructure/docker/scripts/prepare-valhalla-gta.sh,infrastructure/docker/valhalla/valhalla.gta-ram.json"
+          source: "infrastructure/deploy/docker-compose.prod.yml,infrastructure/deploy/Caddyfile,infrastructure/deploy/sync-secrets.sh,infrastructure/deploy/scripts/deploy-paths.sh,infrastructure/deploy/scripts/verify-routing.sh,infrastructure/deploy/scripts/recover-prod-stack.sh,infrastructure/deploy/scripts/backup-porterchain-postgres.sh,infrastructure/deploy/scripts/backup-offsite-postgres.sh,infrastructure/deploy/scripts/restore-porterchain-postgres.sh,infrastructure/deploy/scripts/snapshot-before-migrate.sh,infrastructure/deploy/scripts/rollback-prod.sh,infrastructure/deploy/scripts/tune-valhalla-ram.sh,infrastructure/deploy/scripts/rebuild-valhalla-gta.sh,infrastructure/docker/scripts/tune-valhalla-json.py,infrastructure/docker/scripts/prepare-valhalla-gta.sh,infrastructure/docker/valhalla/valhalla.gta-ram.json"
           target: "/opt/porterchain"
           strip_components: 2
 
@@ -361,21 +358,11 @@ jobs:
           target: "/opt/porterchain"
           strip_components: 2
 
-      - name: Copy Doppler config to droplet
-        uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
+      - name: Upload SOPS env to droplet
+        uses: ./.github/actions/stage-sops-env
         with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT || 22 }}
-          source: "doppler.yaml"
-          target: "/opt/porterchain"
-
-      - name: Upload Doppler env to droplet
-        uses: ./.github/actions/stage-doppler-env
-        with:
-          doppler_token: ${{ secrets.DOPPLER_TOKEN }}
-          skip_download: "true"
+          age_key: ""
+          skip_decrypt: "true"
           upload: "true"
           deploy_host: ${{ secrets.DEPLOY_HOST }}
           deploy_user: ${{ secrets.DEPLOY_USER }}
@@ -391,7 +378,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
-          envs: IMAGE_NAME,API_IMAGE_NAME,ADMIN_IMAGE_NAME,MERCHANT_IMAGE_NAME,DRIVER_IMAGE_NAME,CUSTOMER_IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,DOPPLER_PROJECT,DOPPLER_CONFIG,PORTERCHAIN_PUSH_ENABLED,PORTERCHAIN_PUSH_SEND,API_REPLICAS
+          envs: IMAGE_NAME,API_IMAGE_NAME,ADMIN_IMAGE_NAME,MERCHANT_IMAGE_NAME,DRIVER_IMAGE_NAME,CUSTOMER_IMAGE_NAME,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,PORTERCHAIN_PUSH_ENABLED,PORTERCHAIN_PUSH_SEND,API_REPLICAS
           script: |
             set -euo pipefail
             cd /opt/porterchain
@@ -421,11 +408,11 @@ jobs:
             export MERCHANT_IMAGE="$MERCHANT_IMAGE_NAME:$IMAGE_TAG"
             export DRIVER_IMAGE="$DRIVER_IMAGE_NAME:$IMAGE_TAG"
             export CUSTOMER_IMAGE="$CUSTOMER_IMAGE_NAME:$IMAGE_TAG"
-            if [ ! -f doppler.env ]; then
-              echo "::error::missing /opt/porterchain/doppler.env (SCP step failed)"
+            if [ ! -f runtime.env ]; then
+              echo "::error::missing /opt/porterchain/runtime.env (SCP step failed)"
               exit 1
             fi
-            echo "sync-secrets: doppler.env bytes=$(wc -c < doppler.env)"
+            echo "sync-secrets: runtime.env bytes=$(wc -c < runtime.env)"
             if ! bash sync-secrets.sh 2>&1; then
               echo "::error::sync-secrets.sh failed — see output above"
               exit 1
@@ -515,8 +502,6 @@ jobs:
           PORTERCHAIN_PUSH_ENABLED: ${{ vars.PORTERCHAIN_PUSH_ENABLED || 'false' }}
           PORTERCHAIN_PUSH_SEND: ${{ vars.PORTERCHAIN_PUSH_SEND || 'false' }}
           API_REPLICAS: ${{ vars.API_REPLICAS || '1' }}
-          DOPPLER_PROJECT: ${{ vars.DOPPLER_PROJECT || 'pcd' }}
-          DOPPLER_CONFIG: ${{ vars.DOPPLER_CONFIG || 'prd' }}
 
       - name: Deploy scoped services to droplet over SSH
         id: deploy-partial
@@ -550,11 +535,11 @@ jobs:
               echo "::error::empty SERVICES for partial scope $DEPLOY_SCOPE"
               exit 1
             fi
-            if [ ! -f doppler.env ]; then
-              echo "::error::missing /opt/porterchain/doppler.env (SCP step failed)"
+            if [ ! -f runtime.env ]; then
+              echo "::error::missing /opt/porterchain/runtime.env (SCP step failed)"
               exit 1
             fi
-            echo "sync-secrets: doppler.env bytes=$(wc -c < doppler.env)"
+            echo "sync-secrets: runtime.env bytes=$(wc -c < runtime.env)"
             if ! bash sync-secrets.sh 2>&1; then
               echo "::error::sync-secrets.sh failed — see output above"
               exit 1

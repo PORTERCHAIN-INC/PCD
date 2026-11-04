@@ -207,7 +207,7 @@ class PrincipalResolutionService:
             link = (
                 db.query(IdentityLink)
                 .filter(
-                    IdentityLink.provider == (identity.provider or AuthProvider.CLERK.value),
+                    IdentityLink.provider == (identity.provider or AuthProvider.KEYCLOAK.value),
                     IdentityLink.issuer == identity.issuer,
                     IdentityLink.subject == identity.subject,
                     IdentityLink.deactivated_at.is_(None),
@@ -239,7 +239,7 @@ class PrincipalResolutionService:
         existing = (
             db.query(IdentityLink)
             .filter(
-                IdentityLink.provider == (identity.provider or AuthProvider.CLERK.value),
+                IdentityLink.provider == (identity.provider or AuthProvider.KEYCLOAK.value),
                 IdentityLink.subject == identity.subject,
                 IdentityLink.deactivated_at.is_(None),
             )
@@ -249,21 +249,21 @@ class PrincipalResolutionService:
             if existing.platform_user_id != user.id:
                 existing.platform_user_id = user.id
             return
-        by_clerk = (
+        by_idp = (
             db.query(IdentityLink)
             .filter(IdentityLink.auth_subject == identity.subject)
             .first()
         )
-        if by_clerk:
-            by_clerk.platform_user_id = user.id
-            by_clerk.provider = identity.provider or AuthProvider.CLERK.value
-            by_clerk.issuer = identity.issuer
-            by_clerk.subject = identity.subject
+        if by_idp:
+            by_idp.platform_user_id = user.id
+            by_idp.provider = identity.provider or AuthProvider.KEYCLOAK.value
+            by_idp.issuer = identity.issuer
+            by_idp.subject = identity.subject
             return
         db.add(
             IdentityLink(
                 auth_subject=identity.subject,
-                provider=identity.provider or AuthProvider.CLERK.value,
+                provider=identity.provider or AuthProvider.KEYCLOAK.value,
                 issuer=identity.issuer,
                 subject=identity.subject,
                 platform_user_id=user.id,

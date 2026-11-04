@@ -64,7 +64,7 @@ def test_admin_settings_platform_users(db: Session, settings) -> None:
     resp = svc.list_platform_users(db, settings, "staff", limit=10)
     assert resp.total >= 0
     assert isinstance(resp.items, list)
-    assert resp.clerk_synced is False
+    assert resp.idp_synced is False
 
 
 def test_admin_finance_read_paths(db: Session, admin_ctx: AdminContext) -> None:
@@ -102,7 +102,7 @@ def test_admin_merchant360_read_paths(db: Session, settings, merchant_ctx) -> No
     try:
         assert isinstance(svc.unprovisioned_signups(db, settings), list)
     except RuntimeError as exc:
-        # M-4: Clerk directory failures surface instead of silent [].
+        # M-4: Keycloak directory failures surface instead of silent [].
         assert "identity_directory_unavailable" in str(exc)
 
 

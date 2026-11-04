@@ -53,7 +53,7 @@ export default function EarningsClient() {
         <div>
           <h1 className="text-2xl font-bold">Earnings</h1>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Finance Engine totals — synced from Porterchain
+            Finance Engine totals — synced from PorterChain
           </p>
         </div>
         <button
@@ -238,7 +238,11 @@ export default function EarningsClient() {
       </section>
 
       <p className="mt-6 text-xs text-[var(--muted)]">
-        Last synced {new Date(snap.last_updated).toLocaleString()}
+        Last synced{" "}
+        {new Date(snap.last_updated).toLocaleString("en-CA", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        })}
       </p>
     </DriverShell>
   );

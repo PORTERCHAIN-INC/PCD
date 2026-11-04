@@ -14,19 +14,19 @@ def _sim(client, **extra):  # noqa: F811
     return res.json()
 
 
-def test_upgrade_adds_ten_dollar_line(client):  # noqa: F811
+def test_cover_off_until_g_ins(client):  # noqa: F811
+    """Ravi 2026-10-29: declared-value cover is off until cargo insurance is confirmed (G-INS)."""
     base = _sim(client)
-    up = _sim(client, coverage_upgrade=True, declared_value_cents=900_000)
-    line = [i for i in up["items"] if i["code"] == "coverage_upgrade"]
-    assert line and line[0]["amount_cents"] == 1000
-    assert up["subtotal_cents"] - base["subtotal_cents"] >= 1000
-    assert up["coverage"]["covered_up_to_cents"] == 2_500_000
-    assert up["margin"]["insurance_cents"] > 0
+    up = _sim(client, coverage_upgrade=True, declared_value_cents=100_000)
+    assert not [i for i in up["items"] if i["code"] == "coverage_upgrade"]
+    assert up["subtotal_cents"] == base["subtotal_cents"]
+    assert up["coverage"]["unavailable"] == ["declared_value_cover_unavailable"]
+    assert up["coverage"]["default_liability_cents_per_kg"] == 441
 
 
-def test_over_max_and_recommendation(client):  # noqa: F811
-    assert _sim(client, declared_value_cents=3_000_000)["coverage"]["over_max"] is True
-    assert _sim(client, declared_value_cents=50_000, item_category="electronics")["coverage"]["recommended"] == "upgrade"
+def test_over_max_and_excluded(client):  # noqa: F811
+    assert _sim(client, coverage_upgrade=True, declared_value_cents=300_000)["coverage"]["over_max"] is True
+    assert _sim(client, declared_value_cents=50_000, item_category="jewellery")["coverage"]["recommended"] == "excluded"
 
 
 def test_liftgate_suggested_for_heavy(client):  # noqa: F811

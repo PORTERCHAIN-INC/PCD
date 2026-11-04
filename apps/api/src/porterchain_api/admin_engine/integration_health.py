@@ -13,19 +13,12 @@ from porterchain_api.platform.health import readiness
 from porterchain_api.platform.health_status import normalize_check_status
 
 
-def _google_usage() -> dict[str, Any]:
-    from porterchain_api import geo_google
-
-    return geo_google.usage_today()
-
-
 def build_integration_health(
     db: Session,
     settings: Settings,
     *,
     ready: dict[str, Any] | None = None,
-    nvidia_nim_configured: bool,
-    nvidia_model: str | None = None,
+    llm_configured: bool = False,
 ) -> dict[str, Any]:
     """Compose integration status triad for settings / diagnostics dashboards."""
     ready = ready if ready is not None else readiness(db, settings)
@@ -46,21 +39,19 @@ def build_integration_health(
             configured=bool(settings.stripe_secret),
         ),
         "dispatch": _entry(str(checks.get("dispatch", "porterchain"))),
-        "google_maps": _entry(
+        "maps": _entry(
             "configured",
             role="maplibre_tiles_and_photon_search",
             note=(
-                "MapLibre + self-hosted tiles, Photon/Nominatim search, Valhalla/OSRM routing. "
-                "Google Places (New) is a capped server-side backup used only when our own "
-                "search has no confident address."
+                "MapLibre + self-hosted PMTiles, Photon search (Nominatim fallback), "
+                "Valhalla/OSRM routing. No third-party map or places API."
             ),
-            places_fallback=_google_usage(),
         ),
         "firebase": _entry(
             "configured" if platform.firebase_project_id else "unconfigured",
             project_id=platform.firebase_project_id or None,
         ),
-        "clerk": _entry(
+        "keycloak": _entry(
             "configured"
             if is_identity_configured(settings)
             else ("dev_bypass" if settings.auth_dev_bypass else "unconfigured")
@@ -72,19 +63,19 @@ def build_integration_health(
         ),
         "sms": _entry(
             "log_only",
-            note="SMS provider not configured — Clerk handles phone verification",
+            note="SMS provider not configured — Keycloak handles phone verification",
         ),
         "push": _entry(
             "configured" if platform.firebase_project_id else "unconfigured",
             project_id=platform.firebase_project_id or None,
         ),
-        "nvidia_nim": _entry(
-            "configured" if nvidia_nim_configured else "unconfigured",
-            provider="nvidia_nim",
-            model=nvidia_model or "meta/llama-3.2-11b-vision-instruct",
+        "llm": _entry(
+            "configured" if llm_configured else "disabled",
+            provider="none",
+            feature_ai=False,
             phase2_intelligence=bool(settings.phase2_flags.get("intelligence")),
             phase2_ai_dispatch=bool(settings.phase2_flags.get("ai_dispatch")),
-            note="Read-only language assist — never on pay / Valhalla / dispatch write path",
+            note="FEATURE_AI=false (doc 60 R2): no LLM client ships; heuristics only.",
         ),
         "routing": {
             "primary": "valhalla",

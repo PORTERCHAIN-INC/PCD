@@ -1,7 +1,7 @@
 """Admin Customer 360 — list/detail for Partners retail demand nodes.
 
 Admin create/invite lives in ``customer_admin_mutations`` (phone-book orphan + optional
-Platform Clerk invite). Identity SoT remains Settings Users / Clerk when linked.
+Platform Keycloak invite). Identity SoT remains Settings Users / Keycloak when linked.
 """
 
 from __future__ import annotations
@@ -45,7 +45,7 @@ class CustomerAdminService:
 
     def stats(self, db: Session) -> dict[str, Any]:
         total = db.query(func.count(Customer.id)).scalar() or 0
-        # Orphan = missing clerk id or pending:* placeholder from pre-signup rows
+        # Orphan = missing keycloak id or pending:* placeholder from pre-signup rows
         orphan = (
             db.query(func.count(Customer.id))
             .filter(

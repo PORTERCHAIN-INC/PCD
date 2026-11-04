@@ -1,5 +1,5 @@
 export type OnboardingStepId =
-  | "clerk_account"
+  | "idp_account"
   | "admin_approval"
   | "license_verified"
   | "insurance_verified"

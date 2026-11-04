@@ -141,7 +141,7 @@ def test_identity_verified_does_not_auto_approve(db: Session) -> None:
         email=f"p0-ident-{suffix}@test.porterchain.com",
         full_name=f"P0 Ident {suffix}",
         status=DriverStatus.PENDING.value,
-        auth_subject=f"clerk_p0_ident_{suffix}",
+        auth_subject=f"idp_p0_ident_{suffix}",
         license_verified=False,
         documents={},
     )
@@ -259,7 +259,7 @@ def test_get_driver_context_suspended_403(db: Session) -> None:
         email=f"p0-sus-{suffix}@test.porterchain.com",
         full_name=f"P0 Sus {suffix}",
         status=DriverStatus.SUSPENDED.value,
-        auth_subject=f"clerk_p0_sus_{suffix}",
+        auth_subject=f"idp_p0_sus_{suffix}",
     )
     db.add(row)
     db.commit()

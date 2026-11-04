@@ -7,6 +7,7 @@ through the Admin REST API (invite email, MFA reset, disable).
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -32,7 +33,7 @@ def ensure_staff_identity(db: Session, user: AdminUser) -> str:
     subject_key = f"staff:{user.id}"
     current = str(user.auth_subject or "")
     legacy = None
-    if current.startswith("user_") or current == "dev_clerk_user":
+    if current.startswith("user_") or current == "dev_idp_user":
         legacy = current
 
     pc = ensure_staff_porterchain_user(
@@ -40,7 +41,7 @@ def ensure_staff_identity(db: Session, user: AdminUser) -> str:
         subject_key=subject_key,
         email=user.email,
         linked_user_id=user.porterchain_user_id,
-        legacy_clerk_user_id=legacy,
+        legacy_idp_user_id=legacy,
     )
     user.porterchain_user_id = pc.id
     user.auth_subject = subject_key
@@ -80,6 +81,8 @@ def _payload(user: AdminUser, *, provisioned: bool, email_sent: bool, created: b
         "keycloak_provisioned": provisioned,
         "keycloak_user_created": created,
         "email_sent": email_sent,
+        # L213: StaffEnrollResponse requires expires_at (setup link lifetime); missing it 500'd enroll.
+        "expires_at": time.time() + keycloak_admin.ACTION_LIFESPAN_SECONDS,
     }
 
 
@@ -212,6 +215,44 @@ class StaffAccountService:
         out["credentials_removed"] = removed
         out["sessions_revoked"] = kc is not None
         return out
+
+    def set_active(
+        self, db: Session, ctx: AdminContext, settings: Settings, admin_user_id: str, active: bool
+    ) -> dict[str, Any]:
+        """L220: deactivate / reactivate a staff login (Keycloak disable + sessions ended)."""
+        user = db.query(AdminUser).filter(AdminUser.id == admin_user_id).first()
+        if not user:
+            raise LookupError("staff_not_found")
+        me = getattr(getattr(ctx, "user", None), "id", None)
+        if not active and me == user.id:
+            raise ValueError("cannot_deactivate_self")
+        if not active and user.role == "super_admin" and user.is_active:
+            others = (
+                db.query(AdminUser)
+                .filter(AdminUser.role == "super_admin", AdminUser.is_active.is_(True), AdminUser.id != user.id)
+                .count()
+            )
+            if others == 0:
+                raise ValueError("last_super_admin")
+        user.is_active = bool(active)
+        log_admin_audit(
+            db,
+            ctx,
+            action="staff.reactivated" if active else "staff.deactivated",
+            resource_type="admin_user",
+            resource_id=user.id,
+            payload={"email": user.email, "role": user.role},
+        )
+        db.commit()
+        kc_done = False
+        if active:
+            kc = _admin(settings) if keycloak_admin.configured(settings) else None
+            if kc is not None:
+                kc.ensure_staff_user(email=user.email, name=user.name, role=user.role)  # re-enables
+                kc_done = True
+        else:
+            kc_done = keycloak_admin.end_staff_sessions(settings, user.email, disable=True)
+        return {"id": user.id, "email": user.email, "is_active": user.is_active, "login_updated": kc_done}
 
     def deactivate_login(self, settings: Settings, email: str) -> bool:
         """Disable the Keycloak user (called when an AdminUser is deactivated)."""

@@ -68,7 +68,9 @@ def public_track_url(
 ) -> str | None:
     if not tracking_number or is_sandbox:
         return None
-    return f"{settings.website_url.rstrip('/')}/track/{tracking_number}"
+    from porterchain_api.merchant_engine.shopify_fulfillment_ops import public_tracking_url
+
+    return public_tracking_url(settings, tracking_number)
 
 
 def coords_from_address(addr: dict[str, Any] | None) -> tuple[float, float] | None:

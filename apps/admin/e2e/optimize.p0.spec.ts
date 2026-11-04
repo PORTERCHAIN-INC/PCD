@@ -1,7 +1,7 @@
 /**
  * UI-OPS-006 — Optimize tab smoke (day plan copy + pool → preview → commit).
  *
- * Requires admin on ADMIN_BASE_URL (default :3002) with local Clerk/API bypass.
+ * Requires admin on ADMIN_BASE_URL (default :3002) with local Keycloak/API bypass.
  * BFF + optimize APIs are mocked.
  *
  *   ADMIN_RUN_LIVE=1 pnpm --filter @porterchain/admin test:e2e -- e2e/optimize.p0.spec.ts

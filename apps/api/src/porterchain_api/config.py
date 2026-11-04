@@ -53,7 +53,7 @@ class Settings(BaseSettings):
     booking_draft_ttl_minutes: int = 1440
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004"
 
-    # L36: Keycloak is the only auth provider (no Clerk / dual mode).
+    # L36: Keycloak is the only auth provider (no Keycloak / dual mode).
     auth_provider: Literal["keycloak"] = "keycloak"
     keycloak_url: str = ""  # public base, e.g. https://auth.porterchain.com
     keycloak_internal_url: str = ""  # optional in-cluster base used for JWKS fetch
@@ -101,6 +101,8 @@ class Settings(BaseSettings):
     driver_portal_url: str = "http://localhost:3003"
     customer_portal_url: str = "http://localhost:3004"
     website_url: str = "http://localhost:3000"
+    # L121: buyer-facing tracking base per environment (PUBLIC_TRACKING_BASE_URL). Empty = website_url.
+    public_tracking_base_url: str = ""
     # Interac e-Transfer inbox reader (billing@ on Zoho Mail). Off by default; env only —
     # the app password is never stored in the database or settings UI.
     interac_imap_enabled: bool = Field(
@@ -305,19 +307,26 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices("lead_alert_email", "LEAD_ALERT_EMAIL"),
     )
-    #: SMS alert to LEAD_ALERT_SMS_TO — only when this is true AND Twilio is configured.
-    lead_alert_sms_enabled: bool = Field(
-        default=False,
-        validation_alias=AliasChoices("lead_alert_sms_enabled", "LEAD_ALERT_SMS_ENABLED"),
-    )
-    lead_alert_sms_to: str = Field(
-        default="",
-        validation_alias=AliasChoices("lead_alert_sms_to", "LEAD_ALERT_SMS_TO"),
-    )
-    #: Optional LLM polish for drafts / score notes (needs NVIDIA NIM key). Rules work without it.
+    #: Optional LLM polish for drafts / score notes. No LLM ships in Phase 0 (FEATURE_AI off); rules always apply.
     lead_ai_enabled: bool = Field(
         default=False,
         validation_alias=AliasChoices("lead_ai_enabled", "LEAD_AI_ENABLED"),
+    )
+    #: Doc 80 / I82-3: trucks > 4,500 kg RGW stay off until the CVOR certificate is issued.
+    compliance_heavy_trucks_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("compliance_heavy_trucks_enabled", "COMPLIANCE_HEAVY_TRUCKS_ENABLED"),
+    )
+    #: Doc 72: every channel prices on the published Standard rate card (+ org Custom).
+    #: Off = the previous distance/FSA/contract engine.
+    pricing_standard_card_live: bool = Field(
+        default=True,
+        validation_alias=AliasChoices("pricing_standard_card_live", "PRICING_STANDARD_CARD_LIVE"),
+    )
+    #: Shopify checkout flat rate when pricing errors (None = Standard Z3 L incl. HST, 0 = off).
+    shopify_flat_rate_fallback_cents: int | None = Field(
+        default=None,
+        validation_alias=AliasChoices("shopify_flat_rate_fallback_cents", "SHOPIFY_FLAT_RATE_FALLBACK_CENTS"),
     )
     #: Unified lead inbox — WhatsApp Cloud replies/inbound are OFF until this is true
     #: (and META_WA_ACCESS_TOKEN + META_WA_PHONE_NUMBER_ID are set).
@@ -384,31 +393,12 @@ class Settings(BaseSettings):
         default=25000,
         validation_alias=AliasChoices("referral_credit_cents", "REFERRAL_CREDIT_CENTS"),
     )
-    #: Doppler service token — enables admin Lead Ingest settings → Doppler write.
-    #: Note: DOPPLER_PROJECT / DOPPLER_CONFIG are reserved by Doppler CLI; keep defaults
-    #: or set PORTERCHAIN_DOPPLER_PROJECT / PORTERCHAIN_DOPPLER_CONFIG.
-    doppler_token: str = Field(
-        default="",
-        validation_alias=AliasChoices("doppler_token", "DOPPLER_TOKEN"),
-    )
-    doppler_project: str = Field(
-        default="pcd",
-        validation_alias=AliasChoices(
-            "doppler_project",
-            "PORTERCHAIN_DOPPLER_PROJECT",
-        ),
-    )
-    doppler_config: str = Field(
-        default="prd",
-        validation_alias=AliasChoices(
-            "doppler_config",
-            "PORTERCHAIN_DOPPLER_CONFIG",
-        ),
-    )
-
     stripe_secret: str = ""
     stripe_webhook_secret: str = ""
     stripe_mock: bool = True
+    #: G11/R9 says merchants pay by Interac only. Card payment of merchant invoices is an
+    #: opt-in exception (off by default) until Ravi changes the rule; the local stack turns it on.
+    merchant_card_payments_enabled: bool = False
     #: P0 — Stripe Identity for driver license + selfie (Ontario onboarding).
     driver_identity_verification_enabled: bool = Field(
         default=False,
@@ -474,6 +464,21 @@ class Settings(BaseSettings):
             "DRIVER_ABSTRACT_ALLOWED_CLASSES",
         ),
     )
+    #: Collect-only = pick up to OUR warehouse and deliver later. Off: Phase 0 has no
+    #: storage / overnight holding. Code is kept; bookings asking for it are refused.
+    collect_only_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("collect_only_enabled", "PCD_COLLECT_ONLY_ENABLED"),
+    )
+    #: Late-payment penalty: share of the billed amount added once when an invoice is
+    #: unpaid after its due date; the business is suspended the same day.
+    late_penalty_pct: float = Field(
+        default=20.0, validation_alias=AliasChoices("late_penalty_pct", "PCD_LATE_PENALTY_PCT")
+    )
+    #: Free self-hosted translator (LibreTranslate) for merchant/customer free text -> English.
+    translate_url: str = Field(
+        default="", validation_alias=AliasChoices("translate_url", "PCD_TRANSLATE_URL")
+    )
     driver_compliance_expiry_sweep_enabled: bool = Field(
         default=True,
         validation_alias=AliasChoices(
@@ -527,8 +532,6 @@ class Settings(BaseSettings):
             "read_orders,write_fulfillments,write_shipping,"
             "read_merchant_managed_fulfillment_orders,"
             "write_merchant_managed_fulfillment_orders,"
-            "read_assigned_fulfillment_orders,"
-            "write_assigned_fulfillment_orders,"
             # Requested at OAuth only when SHOPIFY_RETURNS_SCOPE_ENABLED (see shopify_urls.oauth_scopes).
             "read_returns"
         ),
@@ -588,6 +591,26 @@ class Settings(BaseSettings):
         ),
     )
 
+    # Shopify Billing API (App Store 1.2.1/1.2.2): stores installed through the Shopify app
+    # approve a usage subscription; each delivery is charged as a usage record. Direct
+    # merchants keep Interac e-Transfer invoices. Test charges unless APP_ENV=production.
+    shopify_billing_enabled: bool = Field(
+        default=True,
+        validation_alias=AliasChoices("shopify_billing_enabled", "SHOPIFY_BILLING_ENABLED"),
+    )
+    shopify_billing_test: bool | None = Field(
+        default=None,
+        validation_alias=AliasChoices("shopify_billing_test", "SHOPIFY_BILLING_TEST"),
+    )
+    shopify_billing_capped_amount: float = Field(
+        default=5000.0,
+        validation_alias=AliasChoices("shopify_billing_capped_amount", "SHOPIFY_BILLING_CAPPED_AMOUNT"),
+    )
+    shopify_reconcile_interval_seconds: int = Field(
+        default=900,
+        validation_alias=AliasChoices("shopify_reconcile_interval_seconds", "SHOPIFY_RECONCILE_INTERVAL_SECONDS"),
+    )
+
     retail_checkout_success_url: str = "http://localhost:3000/en/book/success"
     retail_checkout_cancel_url: str = "http://localhost:3000/en/book/continue"
     customer_checkout_success_url: str = ""
@@ -631,9 +654,10 @@ class Settings(BaseSettings):
         default=120,
         validation_alias=AliasChoices("public_rate_limit_per_minute", "PUBLIC_RATE_LIMIT_PER_MINUTE"),
     )
-    sentry_dsn: str = Field(
+    #: Self-hosted GlitchTip DSN (doc 36). Empty = error tracking off.
+    glitchtip_dsn: str = Field(
         default="",
-        validation_alias=AliasChoices("sentry_dsn", "SENTRY_DSN"),
+        validation_alias=AliasChoices("glitchtip_dsn", "GLITCHTIP_DSN"),
     )
     # Driver Android/iOS store gate — exposed on GET /health/status (no auth).
     driver_app_min_version: str = Field(
@@ -776,6 +800,11 @@ def public_url_errors(settings: Settings) -> list[str]:
         host = (urlparse(value).hostname or "").lower()
         if not host or host in _LOOPBACK_HOSTS or host.endswith(".localhost"):
             bad.append(f"{name.upper()}={value or '<empty>'}")
+    # L121: optional; when set it must also be a real host.
+    tb = str(getattr(settings, "public_tracking_base_url", "") or "")
+    tb_host = (urlparse(tb).hostname or "").lower()
+    if tb and (not tb_host or tb_host in _LOOPBACK_HOSTS or tb_host.endswith(".localhost")):
+        bad.append(f"PUBLIC_TRACKING_BASE_URL={tb}")
     return bad
 
 

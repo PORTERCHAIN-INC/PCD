@@ -1,0 +1,715 @@
+{
+  "depot": {
+    "label": "Warehouse, 50 Ashtonbee Rd, Scarborough",
+    "lat": 43.7301,
+    "lng": -79.2905
+  },
+  "stops": [
+    {
+      "id": "T73",
+      "address": "972 Roncesvalles Ave, Toronto, ON",
+      "lat": 43.64561,
+      "lng": -79.4462,
+      "kg": 6.0,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T07",
+      "address": "Unit 1838, 1 Yonge St, Toronto, ON",
+      "lat": 43.6426,
+      "lng": -79.3756,
+      "kg": 2.4,
+      "boxes": 1,
+      "handling": ["signature"]
+    },
+    {
+      "id": "T57",
+      "address": "713 Roncesvalles Ave, Toronto, ON",
+      "lat": 43.64203,
+      "lng": -79.44501,
+      "kg": 10.0,
+      "boxes": 2,
+      "handling": ["pharmacy"]
+    },
+    {
+      "id": "T48",
+      "address": "996 Queen St E, Toronto, ON",
+      "lat": 43.66731,
+      "lng": -79.32984,
+      "kg": 5.9,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T76",
+      "address": "726 Lakeshore Blvd W, Toronto, ON",
+      "lat": 43.62568,
+      "lng": -79.49135,
+      "kg": 8.3,
+      "boxes": 1,
+      "handling": ["fragile"]
+    },
+    {
+      "id": "T04",
+      "address": "Unit 872, 1 Yonge St, Toronto, ON",
+      "lat": 43.6426,
+      "lng": -79.3756,
+      "kg": 5.6,
+      "boxes": 1,
+      "handling": ["signature"]
+    },
+    {
+      "id": "T49",
+      "address": "2141 Danforth Ave, Toronto, ON",
+      "lat": 43.67468,
+      "lng": -79.3416,
+      "kg": 4.3,
+      "boxes": 1,
+      "handling": ["fragile"]
+    },
+    {
+      "id": "T27",
+      "address": "Unit 2073, 700 Bay St, Toronto, ON",
+      "lat": 43.6587,
+      "lng": -79.3846,
+      "kg": 1.8,
+      "boxes": 1,
+      "handling": ["signature"]
+    },
+    {
+      "id": "T51",
+      "address": "227 Gerrard St E, Toronto, ON",
+      "lat": 43.66567,
+      "lng": -79.32337,
+      "kg": 11.9,
+      "boxes": 1,
+      "handling": ["cold"]
+    },
+    {
+      "id": "T72",
+      "address": "1057 College St, Toronto, ON",
+      "lat": 43.65484,
+      "lng": -79.41137,
+      "kg": 10.6,
+      "boxes": 1,
+      "handling": ["fragile"]
+    },
+    {
+      "id": "T52",
+      "address": "1457 Eglinton Ave W, Toronto, ON",
+      "lat": 43.70145,
+      "lng": -79.42644,
+      "kg": 4.3,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T47",
+      "address": "1987 Dufferin St, Toronto, ON",
+      "lat": 43.66076,
+      "lng": -79.43397,
+      "kg": 10.4,
+      "boxes": 1,
+      "handling": ["two_person"],
+      "tw": [36000, 46800]
+    },
+    {
+      "id": "T16",
+      "address": "Unit 1032, 55 Bloor St W, Toronto, ON",
+      "lat": 43.6697,
+      "lng": -79.3888,
+      "kg": 2.9,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T32",
+      "address": "1630 Queen St E, Toronto, ON",
+      "lat": 43.65747,
+      "lng": -79.32563,
+      "kg": 6.7,
+      "boxes": 2,
+      "handling": ["two_person"],
+      "tw": [57600, 68400]
+    },
+    {
+      "id": "T44",
+      "address": "1472 Dufferin St, Toronto, ON",
+      "lat": 43.66414,
+      "lng": -79.436,
+      "kg": 5.1,
+      "boxes": 1,
+      "handling": ["cold"]
+    },
+    {
+      "id": "T25",
+      "address": "Unit 2190, 10 Queens Quay W, Toronto, ON",
+      "lat": 43.6407,
+      "lng": -79.377,
+      "kg": 2.7,
+      "boxes": 1,
+      "handling": ["signature"]
+    },
+    {
+      "id": "T15",
+      "address": "Unit 552, 55 Bloor St W, Toronto, ON",
+      "lat": 43.6697,
+      "lng": -79.3888,
+      "kg": 3.0,
+      "boxes": 1,
+      "handling": ["fragile"]
+    },
+    {
+      "id": "T75",
+      "address": "Unit 2100, 25 The Esplanade, Toronto, ON",
+      "lat": 43.6467,
+      "lng": -79.3729,
+      "kg": 2.9,
+      "boxes": 1,
+      "handling": ["pharmacy"]
+    },
+    {
+      "id": "T63",
+      "address": "518 Roncesvalles Ave, Toronto, ON",
+      "lat": 43.64768,
+      "lng": -79.45893,
+      "kg": 10.4,
+      "boxes": 2,
+      "handling": ["cold"]
+    },
+    {
+      "id": "T70",
+      "address": "1859 Pape Ave, Toronto, ON",
+      "lat": 43.67899,
+      "lng": -79.33536,
+      "kg": 8.0,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T55",
+      "address": "223 Pape Ave, Toronto, ON",
+      "lat": 43.67554,
+      "lng": -79.34728,
+      "kg": 1.1,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T02",
+      "address": "Unit 3144, 100 King St W, Toronto, ON",
+      "lat": 43.6487,
+      "lng": -79.3817,
+      "kg": 2.9,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T23",
+      "address": "Unit 3050, 1 Dundas St W, Toronto, ON",
+      "lat": 43.6561,
+      "lng": -79.3802,
+      "kg": 2.8,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T17",
+      "address": "Unit 1784, 55 Bloor St W, Toronto, ON",
+      "lat": 43.6697,
+      "lng": -79.3888,
+      "kg": 2.7,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T68",
+      "address": "1634 Eglinton Ave W, Toronto, ON",
+      "lat": 43.69927,
+      "lng": -79.43199,
+      "kg": 10.9,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T62",
+      "address": "Unit 2162, 650 Queens Quay W, Toronto, ON",
+      "lat": 43.6355,
+      "lng": -79.3994,
+      "kg": 8.2,
+      "boxes": 1,
+      "handling": ["fragile"]
+    },
+    {
+      "id": "T53",
+      "address": "929 Queen St E, Toronto, ON",
+      "lat": 43.66176,
+      "lng": -79.32425,
+      "kg": 5.8,
+      "boxes": 1,
+      "handling": ["pharmacy"]
+    },
+    {
+      "id": "T08",
+      "address": "Unit 2977, 1 Yonge St, Toronto, ON",
+      "lat": 43.6426,
+      "lng": -79.3756,
+      "kg": 5.1,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T14",
+      "address": "Unit 3070, 55 Bloor St W, Toronto, ON",
+      "lat": 43.6697,
+      "lng": -79.3888,
+      "kg": 1.0,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T77",
+      "address": "1446 Gerrard St E, Toronto, ON",
+      "lat": 43.67407,
+      "lng": -79.3223,
+      "kg": 8.2,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T46",
+      "address": "1709 Dufferin St, Toronto, ON",
+      "lat": 43.66219,
+      "lng": -79.42562,
+      "kg": 4.0,
+      "boxes": 1,
+      "handling": ["two_person"]
+    },
+    {
+      "id": "T37",
+      "address": "906 Dufferin St, Toronto, ON",
+      "lat": 43.65753,
+      "lng": -79.4407,
+      "kg": 5.8,
+      "boxes": 1,
+      "handling": ["two_person"]
+    },
+    {
+      "id": "T24",
+      "address": "Unit 1328, 10 Queens Quay W, Toronto, ON",
+      "lat": 43.6407,
+      "lng": -79.377,
+      "kg": 1.5,
+      "boxes": 1,
+      "handling": ["signature"]
+    },
+    {
+      "id": "T03",
+      "address": "Unit 2784, 100 King St W, Toronto, ON",
+      "lat": 43.6487,
+      "lng": -79.3817,
+      "kg": 1.3,
+      "boxes": 1,
+      "handling": ["signature"]
+    },
+    {
+      "id": "T11",
+      "address": "Unit 697, 300 Front St W, Toronto, ON",
+      "lat": 43.6431,
+      "lng": -79.3889,
+      "kg": 3.8,
+      "boxes": 1,
+      "handling": ["fragile"]
+    },
+    {
+      "id": "T54",
+      "address": "1732 Roncesvalles Ave, Toronto, ON",
+      "lat": 43.65172,
+      "lng": -79.44763,
+      "kg": 11.7,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T18",
+      "address": "Unit 2462, 2200 Yonge St, Toronto, ON",
+      "lat": 43.7066,
+      "lng": -79.3984,
+      "kg": 4.9,
+      "boxes": 1,
+      "handling": ["fragile"]
+    },
+    {
+      "id": "T34",
+      "address": "324 Gerrard St E, Toronto, ON",
+      "lat": 43.6689,
+      "lng": -79.31576,
+      "kg": 9.3,
+      "boxes": 2,
+      "handling": ["cold"]
+    },
+    {
+      "id": "T19",
+      "address": "Unit 3398, 2200 Yonge St, Toronto, ON",
+      "lat": 43.7066,
+      "lng": -79.3984,
+      "kg": 3.5,
+      "boxes": 1,
+      "handling": ["fragile"]
+    },
+    {
+      "id": "T31",
+      "address": "651 Bathurst St, Toronto, ON",
+      "lat": 43.6661,
+      "lng": -79.40991,
+      "kg": 9.0,
+      "boxes": 1,
+      "handling": ["fragile"],
+      "tw": [46800, 57600]
+    },
+    {
+      "id": "T26",
+      "address": "Unit 615, 10 Queens Quay W, Toronto, ON",
+      "lat": 43.6407,
+      "lng": -79.377,
+      "kg": 0.9,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T67",
+      "address": "1106 Kingston Rd, Toronto, ON",
+      "lat": 43.68764,
+      "lng": -79.2813,
+      "kg": 6.7,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T74",
+      "address": "Unit 1567, 1 Bloor St E, Toronto, ON",
+      "lat": 43.6709,
+      "lng": -79.3857,
+      "kg": 9.2,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T38",
+      "address": "1694 Kingston Rd, Toronto, ON",
+      "lat": 43.68555,
+      "lng": -79.2919,
+      "kg": 3.8,
+      "boxes": 2,
+      "handling": ["cold"]
+    },
+    {
+      "id": "T40",
+      "address": "Unit 1927, 650 Queens Quay W, Toronto, ON",
+      "lat": 43.6355,
+      "lng": -79.3994,
+      "kg": 11.5,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T42",
+      "address": "1841 Bathurst St, Toronto, ON",
+      "lat": 43.6708,
+      "lng": -79.41183,
+      "kg": 9.3,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T59",
+      "address": "Unit 2811, 15 Fort York Blvd, Toronto, ON",
+      "lat": 43.6393,
+      "lng": -79.3922,
+      "kg": 6.7,
+      "boxes": 2,
+      "handling": ["fragile"]
+    },
+    {
+      "id": "T39",
+      "address": "2148 Kingston Rd, Toronto, ON",
+      "lat": 43.67993,
+      "lng": -79.28134,
+      "kg": 1.3,
+      "boxes": 1,
+      "handling": ["cold"]
+    },
+    {
+      "id": "T10",
+      "address": "Unit 898, 300 Front St W, Toronto, ON",
+      "lat": 43.6431,
+      "lng": -79.3889,
+      "kg": 1.3,
+      "boxes": 1,
+      "handling": ["fragile"]
+    },
+    {
+      "id": "T64",
+      "address": "1157 Roncesvalles Ave, Toronto, ON",
+      "lat": 43.64075,
+      "lng": -79.45031,
+      "kg": 8.6,
+      "boxes": 1,
+      "handling": ["pharmacy"]
+    },
+    {
+      "id": "T69",
+      "address": "Unit 179, 25 The Esplanade, Toronto, ON",
+      "lat": 43.6467,
+      "lng": -79.3729,
+      "kg": 3.6,
+      "boxes": 1,
+      "handling": ["cold"]
+    },
+    {
+      "id": "T30",
+      "address": "Unit 1391, 700 Bay St, Toronto, ON",
+      "lat": 43.6587,
+      "lng": -79.3846,
+      "kg": 5.3,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T61",
+      "address": "Unit 1957, 15 Fort York Blvd, Toronto, ON",
+      "lat": 43.6393,
+      "lng": -79.3922,
+      "kg": 0.8,
+      "boxes": 1,
+      "handling": ["fragile"]
+    },
+    {
+      "id": "T43",
+      "address": "Unit 1601, 33 Isabella St, Toronto, ON",
+      "lat": 43.6683,
+      "lng": -79.3836,
+      "kg": 1.2,
+      "boxes": 1,
+      "handling": ["fragile"]
+    },
+    {
+      "id": "T41",
+      "address": "2271 Queen St E, Toronto, ON",
+      "lat": 43.65664,
+      "lng": -79.33911,
+      "kg": 7.4,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T06",
+      "address": "Unit 1065, 1 Yonge St, Toronto, ON",
+      "lat": 43.6426,
+      "lng": -79.3756,
+      "kg": 4.5,
+      "boxes": 1,
+      "handling": ["fragile"]
+    },
+    {
+      "id": "T33",
+      "address": "2056 Kingston Rd, Toronto, ON",
+      "lat": 43.68001,
+      "lng": -79.27981,
+      "kg": 5.2,
+      "boxes": 2,
+      "handling": ["cold"]
+    },
+    {
+      "id": "T66",
+      "address": "1131 Kingston Rd, Toronto, ON",
+      "lat": 43.68507,
+      "lng": -79.29185,
+      "kg": 8.2,
+      "boxes": 1,
+      "handling": ["fragile"]
+    },
+    {
+      "id": "T22",
+      "address": "Unit 192, 1 Dundas St W, Toronto, ON",
+      "lat": 43.6561,
+      "lng": -79.3802,
+      "kg": 5.4,
+      "boxes": 1,
+      "handling": ["signature"]
+    },
+    {
+      "id": "T50",
+      "address": "Unit 234, 4900 Yonge St, Toronto, ON",
+      "lat": 43.7676,
+      "lng": -79.4136,
+      "kg": 10.9,
+      "boxes": 1,
+      "handling": ["pharmacy"]
+    },
+    {
+      "id": "T35",
+      "address": "Unit 2825, 15 Fort York Blvd, Toronto, ON",
+      "lat": 43.6393,
+      "lng": -79.3922,
+      "kg": 2.1,
+      "boxes": 1,
+      "handling": ["two_person"]
+    },
+    {
+      "id": "T13",
+      "address": "Unit 2149, 55 Bloor St W, Toronto, ON",
+      "lat": 43.6697,
+      "lng": -79.3888,
+      "kg": 4.2,
+      "boxes": 1,
+      "handling": ["signature"]
+    },
+    {
+      "id": "T45",
+      "address": "1621 Roncesvalles Ave, Toronto, ON",
+      "lat": 43.64333,
+      "lng": -79.44027,
+      "kg": 8.6,
+      "boxes": 1,
+      "handling": ["cold"]
+    },
+    {
+      "id": "T56",
+      "address": "1767 Dufferin St, Toronto, ON",
+      "lat": 43.66136,
+      "lng": -79.42534,
+      "kg": 1.9,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T01",
+      "address": "Unit 493, 100 King St W, Toronto, ON",
+      "lat": 43.6487,
+      "lng": -79.3817,
+      "kg": 2.2,
+      "boxes": 1,
+      "handling": ["fragile"]
+    },
+    {
+      "id": "T60",
+      "address": "2216 Gerrard St E, Toronto, ON",
+      "lat": 43.67247,
+      "lng": -79.32801,
+      "kg": 9.6,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T21",
+      "address": "Unit 1727, 1 Dundas St W, Toronto, ON",
+      "lat": 43.6561,
+      "lng": -79.3802,
+      "kg": 1.4,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T05",
+      "address": "Unit 1651, 1 Yonge St, Toronto, ON",
+      "lat": 43.6426,
+      "lng": -79.3756,
+      "kg": 5.9,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T12",
+      "address": "Unit 3021, 300 Front St W, Toronto, ON",
+      "lat": 43.6431,
+      "lng": -79.3889,
+      "kg": 5.6,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T65",
+      "address": "1610 Lakeshore Blvd W, Toronto, ON",
+      "lat": 43.63148,
+      "lng": -79.47472,
+      "kg": 12.0,
+      "boxes": 2,
+      "handling": ["fragile"]
+    },
+    {
+      "id": "T29",
+      "address": "Unit 1379, 700 Bay St, Toronto, ON",
+      "lat": 43.6587,
+      "lng": -79.3846,
+      "kg": 2.3,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T09",
+      "address": "Unit 1595, 300 Front St W, Toronto, ON",
+      "lat": 43.6431,
+      "lng": -79.3889,
+      "kg": 0.8,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T20",
+      "address": "Unit 597, 2200 Yonge St, Toronto, ON",
+      "lat": 43.7066,
+      "lng": -79.3984,
+      "kg": 4.2,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T71",
+      "address": "Unit 2502, 33 Isabella St, Toronto, ON",
+      "lat": 43.6683,
+      "lng": -79.3836,
+      "kg": 4.9,
+      "boxes": 1,
+      "handling": ["cold"],
+      "tw": [46800, 57600]
+    },
+    {
+      "id": "T36",
+      "address": "51 Queen St E, Toronto, ON",
+      "lat": 43.66419,
+      "lng": -79.3332,
+      "kg": 6.8,
+      "boxes": 2,
+      "handling": ["cold"]
+    },
+    {
+      "id": "T28",
+      "address": "Unit 552, 700 Bay St, Toronto, ON",
+      "lat": 43.6587,
+      "lng": -79.3846,
+      "kg": 1.0,
+      "boxes": 1,
+      "handling": []
+    },
+    {
+      "id": "T58",
+      "address": "676 Lakeshore Blvd W, Toronto, ON",
+      "lat": 43.62528,
+      "lng": -79.48242,
+      "kg": 10.7,
+      "boxes": 1,
+      "handling": ["pharmacy"]
+    },
+    {
+      "id": "T78",
+      "address": "2191 College St, Toronto, ON",
+      "lat": 43.651,
+      "lng": -79.4202,
+      "kg": 3.9,
+      "boxes": 2,
+      "handling": []
+    }
+  ]
+}

@@ -21,9 +21,9 @@ class E2EValidationFailuresMixin:
         chaos_map = {
             "day_plan_offline": "day_plan_offline",
             "stripe_offline": "stripe_offline",
-            "clerk_offline": "clerk_offline",
+            "idp_offline": "idp_offline",
             "firebase_failure": "firebase_offline",
-            "google_maps_failure": "google_maps_failure",
+            "maps_failure": "maps_failure",
             "osrm_failure": "osrm_failure",
             "valhalla_failure": "valhalla_failure",
             "redis_restart": "redis_restart",
@@ -46,8 +46,8 @@ class E2EValidationFailuresMixin:
                 fix = "Configure STRIPE_WEBHOOK_SECRET (ADR-006)"
             elif scenario == "authentication_failed":
                 status = "PASS" if is_identity_configured(settings) or settings.auth_dev_bypass else "BLOCKER"
-                root_cause = "Clerk not configured" if status != "PASS" else ""
-                fix = "Configure Clerk or enable AUTH_DEV_BYPASS"
+                root_cause = "Keycloak not configured" if status != "PASS" else ""
+                fix = "Configure Keycloak or enable AUTH_DEV_BYPASS"
                 priority = "P0" if status == "BLOCKER" else "P2"
             elif scenario == "payment_failed":
                 fix = "PaymentService records FAILED status + draft PAYMENT_FAILED"

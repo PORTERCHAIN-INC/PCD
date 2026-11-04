@@ -1,4 +1,4 @@
-"""L36: realm-as-code invariants, reviewer seed plan, Clerk→Keycloak dry-run migration."""
+"""L36: realm-as-code invariants, reviewer seed plan, Keycloak→Keycloak dry-run migration."""
 
 from __future__ import annotations
 
@@ -27,7 +27,9 @@ def test_committed_realm_matches_generator():
 def test_realm_policy():
     r = json.loads((KC / "realm-porterchain.json").read_text())
     assert r["realm"] == "porterchain" and r["bruteForceProtected"] is True
-    assert r["verifyEmail"] is False  # no email code in normal login
+    # L82: the API only trusts verified emails, so self sign-up must verify once (not a per-login code).
+    assert r["verifyEmail"] is True
+    assert r["attributes"]["actionTokenGeneratedByUserLifespan.verify-email"] == "43200"
     clients = {c["clientId"]: c for c in r["clients"]}
     for cid in ("pc-website", "pc-merchant-portal", "pc-admin", "pc-customer-app", "pc-driver-app"):
         c = clients[cid]

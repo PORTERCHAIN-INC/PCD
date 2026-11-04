@@ -98,7 +98,7 @@ export function RolesPanel() {
 
       <SettingsCard
         title="SpiceDB authorization"
-        description="Clerk authenticates retail portals. Staff use PorterChain IdP. SpiceDB authorizes every Check."
+        description="Keycloak authenticates retail portals. Staff use PorterChain IdP. SpiceDB authorizes every Check."
       >
         <p className="text-sm text-muted">
           Live rules are in <code className="rounded bg-gray-bg px-1">authz/schema.zed</code>

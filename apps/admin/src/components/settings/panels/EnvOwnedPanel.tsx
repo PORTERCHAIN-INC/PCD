@@ -13,8 +13,8 @@ const COPY: Record<
     bullets: [
       "Admin staff use PorterChain’s first-party IdP: email magic link + WebAuthn passkeys (HttpOnly session).",
       "Staff MFA toggles and session TTL are not stored in SystemConfig — enroll or manage seats under Users → Staff.",
-      "Driver, merchant, and customer portals each use their own Clerk application (Bearer JWT).",
-      "Clerk staff JWT is retired for Admin API — do not point ops at Clerk for staff MFA.",
+      "Driver, merchant, and customer portals each use their own Keycloak application (Bearer JWT).",
+      "Keycloak staff JWT is retired for Admin API — do not point ops at Keycloak for staff MFA.",
     ],
     href: "/settings?section=users",
     hrefLabel: "Open Users → Staff",
@@ -22,10 +22,10 @@ const COPY: Record<
   security: {
     title: "Security",
     bullets: [
-      "Project mode (development / testing / production) is boot-time APP_ENV — change with pnpm mode:set or Doppler, then restart. Not editable here.",
-      "API rate limits use environment settings (Doppler), not this form.",
+      "Project mode (development / testing / production) is boot-time APP_ENV — change with pnpm mode:set or the SOPS secrets file, then restart. Not editable here.",
+      "API rate limits use environment settings (SOPS), not this form.",
       "Staff session lifetime and idle logout are enforced by the staff IdP / Redis session store.",
-      "Driver / merchant / customer password and lockout policy are enforced by their Clerk apps.",
+      "Driver / merchant / customer password and lockout policy are enforced by their Keycloak apps.",
       "IP allow lists for production belong in the reverse proxy / WAF.",
     ],
   },

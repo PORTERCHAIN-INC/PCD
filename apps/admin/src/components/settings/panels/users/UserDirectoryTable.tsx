@@ -9,20 +9,13 @@ import { shortDate } from "@/lib/crmFormat";
 import type { PlatformUser, UserDirectoryTab } from "@/lib/settings";
 import { DIRECTORY_COLUMNS, type DirectoryColumn } from "./constants";
 import { ManageDriverModal } from "./driver/ManageDriverModal";
-import {
-  accessLabel,
-  accessTone,
-  clerkLabel,
-  identityTone,
-  inviteLabel,
-  inviteTone,
-} from "./status";
+import { accessLabel, accessTone, idpLabel, identityTone, inviteLabel, inviteTone } from "./status";
 
 function hasCol(cols: DirectoryColumn[], key: DirectoryColumn) {
   return cols.includes(key);
 }
 
-function clerkNeedsAttention(u: PlatformUser, tab: UserDirectoryTab): boolean {
+function idpNeedsAttention(u: PlatformUser, tab: UserDirectoryTab): boolean {
   if (tab === "staff") return false;
   return !u.provisioned || !u.identity_linked || u.identity_status === "not_registered";
 }
@@ -56,7 +49,7 @@ export function UserDirectoryTable({
               {hasCol(cols, "invitation") && (
                 <th className="pb-3 pr-4 font-semibold">Invitation</th>
               )}
-              {hasCol(cols, "clerk") && <th className="pb-3 pr-4 font-semibold">Clerk</th>}
+              {hasCol(cols, "keycloak") && <th className="pb-3 pr-4 font-semibold">Keycloak</th>}
               {hasCol(cols, "password") && <th className="pb-3 pr-4 font-semibold">Password</th>}
               {hasCol(cols, "organization") && (
                 <th className="pb-3 pr-4 font-semibold">Organization</th>
@@ -72,13 +65,13 @@ export function UserDirectoryTable({
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <Avatar name={u.name ?? u.email} />
-                      {clerkNeedsAttention(u, tab) && (
+                      {idpNeedsAttention(u, tab) && (
                         <span
                           className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-white"
                           title={
                             !u.provisioned
-                              ? "Unprovisioned Clerk signup"
-                              : "Not authenticated via Clerk"
+                              ? "Unprovisioned Keycloak signup"
+                              : "Not authenticated via Keycloak"
                           }
                         >
                           <AlertCircle className="h-3 w-3" aria-hidden />
@@ -90,7 +83,7 @@ export function UserDirectoryTable({
                         {u.name || u.email.split("@")[0]}
                         {tab !== "staff" && !u.provisioned && (
                           <span className="text-[10px] font-semibold uppercase text-red-700">
-                            Clerk only
+                            Keycloak only
                           </span>
                         )}
                         {tab !== "staff" &&
@@ -98,7 +91,7 @@ export function UserDirectoryTable({
                           (!u.identity_linked || u.identity_status === "not_registered") && (
                             <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold uppercase text-red-700">
                               <ShieldAlert className="h-3 w-3" aria-hidden />
-                              No Clerk
+                              No Keycloak
                             </span>
                           )}
                       </p>
@@ -128,15 +121,15 @@ export function UserDirectoryTable({
                     <Badge tone={inviteTone(u.invite_status)}>{inviteLabel(u.invite_status)}</Badge>
                   </td>
                 )}
-                {hasCol(cols, "clerk") && (
+                {hasCol(cols, "keycloak") && (
                   <td className="py-3 pr-4">
                     <Badge
                       tone={identityTone(u.identity_status, {
                         provisioned: u.provisioned,
-                        clerkLinked: u.identity_linked,
+                        idpLinked: u.identity_linked,
                       })}
                     >
-                      {clerkLabel(u.directory_status, u.identity_status, {
+                      {idpLabel(u.directory_status, u.identity_status, {
                         provisioned: u.provisioned,
                       })}
                     </Badge>
@@ -144,8 +137,8 @@ export function UserDirectoryTable({
                 )}
                 {hasCol(cols, "password") && (
                   <td className="py-3 pr-4">
-                    <Badge tone={u.clerk_password_set ? "green" : "slate"}>
-                      {u.auth_subject ? (u.clerk_password_set ? "Set" : "Not set") : "—"}
+                    <Badge tone={u.idp_password_set ? "green" : "slate"}>
+                      {u.auth_subject ? (u.idp_password_set ? "Set" : "Not set") : "—"}
                     </Badge>
                   </td>
                 )}
@@ -159,7 +152,7 @@ export function UserDirectoryTable({
                   <td className="py-3">
                     <div className="flex flex-wrap gap-2">
                       {rowActions?.(u)}
-                      {tab === "driver" && u.provisioned && !u.id.startsWith("clerk:") && (
+                      {tab === "driver" && u.provisioned && !u.id.startsWith("keycloak:") && (
                         <Button variant="outline" onClick={() => setManageUser(u)}>
                           Manage
                         </Button>

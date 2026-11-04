@@ -28,6 +28,7 @@ _ROUTE_IMPORT_ERRORS = {
     "address.incomplete": "This address is incomplete.",
     "address.postal_invalid": "This postal code is not valid.",
     "address.approximate": "This address is only approximate — confirm it before booking.",
+    "address.postal_mismatch": "The map found this street in a different postal area than the one given — check the pin.",
     "mapping.address_low_confidence": "Could not confidently map an address column — review the mapping.",
 }
 

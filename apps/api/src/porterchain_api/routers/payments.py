@@ -19,7 +19,7 @@ def retry_payment(
     auth_subject: str = Depends(get_auth_subject),
 ) -> PaymentResponse:
     try:
-        checkout_url, payment = _payments.retry_payment_for_clerk(
+        checkout_url, payment = _payments.retry_payment_for_idp(
             db, settings, quote_id=body.quote_id, auth_subject=auth_subject
         )
     except LookupError:

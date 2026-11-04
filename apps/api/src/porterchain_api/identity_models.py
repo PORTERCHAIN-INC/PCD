@@ -1,4 +1,4 @@
-"""Auth identity links — Clerk subject ↔ internal user (not an ACL table).
+"""Auth identity links — Keycloak subject ↔ internal user (not an ACL table).
 
 ``user_type`` is a display/compat hint; authorization Checks use SpiceDB.
 """

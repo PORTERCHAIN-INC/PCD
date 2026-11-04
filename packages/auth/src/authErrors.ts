@@ -26,7 +26,44 @@ const AUTH_ERROR_COPY: Record<string, string> = {
   passkey_options_failed: "Passkey sign-in is unavailable. Try the email link.",
   email_required: "Enter your email to continue.",
   staff_step_up_required: "Confirm with your passkey before continuing.",
+  // L212: signed in with an account that belongs to another portal.
+  admin_user_not_found:
+    "This account does not have staff access. Sign out and use your staff account.",
+  driver_user_not_provisioned:
+    "This account is not a driver account. Sign out and use the email your driver invitation was sent to.",
+  merchant_user_not_found:
+    "This account is not linked to a business. Sign out and use your business account.",
+  "identity_conflict:idp_user_is_driver":
+    "This is a driver account. Drivers sign in on the Driver portal. Sign out and use your business account.",
+  "identity_conflict:idp_user_is_admin":
+    "This is a staff account. Staff sign in on the Admin portal. Sign out and use your business account.",
+  "identity_conflict:idp_user_is_merchant":
+    "This is a business account. Sign out and use the right account for this portal.",
+  idp_user_deactivated: "This account is deactivated. Contact PorterChain support.",
+  account_suspended: "This account is suspended. Contact PorterChain support.",
 };
+
+/** L212: codes meaning "valid sign-in, wrong portal" — shown as Access denied, not Session error. */
+const WRONG_PORTAL = new Set([
+  "missing_portal_permission",
+  "admin_user_not_found",
+  "driver_user_not_provisioned",
+  "merchant_user_not_found",
+  "identity_conflict:idp_user_is_driver",
+  "identity_conflict:idp_user_is_admin",
+  "identity_conflict:idp_user_is_merchant",
+]);
+
+const BLOCKED = new Set(["driver_suspended", "idp_user_deactivated", "account_suspended"]);
+
+/** L222: suspended / deactivated accounts get an "Account unavailable" title, not "Session error". */
+export function isBlockedAccountError(detail: string | null | undefined): boolean {
+  return BLOCKED.has((detail || "").trim());
+}
+
+export function isWrongPortalError(detail: string | null | undefined): boolean {
+  return WRONG_PORTAL.has((detail || "").trim());
+}
 
 /** Map a machine detail / Error.message to operator-facing copy. */
 export function humanAuthError(detail: string | null | undefined, fallback?: string): string {

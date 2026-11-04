@@ -16,7 +16,7 @@ type Props = {
 
 /**
  * Replaces the old lead-capture inquiry form.
- * Primary path: Platform Clerk sign-up → customer portal quote / book.
+ * Primary path: Keycloak sign-up → customer portal quote / book.
  */
 export default function QuoteSignupPanel({
   id = "inquiry",
@@ -52,16 +52,16 @@ export default function QuoteSignupPanel({
         onClick={() => {
           track(ANALYTICS_EVENTS.CTA_CLICK, {
             source_section: variant,
-            path: "clerk_signup",
+            path: "keycloak_signup",
             cta_label: "quote_signup",
           });
           track(ANALYTICS_EVENTS.QUOTE_REQUEST, {
             source_section: variant,
-            path: "clerk_signup",
+            path: "keycloak_signup",
           });
           track(ANALYTICS_EVENTS.BUSINESS_INQUIRY_SUBMIT, {
             source_section: variant,
-            path: "clerk_signup",
+            path: "keycloak_signup",
           });
         }}
         className="inline-flex w-full min-h-[2.75rem] items-center justify-center gap-2 rounded-xl bg-[#2563eb] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8]"

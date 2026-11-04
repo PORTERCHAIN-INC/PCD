@@ -102,6 +102,16 @@ def _format_eta_label(seconds: int) -> str:
     return f"{hours}h {rem}m"
 
 
+PRE_PICKUP_STATES = frozenset(
+    {"BOOKED", "DISPATCH_READY", "DRIVER_ASSIGNED", "DRIVER_ACCEPTED", "DRIVER_EN_ROUTE", "AT_PICKUP"}
+)
+
+
+def eta_stop_kind(state: str | None) -> str:
+    """Which stop the driver's ETA is for: "pickup" before the parcel is picked up, else "dropoff"."""
+    return "pickup" if str(state or "").upper() in PRE_PICKUP_STATES else "dropoff"
+
+
 class NavigationService:
     def __init__(self) -> None:
         self._tracking = TrackingService()
@@ -132,7 +142,7 @@ class NavigationService:
             "timeline": [],
             "replay": [],
             "geofences": [],
-            "traffic": {"layer_available": True, "source": "google_maps_ui"},
+            "traffic": {"layer_available": False, "source": "none"},
             "offline_maps": {
                 "enabled": False,
                 "future_ready": True,
@@ -142,7 +152,7 @@ class NavigationService:
                 "gps": "last_known",
                 "eta": "osrm",
                 "optimized_route": "valhalla",
-                "map_display": "google_maps",
+                "map_display": "maplibre_pmtiles",
             },
             "driver": {"id": driver.id, "availability": getattr(driver, "availability", "offline")},
             "last_updated": datetime.now(UTC).isoformat(),
@@ -213,7 +223,10 @@ class NavigationService:
             delivery_route = self._eta_leg(current_location, dropoff, label="delivery")
 
         eta_origin = live_location or current_location or pickup
-        eta = self._eta_leg(eta_origin, dropoff, label="eta") if eta_origin and dropoff else None
+        # L182: the ETA is for the stop the driver is heading to: pickup until the parcel
+        # is picked up, then the drop-off (it used to always point at the drop-off).
+        eta_target = pickup if eta_stop_kind(order.state) == "pickup" and pickup else dropoff
+        eta = self._eta_leg(eta_origin, eta_target, label="eta") if eta_origin and eta_target else None
 
         optimized_route = delivery_route
         route_polyline = None
@@ -269,7 +282,7 @@ class NavigationService:
             "timeline": history,
             "replay": replay,
             "geofences": self._stop_geofences(order),
-            "traffic": {"layer_available": True, "source": "google_maps_ui"},
+            "traffic": {"layer_available": False, "source": "none"},
             "offline_maps": {
                 "enabled": False,
                 "future_ready": True,
@@ -279,7 +292,7 @@ class NavigationService:
                 "gps": "last_known",
                 "eta": "osrm",
                 "optimized_route": "valhalla",
-                "map_display": "google_maps",
+                "map_display": "maplibre_pmtiles",
             },
             "last_updated": datetime.now(UTC).isoformat(),
         }

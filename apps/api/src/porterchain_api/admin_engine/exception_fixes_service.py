@@ -88,11 +88,33 @@ def rescue_service() -> Any:
                          vehicles_fn=lambda db, only: planner._vehicles(db, load_fleet(db), only=only))
 
 
+_REC_CACHE: dict[str, tuple[float, Any]] = {}
+_REC_TTL_S = 60.0
+
+
 class ExceptionFixesService:
     def __init__(self, recommend_fn: Callable[[Session, str], dict[str, Any]] | None = None) -> None:
         self.recommend_fn = recommend_fn
 
     def _recommend(self, db: Session, order_id: str) -> dict[str, Any] | None:
+        from porterchain_api.admin_engine.dispatch_board_service import recommend
+
+        # L75: the best-driver suggestion needs a Valhalla matrix per order (~70 ms each);
+        # reuse it for 60 s so Today/Exceptions refreshes don't redo the routing.
+        import time as _t
+
+        use_cache = self.recommend_fn is None
+        hit = _REC_CACHE.get(order_id) if use_cache else None
+        if hit and _t.monotonic() - hit[0] < _REC_TTL_S:
+            return hit[1]
+        val = self._recommend_uncached(db, order_id)
+        if use_cache:
+            if len(_REC_CACHE) > 500:
+                _REC_CACHE.clear()
+            _REC_CACHE[order_id] = (_t.monotonic(), val)
+        return val
+
+    def _recommend_uncached(self, db: Session, order_id: str) -> dict[str, Any] | None:
         from porterchain_api.admin_engine.dispatch_board_service import recommend
 
         try:

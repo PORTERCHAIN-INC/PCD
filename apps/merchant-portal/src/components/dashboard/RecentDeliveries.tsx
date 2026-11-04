@@ -1,3 +1,5 @@
+"use client";
+
 import type { DashboardDelivery } from "@/lib/api";
 import { formatCents, formatDate } from "@/lib/utils";
 import Link from "next/link";

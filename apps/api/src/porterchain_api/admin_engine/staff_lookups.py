@@ -11,7 +11,7 @@ from porterchain_api.domain.admin_states import AdminRole
 # API Bearer-dev tooling. Never a production identity.
 LOCAL_SUPER_ADMIN_EMAIL = "admin@porterchain.com"
 LOCAL_SUPER_ADMIN_NAME = "Local Super Admin"
-LOCAL_SUPER_ADMIN_LEGACY_SUBJECT = "dev_clerk_user"
+LOCAL_SUPER_ADMIN_LEGACY_SUBJECT = "dev_idp_user"
 
 
 def get_admin_user(db: Session, admin_id: str | None) -> AdminUser | None:
@@ -20,7 +20,7 @@ def get_admin_user(db: Session, admin_id: str | None) -> AdminUser | None:
     return db.get(AdminUser, admin_id)
 
 
-def get_admin_by_clerk(db: Session, auth_subject: str) -> AdminUser | None:
+def get_admin_by_idp(db: Session, auth_subject: str) -> AdminUser | None:
     return (
         db.query(AdminUser)
         .filter(AdminUser.auth_subject == auth_subject, AdminUser.is_active.is_(True))
@@ -31,7 +31,7 @@ def get_admin_by_clerk(db: Session, auth_subject: str) -> AdminUser | None:
 def stamp_admin_porterchain_user_id(
     db: Session, auth_subject: str, user_id: str
 ) -> AdminUser | None:
-    admin = get_admin_by_clerk(db, auth_subject)
+    admin = get_admin_by_idp(db, auth_subject)
     if not admin:
         # Staff IdP / rebind: find by internal FK when subject column lagged.
         admin = (
@@ -48,7 +48,7 @@ def get_admin_by_email(db: Session, email: str) -> AdminUser | None:
     return db.query(AdminUser).filter(AdminUser.email == email.lower().strip()).first()
 
 
-def rebind_clerk_by_email(db: Session, email: str, subject_ref: str) -> bool:
+def rebind_idp_by_email(db: Session, email: str, subject_ref: str) -> bool:
     from porterchain_api.auth.email_identity import emails_match
 
     row = db.query(AdminUser).filter(AdminUser.email == email).first()
@@ -67,7 +67,7 @@ def ensure_local_super_admin(db: Session) -> AdminUser:
     """Provision or upgrade the local Super Admin (development-only callers).
 
     Always ``super_admin`` + active + Staff IdP subject ``staff:{id}``.
-    Reuses legacy ``dev_clerk_user`` / founder email rows when present.
+    Reuses legacy ``dev_idp_user`` / founder email rows when present.
     """
     from porterchain_api.admin_engine.staff_accounts import ensure_staff_identity
 

@@ -30,6 +30,8 @@ def dashboard(
 
     DriverComplianceExpiryService().refresh_and_commit(db, ctx.driver)
     guard_portal_ready(ctx, settings)
+    if svc.platform.shift.enforce_shift_limit(db, ctx.driver):
+        db.commit()  # L184: a 16h+ open shift is clocked out before "Online" is shown
     snap = svc.platform.dashboard.snapshot(db, ctx.driver)
     return DriverDashboardResponse(
         todays_earnings_cents=snap.todays_earnings_cents,
@@ -134,8 +136,18 @@ def claim_bonus(
 
 
 @router.get("/performance")
-def performance(ctx: Annotated[DriverContext, Depends(get_driver_context)]):
-    return svc.platform.performance.summary(ctx.driver)
+def performance(ctx: Annotated[DriverContext, Depends(get_driver_context)], db: Session = Depends(get_db)):
+    from datetime import UTC, datetime
+
+    from porterchain_api.billing_engine.driver_finance_service import DriverFinanceService
+
+    out = dict(svc.platform.performance.summary(ctx.driver))
+    # L187: real completed-delivery counts (the stored performance JSON is a static seed).
+    fin = DriverFinanceService()
+    today_start, _w, _m, now = fin._period_bounds()
+    out["deliveries_today"] = fin._completed_deliveries(db, ctx.driver.id, today_start, now)
+    out["deliveries_total"] = fin._completed_deliveries(db, ctx.driver.id, datetime(2000, 1, 1, tzinfo=UTC), now)
+    return out
 
 
 @router.get("/ratings")
@@ -174,7 +186,10 @@ def set_availability(
 def get_shift(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db)):
-    return svc.platform.shift.snapshot(db, ctx.driver)
+    snap = svc.platform.shift.snapshot(db, ctx.driver)
+    if snap.get("auto_clocked_out"):
+        db.commit()  # L185: persist the 16h auto clock-out (GET used to roll it back)
+    return snap
 
 
 @router.post("/shift/start")

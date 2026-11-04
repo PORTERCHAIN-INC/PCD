@@ -35,7 +35,7 @@ export type MerchantRow = {
   onboarding_progress?: number;
   owner_email?: string;
   owner_invite_status?: string;
-  owner_clerk_linked?: boolean;
+  owner_idp_linked?: boolean;
   owner_active?: boolean;
   team_count?: number;
   blockers_count?: number;
@@ -53,7 +53,7 @@ export type MerchantAi = {
   predicted_monthly_revenue_cents: number;
   renewal_risk: string;
   suggested_actions: string[];
-  actions_source?: "heuristic" | "nvidia_nim" | string;
+  actions_source?: "heuristic" | "llm" | string;
   actions_model?: string | null;
 };
 
@@ -255,7 +255,7 @@ export type MerchantOnboarding = {
   owner_email: string;
   owner_invite_status: string;
   owner_invite_status_label?: string;
-  owner_clerk_linked: boolean;
+  owner_idp_linked: boolean;
   team_count: number;
   steps: Array<{ id: string; label: string; complete: boolean }>;
   blockers: string[];

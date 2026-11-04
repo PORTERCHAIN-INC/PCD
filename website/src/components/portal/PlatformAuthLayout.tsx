@@ -17,7 +17,7 @@ type Props = {
 
 /**
  * Platform login / sign-up chrome — brand plane + form, one composition.
- * Used on porterchain.com for customer + merchant Clerk sessions.
+ * Used on porterchain.com for customer + merchant Keycloak sessions.
  */
 export default function PlatformAuthLayout({
   mode = "sign-in",

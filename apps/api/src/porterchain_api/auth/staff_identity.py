@@ -19,7 +19,7 @@ def ensure_staff_porterchain_user(
     subject_key: str,
     email: str | None,
     linked_user_id: str | None = None,
-    legacy_clerk_user_id: str | None = None,
+    legacy_idp_user_id: str | None = None,
 ) -> PorterchainUser:
     """Find or create the staff:{admin_id} registry row. Caller stamps AdminUser + commits."""
     by_subject = (
@@ -32,15 +32,15 @@ def ensure_staff_porterchain_user(
         if linked_user_id
         else None
     )
-    legacy_clerk = None
-    if legacy_clerk_user_id:
-        legacy_clerk = (
+    legacy_idp = None
+    if legacy_idp_user_id:
+        legacy_idp = (
             db.query(PorterchainUser)
-            .filter(PorterchainUser.auth_subject == legacy_clerk_user_id)
+            .filter(PorterchainUser.auth_subject == legacy_idp_user_id)
             .first()
         )
 
-    pc = by_subject or linked or legacy_clerk
+    pc = by_subject or linked or legacy_idp
     if not pc:
         pc = PorterchainUser(
             auth_subject=subject_key,

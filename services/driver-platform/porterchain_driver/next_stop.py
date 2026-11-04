@@ -288,7 +288,13 @@ class NextStopResolver:
             "contact_phone_masked": access["contact_phone_masked"],
             "drop_method": access["drop_method"],
             "load_help": access["load_help"],
-            "delivery_notes": access["delivery_notes"],
+            "delivery_notes": (
+                __import__("porterchain_api.platform.free_text_translation", fromlist=["x"]).english_note_lines(
+                    db, str(stop.order_id), access["delivery_notes"]
+                )
+                if db is not None
+                else access["delivery_notes"]
+            ),
             "delivery_attempts": attempts,
             "max_delivery_attempts": MAX_DELIVERY_ATTEMPTS,
             "hub_leg": getattr(stop, "hub_leg", None),

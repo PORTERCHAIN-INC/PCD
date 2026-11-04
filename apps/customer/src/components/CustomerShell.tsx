@@ -10,6 +10,7 @@ import { RouteViewTransition } from "@porterchain/ui/view-transition";
 import { cn } from "@/lib/utils";
 import { isAuthConfigured } from "@/lib/env";
 import NotificationBell from "@/components/nav/NotificationBell";
+import { LanguageSwitcher } from "@/i18n/LanguageSwitcher";
 
 /** Three things, in the order customers need them: Send, Orders, Account. */
 const NAV = [
@@ -114,6 +115,7 @@ export default function CustomerShell({ children }: { children: React.ReactNode 
                   ⌘K
                 </kbd>
               </button>
+              <LanguageSwitcher />
               <NotificationBell />
               {isAuthConfigured() ? <UserButton /> : null}
             </div>

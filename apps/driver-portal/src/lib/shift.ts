@@ -43,6 +43,8 @@ export interface DriverShiftSnapshot {
   is_online: boolean;
   working_minutes: number;
   working_hours_label: string;
+  long_shift_warning?: boolean;
+  auto_clocked_out?: boolean;
   mileage_km: number;
   mileage_source?: string | null;
   current_vehicle: DriverVehicle | null;

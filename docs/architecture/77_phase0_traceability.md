@@ -134,3 +134,10 @@ Also: rows 40–51 (on the 70–76 job) verified against commit d97746e2 and set
 **Margin/cost consistency pass (29 Oct 2026, after doc 79):** 72/79/60 and the Page checked for cost per km, cost per stop, margin colours and band margins. Found 5: 72 §8.2 XS/S/M costs used van $0.45/km and 10 min/stop; the 72 B2B S/M margins; the 72 'each passes the margin check' line; the 72 cost-model line; §5 examples not labelled as van-based. Fixed 5. Re-run: 0 conflicts. Colours are identical in 41, 72 and 79 (green ≥ 50 %, yellow < 50 %, red ≤ 35 %).
 
 **"No new code" wording check (29 Oct 2026):** grep across 70, 71, 77, 60 and both Pages for "no new code", "data, not code", "no custom code", "new type". Found 2 in 70 (§2 "data, not code"; §4 heading). Fixed 2 to "new type reusing capabilities = config only; new capability = new module code". 71, 77 and both Pages: 0. Re-run: 0.
+
+## 5. Implementation status (29 Oct 2026, branch phase0/keycloak)
+
+| #   | Status                                                                                                                                                                                    |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 50  | **F**: Shopify and mobile review login now Keycloak only; G20/G21 tests in `test_g20_g21_acceptance.py` (see 60 and 74 "Implementation status"). Resubmission is **N** (Ravi, human-run). |
+| 73  | **F**: Clerk removed from code, infra, workflows, env templates; `clerk_user_id` → `auth_subject`; cutover runbook `docs/runbooks/KEYCLOAK_CUTOVER.md`. Production steps are **N**.       |

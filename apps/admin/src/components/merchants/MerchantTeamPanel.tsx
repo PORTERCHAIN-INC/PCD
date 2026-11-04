@@ -134,7 +134,7 @@ export default function MerchantTeamPanel({ merchant }: { merchant: MerchantDeta
         <div className="space-y-4 px-5 py-4">
           <p className="text-sm text-muted">
             Reserve the owner seat by email, have them create their PorterChain Platform account,
-            then approve the merchant. No Clerk invitation email is sent.
+            then approve the merchant. No Keycloak invitation email is sent.
           </p>
 
           <ul className="space-y-2">
@@ -265,7 +265,7 @@ export default function MerchantTeamPanel({ merchant }: { merchant: MerchantDeta
                 <Badge tone={INVITE_TONE[u.invite_status ?? ""] ?? "slate"}>
                   {u.invite_status_label || inviteLabel(u.invite_status)}
                 </Badge>
-                {u.identity_linked && <Badge tone="green">Clerk linked</Badge>}
+                {u.identity_linked && <Badge tone="green">Keycloak linked</Badge>}
                 {u.is_active && (
                   <Select
                     value={u.role}

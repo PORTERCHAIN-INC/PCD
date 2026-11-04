@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
-# Closed set — NIM may only recommend these. Never auto_apply.
+# Closed set — LLM may only recommend these. Never auto_apply.
 ALLOWED_ACTIONS: frozenset[str] = frozenset(
     {
         "review_day_plan",
@@ -75,13 +75,13 @@ def suggest_ops_action(
     merchant_id: str | None = None,
     include_sla_queue: bool = True,
 ) -> dict[str, Any]:
-    """Return ops suggestions; uses NVIDIA NIM when configured + phase2 enabled."""
+    """Return ops suggestions; uses an LLM (FEATURE_AI, off in Phase 0) when configured + phase2 enabled."""
     from porterchain_api.intelligence_engine import phase2_intelligence_enabled
 
     if not phase2_intelligence_enabled(flags):
         return {"suggestions": [], "status": "phase2_disabled"}
 
-    from porterchain_api.intelligence_engine import nim_client
+    from porterchain_api.intelligence_engine import llm as llm_client
 
     grounded = context
     tool_bundle: dict[str, Any] | None = None
@@ -102,10 +102,10 @@ def suggest_ops_action(
         except Exception as exc:  # noqa: BLE001
             logger.warning("ops tool gather failed: %s", exc)
 
-    status = nim_client.nim_status()
+    status = llm_client.llm_status()
     if status["configured"] and db is not None and not status["circuit_open"]:
         try:
-            result = _suggest_via_nim(
+            result = _suggest_via_llm(
                 db,
                 grounded,
                 actor_type=actor_type,
@@ -115,7 +115,7 @@ def suggest_ops_action(
                 result["tools"] = tool_bundle
             return result
         except Exception as exc:  # noqa: BLE001
-            logger.warning("NIM copilot failed, falling back to stub: %s", exc)
+            logger.warning("LLM copilot failed, falling back to stub: %s", exc)
             if db is not None:
                 from porterchain_api.intelligence_engine.usage import record_ai_usage
                 from porterchain_shared.config.settings import get_platform_settings
@@ -123,8 +123,8 @@ def suggest_ops_action(
                 settings = get_platform_settings()
                 record_ai_usage(
                     db,
-                    provider="nvidia_nim",
-                    model=getattr(settings, "nvidia_model", "unknown") or "unknown",
+                    provider="llm",
+                    model="none",
                     feature="ops_copilot",
                     status="error",
                     error=str(exc),
@@ -132,13 +132,13 @@ def suggest_ops_action(
                     actor_id=actor_id,
                 )
 
-    stub = _stub_suggestions(grounded, nim_status=status)
+    stub = _stub_suggestions(grounded, llm_status=status)
     if tool_bundle is not None:
         stub["tools"] = tool_bundle
     return stub
 
 
-def _stub_suggestions(context: str, *, nim_status: dict[str, Any]) -> dict[str, Any]:
+def _stub_suggestions(context: str, *, llm_status: dict[str, Any]) -> dict[str, Any]:
     return {
         "suggestions": [
             {
@@ -161,22 +161,22 @@ def _stub_suggestions(context: str, *, nim_status: dict[str, Any]) -> dict[str, 
         ],
         "status": "stub",
         "provider": "template",
-        "nim": nim_status,
+        "llm": llm_status,
         "context_preview": context[:200],
     }
 
 
-def _suggest_via_nim(
+def _suggest_via_llm(
     db: Session,
     context: str,
     *,
     actor_type: str | None,
     actor_id: str | None,
 ) -> dict[str, Any]:
-    from porterchain_api.intelligence_engine import nim_client
+    from porterchain_api.intelligence_engine import llm as llm_client
     from porterchain_api.intelligence_engine.usage import record_ai_usage
 
-    result = nim_client.chat_completion(
+    result = llm_client.chat_completion(
         messages=[
             {"role": "system", "content": _SYSTEM_PLAYBOOK},
             {"role": "user", "content": context[:4000]},
@@ -187,7 +187,7 @@ def _suggest_via_nim(
     )
     record_ai_usage(
         db,
-        provider="nvidia_nim",
+        provider="llm",
         model=result["model"],
         feature="ops_copilot",
         prompt_tokens=result["prompt_tokens"],
@@ -202,10 +202,10 @@ def _suggest_via_nim(
     return {
         "suggestions": suggestions,
         "status": "ok",
-        "provider": "nvidia_nim",
+        "provider": "llm",
         "model": result["model"],
         "latency_ms": result["latency_ms"],
-        "nim": nim_client.nim_status(),
+        "llm": llm_client.llm_status(),
         "context_preview": context[:200],
     }
 
@@ -244,7 +244,7 @@ def _parse_suggestions(content: str) -> list[dict[str, Any]]:
         return [
             {
                 "action": "review_ops_notes",
-                "rationale": text[:400] or "NIM returned non-JSON; review context manually.",
+                "rationale": text[:400] or "LLM returned non-JSON; review context manually.",
                 "priority": "p2",
                 "confidence": 0.3,
                 "auto_apply": False,

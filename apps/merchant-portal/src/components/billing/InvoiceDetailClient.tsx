@@ -7,15 +7,17 @@ import { billingApi, STATUS_STYLES } from "@/lib/billing";
 import { invoiceStatusLabel } from "@/lib/catalog";
 import { formatCents, formatDate } from "@/lib/utils";
 import { PageSkeleton } from "@porterchain/ui/loading";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
   const invoice_id = invoiceId;
   const { getApiToken, orgId, isLoaded, isSignedIn, session } = useMerchantAuth();
   const [pdfBusy, setPdfBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const synced = useRef(false);
+  const queryClient = useQueryClient();
 
   const enabled = Boolean(isLoaded && isSignedIn && orgId && invoice_id);
   const {
@@ -28,6 +30,71 @@ export default function InvoiceDetailClient({ invoiceId }: { invoiceId: string }
     staleTime: 60_000,
     queryFn: async () => billingApi.invoiceDetail(await getApiToken(), invoice_id, orgId),
   });
+
+  // Back from the hosted card checkout: confirm and record the payment (the webhook does it too).
+  useEffect(() => {
+    if (!enabled || synced.current || typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const card = params.get("card");
+    if (!card) return;
+    synced.current = true;
+    const clean = () => window.history.replaceState(null, "", window.location.pathname);
+    if (card === "cancelled") {
+      setNotice("Card payment was not completed. Nothing was charged.");
+      clean();
+      return;
+    }
+    const sessionId = params.get("session_id");
+    if (card !== "done" || !sessionId) return;
+    setNotice("Confirming your card payment…");
+    void (async () => {
+      try {
+        const out = await billingApi.syncInvoiceCardPayment(
+          await getApiToken(),
+          invoice_id,
+          sessionId,
+          orgId
+        );
+        setNotice(
+          out.status === "paid" || out.status === "already_paid"
+            ? `Payment received. This invoice is paid; a receipt is on its way by email.${out.merchant_reinstated ? " Your account is active again." : ""}`
+            : out.status === "partial"
+              ? "Payment received. A balance remains on this invoice."
+              : "Your card payment is not complete yet. Nothing was charged."
+        );
+        await queryClient.invalidateQueries({
+          queryKey: ["merchant-invoice", orgId ?? null, invoice_id],
+        });
+      } catch (e) {
+        setNotice(e instanceof Error ? e.message : "Could not confirm the card payment");
+      } finally {
+        clean();
+      }
+    })();
+  }, [enabled, getApiToken, invoice_id, orgId, queryClient]);
+
+  // L126: links from the invoice email. ?pay=… shows the Interac instructions, ?pdf=1 downloads the PDF.
+  const emailAction = useRef(false);
+  useEffect(() => {
+    if (!detail || emailAction.current || typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const pay = params.get("pay");
+    const pdf = params.get("pdf");
+    if (!pay && !pdf) return;
+    emailAction.current = true;
+    window.history.replaceState(null, "", window.location.pathname);
+    if (pay) {
+      // Merchants pay by Interac e-Transfer only (no card). Old ?pay=card links land here.
+      setNotice(
+        detail.outstanding_cents > 0
+          ? "Pay this invoice by Interac e-Transfer — see the instructions below."
+          : "Nothing is outstanding on this invoice."
+      );
+    } else if (pdf) {
+      void downloadPdf();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detail]);
 
   const error =
     queryError instanceof Error ? queryError.message : queryError ? "Invoice not found" : null;
@@ -123,7 +190,19 @@ export default function InvoiceDetailClient({ invoiceId }: { invoiceId: string }
             <Kpi label="Tax" value={formatCents(detail.tax_cents, currency)} />
           ) : null}
           <Kpi label="Fees" value={formatCents(detail.fees_cents, currency)} />
+          {detail.penalty_cents ? (
+            <Kpi
+              label={detail.penalty_label || "Late payment penalty"}
+              value={formatCents(detail.penalty_cents, currency)}
+            />
+          ) : null}
         </div>
+        {detail.supplier_gst_hst_number ? (
+          <p className="text-sm text-muted">
+            {detail.supplier_legal_name ?? "Porterchain Inc."} · GST/HST Reg. No.{" "}
+            {detail.supplier_gst_hst_number}
+          </p>
+        ) : null}
 
         {detail.credit_notes && detail.credit_notes.length ? (
           <section className="rounded-2xl border border-primary/10 p-4">
@@ -235,6 +314,34 @@ export default function InvoiceDetailClient({ invoiceId }: { invoiceId: string }
             </tbody>
           </table>
         </section>
+
+        {detail.outstanding_cents > 0 && (
+          <section
+            data-testid="interac-instructions"
+            className="rounded-lg border border-primary/15 bg-primary/5 p-4 text-sm"
+          >
+            <h2 className="font-semibold text-primary">How to pay · Interac e-Transfer</h2>
+            <p className="mt-1 text-muted">
+              Send {formatCents(detail.outstanding_cents, detail.currency.toUpperCase())} by Interac
+              e-Transfer. We don&apos;t take card payments for business invoices.
+            </p>
+            <dl className="mt-2 grid gap-1 sm:grid-cols-[10rem_1fr]">
+              <dt className="text-muted">Send to</dt>
+              <dd className="font-mono text-primary">
+                {detail.etransfer_email || "the billing email on your invoice"}
+              </dd>
+              <dt className="text-muted">Message / reference</dt>
+              <dd className="font-mono text-primary">
+                {detail.payment_reference || detail.invoice_number}
+                {detail.payment_reference ? ` (invoice ${detail.invoice_number})` : ""}
+              </dd>
+            </dl>
+            <p className="mt-2 text-xs text-muted">
+              Partial payments are applied to this invoice; any overpayment becomes credit on your
+              next invoice.
+            </p>
+          </section>
+        )}
 
         {detail.remittance_memo && (
           <p className="text-sm text-muted">

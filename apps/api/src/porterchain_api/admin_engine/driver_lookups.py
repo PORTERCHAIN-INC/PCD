@@ -10,22 +10,22 @@ from porterchain_api.admin_models import Driver
 from porterchain_api.platform.driver_reads import (
     get_approved_driver_by_email,
     get_driver,
-    get_driver_by_clerk,
+    get_driver_by_idp,
     get_driver_by_email,
     list_approved_drivers,
     list_drivers,
 )
 
 __all__ = [
-    "bind_clerk_user_id",
+    "bind_idp_user_id",
     "get_approved_driver_by_email",
     "get_driver",
-    "get_driver_by_clerk",
+    "get_driver_by_idp",
     "get_driver_by_email",
     "list_approved_drivers",
     "list_drivers",
     "persist_presence",
-    "rebind_clerk_by_email",
+    "rebind_idp_by_email",
     "stamp_driver_porterchain_user_id",
 ]
 
@@ -33,7 +33,7 @@ __all__ = [
 def stamp_driver_porterchain_user_id(
     db: Session, auth_subject: str, user_id: str
 ) -> Driver | None:
-    driver = get_driver_by_clerk(db, auth_subject)
+    driver = get_driver_by_idp(db, auth_subject)
     if driver and driver.porterchain_user_id != user_id:
         driver.porterchain_user_id = user_id
     return driver
@@ -46,7 +46,7 @@ def persist_presence(db: Session, driver: Any, *, is_online: bool) -> Any:
     return driver
 
 
-def rebind_clerk_by_email(db: Session, email: str, subject_ref: str) -> bool:
+def rebind_idp_by_email(db: Session, email: str, subject_ref: str) -> bool:
     from porterchain_api.auth.email_identity import emails_match
 
     row = db.query(Driver).filter(Driver.email == email).first()
@@ -61,7 +61,7 @@ def rebind_clerk_by_email(db: Session, email: str, subject_ref: str) -> bool:
     return True
 
 
-def bind_clerk_user_id(db: Session, driver: Any, auth_subject: str) -> Any:
+def bind_idp_user_id(db: Session, driver: Any, auth_subject: str) -> Any:
     driver.auth_subject = auth_subject
     db.commit()
     db.refresh(driver)

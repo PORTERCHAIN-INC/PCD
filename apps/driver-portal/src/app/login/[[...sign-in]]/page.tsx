@@ -15,7 +15,7 @@ import { isAuthConfigured, isDevEmailLogin } from "@/lib/env";
 import { hasDriverSession } from "@/lib/api";
 
 /**
- * Fixed-height slot for the Clerk card. Without it the page re-centres twice while Clerk
+ * Fixed-height slot for the sign-in card. Without it the page re-centres twice while it
  * loads (48px "Loading sign-in…" → ~270px card → +logo), which reads as the page jumping.
  */
 const SIGN_IN_SLOT = "flex min-h-[19rem] flex-col items-center justify-center";
@@ -223,8 +223,8 @@ function LoginPageContent() {
         subtitle="Keycloak is not configured for this environment."
       >
         <p className="text-sm leading-relaxed text-muted">
-          Add Driver Clerk keys via <code className="text-primary">pnpm clerk:sync</code>, then
-          refresh.
+          Set <code className="text-primary">KEYCLOAK_URL</code> and{" "}
+          <code className="text-primary">AUTH_SESSION_SECRET</code>, then restart.
         </p>
       </PortalAuthScreen>
     );
@@ -236,8 +236,8 @@ function LoginPageContent() {
       title="Driver sign-in"
       subtitle={
         showDevEmail
-          ? "Local email picker or Clerk invitation for approved partners."
-          : "Invitation-only. Returning drivers stay signed in until the Clerk session expires."
+          ? "Local email picker or Keycloak invitation for approved partners."
+          : "Invitation-only. Returning drivers stay signed in until the session expires."
       }
       footer={
         <>Need access? Contact Porterchain operations after your partner application is approved.</>
@@ -249,7 +249,7 @@ function LoginPageContent() {
           <>
             {showDevEmail ? (
               <p className="text-center text-xs font-medium uppercase tracking-wide text-muted">
-                or Clerk invite
+                or Keycloak invite
               </p>
             ) : null}
             <KeycloakDriverContinue redirectUrl={redirectUrl} />
@@ -267,7 +267,7 @@ export default function LoginPage() {
         <PortalAuthScreen
           portalLabel="Driver"
           title="Driver sign-in"
-          subtitle="Invitation-only. Returning drivers stay signed in until the Clerk session expires."
+          subtitle="Invitation-only. Returning drivers stay signed in until the session expires."
         >
           <div className={SIGN_IN_SLOT} role="status">
             <p className="text-center text-sm text-muted">Loading sign-in…</p>

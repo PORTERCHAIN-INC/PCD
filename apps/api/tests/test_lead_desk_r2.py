@@ -29,6 +29,10 @@ from porterchain_api.lead_desk.quote import QuoteUnavailable, lead_quote
 from porterchain_api.lead_desk.speed import speed_window, weekly_summary
 from tests.fk_parents import make_order, make_quote
 
+# Legacy engine behaviour (version stamp / overrides / old card parity).
+pytestmark = pytest.mark.usefixtures("legacy_pricing")
+
+
 
 @pytest.fixture
 def admin_client(db, monkeypatch):
@@ -46,7 +50,7 @@ def admin_client(db, monkeypatch):
     db.merge(
         PorterchainUser(
             id="user-desk-r2",
-            auth_subject="clerk-desk",
+            auth_subject="keycloak-desk",
             email="desk@porterchain.com",
             role="super_admin",
             status="active",
@@ -55,7 +59,7 @@ def admin_client(db, monkeypatch):
     db.flush()
     admin = AdminContext(
         user=AdminUser(
-            auth_subject="clerk-desk",
+            auth_subject="keycloak-desk",
             email="desk@porterchain.com",
             role="super_admin",
             porterchain_user_id="user-desk-r2",
@@ -203,7 +207,7 @@ def test_quote_uses_pricing_service_retail_vs_merchant(db) -> None:
         q["booking_url"].startswith("https://porterchain.com/en/book?")
         and lead.id in q["booking_url"]
     )
-    with patch("porterchain_pricing.PricingService.calculate_merchant") as merch:
+    with patch("porterchain_api.pricing_engine.smart_apply.SmartAwarePricingService.calculate_merchant") as merch:
         merch.return_value = SimpleNamespace(final_cents=5000, items=[], metadata={})
         lead.custom_fields = {**lead.custom_fields, "merchant_id": "m-1"}
         m = lead_quote(db, lead, website_url="https://porterchain.com")
@@ -384,7 +388,6 @@ def test_owner_alert_email_and_sms_only_when_enabled() -> None:
         )
         s = _settings(
             lead_alert_email="ravi@porterchain.com",
-            lead_alert_sms_to="+14165550100",
             **cfg,
         )
         with (
@@ -401,20 +404,7 @@ def test_owner_alert_email_and_sms_only_when_enabled() -> None:
     assert [s["recipient_address"] for s in email] == ["ravi@porterchain.com"]
     assert "tel:+14165550199" in email[0]["context"]["quick_actions"]
     assert "https://wa.me/14165550199" in email[0]["context"]["quick_actions"]
-    assert not [s for s in specs if s["channel"] == "sms"]  # flag off
-    with patch(
-        "porterchain_shared.config.settings.get_platform_settings",
-        return_value=SimpleNamespace(twilio_account_sid=""),
-    ):
-        assert not [
-            s for s in run(lead_alert_sms_enabled=True) if s["channel"] == "sms"
-        ]  # no Twilio
-    with patch(
-        "porterchain_shared.config.settings.get_platform_settings",
-        return_value=SimpleNamespace(twilio_account_sid="AC123"),
-    ):
-        sms = [s for s in run(lead_alert_sms_enabled=True) if s["channel"] == "sms"]
-    assert [s["recipient_address"] for s in sms] == ["+14165550100"]
+    assert not [s for s in specs if s["channel"] == "sms"]  # SMS vendor removed (doc 60 R7)
 
 
 # --- Round 3: inbound triage + auto-send default ------------------------------------

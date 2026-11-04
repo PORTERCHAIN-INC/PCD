@@ -30,7 +30,7 @@ from porterchain_api.routers.admin._deps import (
     StaffInviteRequest,
     StaffItem,
     StaffRoleUpdateRequest,
-    _clerk_directory,
+    _idp_directory,
     _settings,
     get_admin_context,
     get_db,
@@ -46,8 +46,8 @@ _SETTINGS_UNAVAILABLE = frozenset(
 )
 
 
-def _reject_staff_clerk_route(user_type: str) -> None:
-    """Staff uses /settings/staff/* IdP endpoints — not Clerk directory mutate routes."""
+def _reject_staff_idp_route(user_type: str) -> None:
+    """Staff uses /settings/staff/* IdP endpoints — not Keycloak directory mutate routes."""
     if user_type == "staff":
         raise HTTPException(status_code=400, detail="staff_use_staff_account_endpoints")
 
@@ -107,7 +107,7 @@ def settings_project_mode_change(
         detail={
             "code": "project_mode_immutable",
             "message": settings.runtime_posture.get("change_control")
-            or "Set APP_ENV in Doppler or env/.env, then restart.",
+            or "Set APP_ENV in the SOPS secrets file or env/.env, then restart.",
             "current": settings.runtime_posture,
             "hint": "pnpm mode:set development|testing|production",
         },
@@ -292,7 +292,7 @@ def settings_lead_ingest_put(
     settings: Settings = Depends(get_settings),
     authorization: Annotated[str | None, Header()] = None,
 ):
-    """Write lead secrets/config to Doppler and refresh this process env."""
+    """Validate lead secrets/config and return the keys to set in the SOPS file."""
     from porterchain_api.admin_engine.lead_ingest_settings import update_lead_ingest_settings
 
     _step_up(request, authorization, settings)
@@ -308,4 +308,4 @@ from porterchain_api.routers.admin._deps import PlatformUsersResponse  # noqa: E
 from porterchain_api.routers.admin._deps import StaffEnrollResponse  # noqa: E402, F401
 from porterchain_api.routers.admin._deps import StaffInviteRequest  # noqa: E402, F401
 from porterchain_api.routers.admin._deps import StaffRoleUpdateRequest  # noqa: E402, F401
-from porterchain_api.routers.admin._deps import _clerk_directory  # noqa: E402, F401
+from porterchain_api.routers.admin._deps import _idp_directory  # noqa: E402, F401

@@ -59,7 +59,7 @@ from porterchain_api.schemas_merchant import MerchantBookDeliveryRequest
 
 SEED_MARKER = "seed-local-dev-v1"
 SEED_ADMIN_EMAIL = "seed-admin@porterchain.com"
-# Real Platform Clerk founder — kept as super_admin in local/prod data.
+# Real Platform Keycloak founder — kept as super_admin in local/prod data.
 FOUNDER_SUPER_ADMIN_EMAIL = "porterchaininc@gmail.com"
 
 PICKUP = AddressInput(formatted="123 King St W, Toronto ON M5H 3T9", lat=43.6488, lng=-79.3817, postal="M5H 3T9")

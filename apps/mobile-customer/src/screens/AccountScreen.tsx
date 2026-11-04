@@ -1,3 +1,4 @@
+import { siteLocale } from "../lib/siteLocale";
 import { useSessionView } from "../auth/SessionGate";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Share, StyleSheet, TextInput, View } from "react-native";
@@ -196,7 +197,7 @@ export function AccountScreen({ onSignedOut }: { onSignedOut: () => void }) {
           icon="globe-outline"
           title="Questions & answers"
           subtitle="porterchain.com/faq"
-          onPress={() => void WebBrowser.openBrowserAsync(`${websiteUrl}/en/faq`)}
+          onPress={() => void WebBrowser.openBrowserAsync(`${websiteUrl}/${siteLocale()}/faq`)}
         />
       </Card>
 

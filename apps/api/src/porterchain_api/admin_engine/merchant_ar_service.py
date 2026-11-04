@@ -27,6 +27,8 @@ from porterchain_api.domain.states import OrderState
 from porterchain_api.merchant_engine import events as MerchantEvents
 from porterchain_api.merchant_engine.lookups import get_merchant
 from porterchain_api.booking_models import Invoice, Order, Payment
+from porterchain_api.billing_engine.weekly_billing import due_at_for_issue as weekly_due_at_for_issue
+from porterchain_api.billing_engine.weekly_billing import terms_line as weekly_terms_line
 
 ELIGIBLE_STATES = frozenset(
     {
@@ -68,6 +70,23 @@ def _naive(dt: datetime | None) -> datetime | None:
     return dt.replace(tzinfo=None) if dt.tzinfo else dt
 
 
+def _toronto_wall_to_utc(dt: datetime) -> datetime:
+    from zoneinfo import ZoneInfo
+
+    wall = dt.replace(tzinfo=None)
+    return wall.replace(tzinfo=ZoneInfo("America/Toronto")).astimezone(UTC).replace(tzinfo=None)
+
+
+def _end_of_day(dt: datetime) -> datetime:
+    """L137: a period end picked late in the day (23:30 picker default, 23:59) means through that
+    whole day, so the billing week ends at Toronto midnight."""
+    from datetime import timedelta
+
+    if dt.hour == 23 and dt.minute >= 30:
+        return (dt + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    return dt
+
+
 class MerchantArService:
     def run_due_cycles(self, db: Session, *, now: datetime | None = None) -> dict[str, int]:
         from porterchain_api.admin_engine.merchant_ar_cycles import run_due_cycles
@@ -81,11 +100,15 @@ class MerchantArService:
         period_end: datetime | None,
     ) -> tuple[datetime, datetime]:
         if period_start and period_end:
-            start, end = _naive(period_start), _naive(period_end)
+            # L107: the admin date pickers send Toronto wall time (with a Z suffix). Read the
+            # clock face as America/Toronto, then store/compare in UTC.
+            start, end = _toronto_wall_to_utc(period_start), _toronto_wall_to_utc(_end_of_day(period_end))
             if start >= end:
                 raise ValueError("invalid_period")
             return start, end
-        return previous_billing_period_bounds(merchant.billing_cycle or "MONTHLY")
+        from porterchain_api.billing_engine.weekly_billing import previous_week_bounds
+
+        return previous_week_bounds()
 
     def _eligible_orders(
         self,
@@ -94,6 +117,13 @@ class MerchantArService:
         period_start: datetime,
         period_end: datetime,
     ) -> list[Order]:
+        # Shopify-installed stores are billed through Shopify usage charges (review 139170),
+        # never on an Interac invoice.
+        from porterchain_api.config import get_settings
+        from porterchain_api.merchant_engine.shopify_billing import is_shopify_billed
+
+        if is_shopify_billed(db, get_settings(), merchant_id):
+            return []
         invoiced_ids = {
             row[0]
             for row in db.query(Invoice.order_id).filter(Invoice.order_id.isnot(None)).all()
@@ -143,9 +173,11 @@ class MerchantArService:
         cents = sum(int(o.amount_cents or 0) for o in orders)
         return {
             "merchant_id": merchant_id,
-            "merchant_name": merchant.legal_name or merchant.company_name,
+            "merchant_name": merchant.company_name or merchant.legal_name,
+            "legal_name": merchant.legal_name,
             "payment_terms": merchant.payment_terms,
-            "billing_cycle": merchant.billing_cycle,
+            # Weekly billing (Ravi 2026-10-31): show the cycle the run actually uses.
+            "billing_cycle": _display_cycle(merchant),
             "period_start": _aware(start),
             "period_end": _aware(end),
             "order_count": len(orders),
@@ -211,7 +243,7 @@ class MerchantArService:
                 tax_province=next(iter(provinces)) if len(provinces) == 1 else None,
                 fees_cents=0,
                 currency=orders[0].currency or "cad",
-                due_at=_aware(invoice_due_date(now, terms)),
+                due_at=_aware(weekly_due_at_for_issue(now)),
                 issued_at=now,
                 billing_period_start=_aware(start),
                 billing_period_end=_aware(end),
@@ -286,6 +318,7 @@ class MerchantArService:
                 payload={
                     "invoice_id": invoice.id,
                     "invoice_number": invoice.invoice_number,
+                    "billing_terms_line": weekly_terms_line(start, end, invoice.due_at),
                     "payment_reference": invoice.payment_reference,
                     "merchant_id": merchant_id,
                     "merchant_name": merchant.company_name,
@@ -294,6 +327,9 @@ class MerchantArService:
                     "amount_cents": invoice.amount_cents,
                     "amount_display": f"${(invoice.amount_cents or 0) / 100:.2f} {(invoice.currency or 'cad').upper()}",
                     "billing_kind": "cycle",
+                    # L126: week, lines, due date and working links in the cycle email.
+                    **_cycle_email_fields(invoice, line_specs, extras, start, end),
+                    "interac_line": interac_instructions(db, invoice),
                 },
             )
             created.append(
@@ -347,11 +383,14 @@ class MerchantArService:
         paid_at: datetime | None = None,
         source: dict[str, Any] | None = None,
         commit: bool = True,
+        online_card: bool = False,
+        transaction_id: str | None = None,
     ) -> dict[str, Any]:
         """Record an offline payment. Partial payments leave a balance; any excess over
         the outstanding amount becomes merchant credit (applied to the next cycle invoice)."""
         method_n = (method or "").strip().lower()
-        if method_n not in OFFLINE_METHODS:
+        # "card" only through the merchant Stripe Checkout (online_card); admins record offline methods.
+        if not (method_n in OFFLINE_METHODS or (online_card and method_n == "card")):
             raise ValueError("invalid_payment_method")
 
         invoice = db.query(Invoice).filter(Invoice.id == invoice_id).with_for_update().first()
@@ -402,13 +441,17 @@ class MerchantArService:
             currency=invoice.currency or (order.currency if order else None) or "cad",
             payment_method=method_n,
             payment_reference=(reference or "")[:32] or None,
-            transaction_id=f"offline:{invoice.id}",
+            transaction_id=transaction_id or f"offline:{invoice.id}",
         )
         db.add(pay)
         db.flush()
         persist_invoice_status(invoice, order, pay if fully_paid else None, terms=terms)
         entry = BillingLedgerEntry(
-            kind="merchant_offline_payment",
+            kind=(
+                "merchant_card_payment"
+                if online_card
+                else "merchant_interac_payment" if method_n == "interac" else "merchant_offline_payment"
+            ),
             payment_id=pay.id,
             invoice_id=invoice.id,
             order_id=order.id if order else None,
@@ -446,7 +489,7 @@ class MerchantArService:
             aggregate_type="merchant",
             aggregate_id=merchant_id or "",
             correlation_id=invoice.id,
-            actor_type="admin",
+            actor_type="merchant" if online_card else "admin",
             actor_id=ctx.user.id if ctx else None,
             payload={
                 "invoice_id": invoice.id,
@@ -455,6 +498,7 @@ class MerchantArService:
                 "method": method_n,
                 "merchant_id": merchant_id,
                 "merchant_email": primary_billing_email(billed) if billed else None,
+                **_payment_email_fields(invoice, billed, received, method_n),
             },
         )
         log_admin_audit(
@@ -492,9 +536,82 @@ class MerchantArService:
 
 
 
+_METHOD_LABELS = {"card": ("card", "carte"), "interac": ("Interac e-Transfer", "virement Interac"),
+                  "cheque": ("cheque", "chèque"), "wire": ("wire transfer", "virement bancaire"), "other": ("other", "autre")}
+
+
+def _payment_email_fields(invoice: Invoice, merchant: Any, received: int, method: str) -> dict[str, Any]:
+    from porterchain_api.config import get_settings
+
+    cur = (invoice.currency or "cad").upper()
+    balance = max(0, invoice_net_total_cents(invoice) - int(invoice.amount_paid_cents or 0))
+    en, fr = _METHOD_LABELS.get(method, (method, method))
+    portal = (get_settings().merchant_portal_url or "").rstrip("/")
+    return {
+        "invoice_number": invoice.invoice_number,
+        "company_name": (getattr(merchant, "company_name", None) or getattr(merchant, "legal_name", None) or "") if merchant else "",
+        "amount_display": f"${received / 100:,.2f} {cur}",
+        "balance_display": f"${balance / 100:,.2f} {cur}",
+        "method_label": en,
+        "method_label_fr": fr,
+        "invoice_url": f"{portal}/billing/invoices/{invoice.id}" if portal else "",
+    }
+
+
 def is_cycle_billed(db: Session, order: Order) -> bool:
     from porterchain_api.admin_engine.merchant_ar_cycles import is_cycle_billed as _impl
 
     return _impl(db, order)
 
 from porterchain_api.booking_engine.numbers import generate_invoice_number  # noqa: E402, F401
+
+
+def interac_instructions(db: Session, invoice: Any) -> str:
+    """How a merchant pays (Ravi 2026-11-03: Interac e-Transfer only, no card)."""
+    from porterchain_api.admin_engine.platform_settings import etransfer_recipient_email
+
+    ref = getattr(invoice, "payment_reference", None) or invoice.invoice_number
+    return (
+        f"Pay by Interac e-Transfer to {etransfer_recipient_email(db)}. "
+        f"Put {ref} (invoice {invoice.invoice_number}) in the e-Transfer message.\n"
+        f"Payez par virement Interac à {etransfer_recipient_email(db)}, avec {ref} dans le message."
+    )
+
+
+def _display_cycle(merchant: Any) -> str | None:
+    from porterchain_api.admin_engine.merchant_ar_cycles import is_weekly_billed_merchant
+
+    return "WEEKLY" if is_weekly_billed_merchant(merchant) else merchant.billing_cycle
+
+
+def _cycle_email_fields(invoice: Any, line_specs: list, extras: list, start: datetime, end: datetime) -> dict[str, Any]:
+    """L126: billing week (Toronto dates), one line per delivery/fee, due date, Pay now + PDF links."""
+    from datetime import timedelta
+
+    from porterchain_api.billing_engine.weekly_billing import TORONTO
+    from porterchain_api.config import get_settings
+
+    def _loc(dt: datetime) -> datetime:
+        return (dt if dt.tzinfo else dt.replace(tzinfo=UTC)).astimezone(TORONTO)
+
+    cur = (invoice.currency or "cad").upper()
+    lines = [
+        f"- {o.order_number}: ${(sp.gross_cents or 0) / 100:.2f} {cur}" for o, sp in line_specs
+    ]
+    for ex in extras:
+        label = getattr(ex, "description", None) or getattr(ex, "label", None) or "Fee"
+        lines.append(f"- {label}: ${(getattr(ex, 'gross_cents', 0) or 0) / 100:.2f} {cur}")
+    a = _loc(start).date()
+    b = (_loc(end) - timedelta(microseconds=1)).date()
+    due = _loc(invoice.due_at).date() if invoice.due_at else None
+    portal = (get_settings().merchant_portal_url or "").rstrip("/")
+    base = f"{portal}/billing/invoices/{invoice.id}" if portal else ""
+    return {
+        "period_label": f"{a:%a %b %d, %Y} to {b:%a %b %d, %Y} (Toronto)",
+        "due_label": f"{due:%a %b %d, %Y} (Toronto)" if due else "",
+        "lines_text": "\n".join(lines),
+        "order_number": f"{len(line_specs)} deliveries" if len(line_specs) != 1 else line_specs[0][0].order_number,
+        "pay_url": base,
+        "receipt_url": f"{base}?pdf=1" if base else "",
+        "merchant_deep_link": base,
+    }

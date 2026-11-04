@@ -36,7 +36,18 @@ def apply_geocode_job(db: Session, job_id: str) -> None:
         return
     cfg = dict(job.job_config or {})
     stops_in = list(cfg.get("stops") or job.preview or [])
+    # L198: Nominatim is throttled (~1 req/s), so 100+ stops take minutes. Do not hold the
+    # DB transaction open meanwhile (Postgres drops idle-in-transaction sessions and the
+    # job stayed "pending" forever). End the read txn, geocode, then reload the job.
+    db.rollback()
     resolved, errors = resolve_stops(stops_in, geocode_now=True)
+    job = db.get(BulkImportJob, job_id)
+    if not job or job.status == BulkImportStatus.CONFIRMED.value:
+        return
+    ctx = _owner_ctx(db, job)
+    if not ctx:
+        return
+    cfg = dict(job.job_config or {})
     quote, geometry = split_route_quote(
         quote_if_ready(
             db,

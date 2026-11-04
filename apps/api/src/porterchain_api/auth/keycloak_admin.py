@@ -19,6 +19,16 @@ MFA_ROLE = "mfa_required"
 MFA_TIERS = {"super_admin", "admin"}
 ACTION_LIFESPAN_SECONDS = 72 * 3600
 
+
+def _admin_base(settings) -> str:
+    """L213: ADMIN_APP_URL when set explicitly, else ADMIN_PORTAL_URL (what every stack sets).
+
+    The old default (localhost:3002) is not a pc-admin redirect URI on the local stack or prod, so
+    Keycloak refused execute-actions-email and staff invites never arrived."""
+    fields = getattr(settings, "model_fields_set", set()) or set()
+    url = settings.admin_app_url if "admin_app_url" in fields else settings.admin_portal_url
+    return str(url).rstrip("/")
+
 _token_cache: dict[str, tuple[str, float]] = {}
 
 
@@ -159,7 +169,7 @@ class KeycloakAdmin:
                     "lifespan": ACTION_LIFESPAN_SECONDS,
                     "client_id": client_id,
                     "redirect_uri": redirect_uri
-                    or f"{self.settings.admin_app_url.rstrip('/')}/auth/login",
+                    or f"{_admin_base(self.settings)}/auth/login",
                 },
                 json=actions,
             )

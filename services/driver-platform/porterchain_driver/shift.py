@@ -35,7 +35,26 @@ def require_pretrip(raw: dict[str, Any] | None) -> dict[str, bool]:
 
 
 class ShiftService:
+    # L144 decision: warn at 14h on shift, auto clock-out at 16h (break time excluded).
+    LONG_SHIFT_WARN_MIN = 14 * 60
+    LONG_SHIFT_MAX_MIN = 16 * 60
+
+    def enforce_shift_limit(self, db: Session, driver: Any) -> bool:
+        """End the active shift when it passes 16 working hours. Returns True if ended."""
+        shift = self._active_shift(db, driver.id)
+        if not shift or self._working_minutes(shift) < self.LONG_SHIFT_MAX_MIN:
+            return False
+        self.end_shift(db, driver)
+        # L185: record the clock-out at the 16h mark, not when the driver next opened the app.
+        cap = shift.started_at + timedelta(minutes=self.LONG_SHIFT_MAX_MIN + int(shift.break_minutes or 0))
+        if shift.ended_at and shift.ended_at > cap:
+            shift.ended_at = cap
+        self._log(db, driver.id, shift.id, "shift_auto_ended", {"reason": "16h_limit"})
+        db.flush()
+        return True
+
     def snapshot(self, db: Session, driver: Any) -> dict[str, Any]:
+        auto_ended = self.enforce_shift_limit(db, driver)
         shift = self._active_shift(db, driver.id)
         route = None
         from porterchain_driver.stops import StopsService
@@ -62,6 +81,9 @@ class ShiftService:
             "is_online": bool(driver.is_online),
             "working_minutes": working,
             "working_hours_label": self._format_minutes(working),
+            "long_shift_warning": bool(shift) and working >= self.LONG_SHIFT_WARN_MIN,
+            "auto_clocked_out": auto_ended,
+            "shift_limit_minutes": self.LONG_SHIFT_MAX_MIN,
             "mileage_km": round(mileage_km, 2),
             "mileage_source": mileage_source,
             "current_vehicle": vehicle,

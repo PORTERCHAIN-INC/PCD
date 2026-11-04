@@ -128,12 +128,17 @@ export function AddressField({ label, value, onChange, accessoryId, onManualOk }
       />
       {value.place_id ? (
         <Text style={styles.hint}>
-          {value.postal ? `Google · ${value.postal}` : "Selected from Google"}
+          {value.postal ? `Address found · ${value.postal}` : "Address found"}
         </Text>
       ) : null}
       {hint ? <Text style={styles.hint}>{hint}</Text> : null}
       {suggestions.map((item) => (
-        <Pressable key={item.placeId} onPress={() => void choose(item)} style={styles.suggestion}>
+        <Pressable
+          key={item.placeId}
+          onPress={() => void choose(item)}
+          accessibilityRole="button"
+          style={styles.suggestion}
+        >
           <Text style={styles.suggestionText}>{item.description}</Text>
         </Pressable>
       ))}

@@ -74,9 +74,9 @@ def test_admin_ip_allowlist(monkeypatch):
         al.normalize_admin_access({"ip_allowlist": ["not-an-ip"]})
 
 
-def test_offboarding_revokes_clerk_sessions(monkeypatch):
+def test_offboarding_revokes_idp_sessions(monkeypatch):
     from porterchain_api.admin_engine import driver_service as ds
-    from porterchain_api.auth import identity_directory as clerk_registry
+    from porterchain_api.auth import identity_directory as idp_registry
 
     calls = []
 
@@ -85,7 +85,7 @@ def test_offboarding_revokes_clerk_sessions(monkeypatch):
             calls.append(uid)
             return 2
 
-    monkeypatch.setattr(clerk_registry, "directory_for_kind", lambda s, k: _C())
+    monkeypatch.setattr(idp_registry, "directory_for_kind", lambda s, k: _C())
     d = type("D", (), {"id": "d1", "auth_subject": "user_x"})()
     ds.revoke_driver_sessions(d, object())
     assert calls == ["user_x"]

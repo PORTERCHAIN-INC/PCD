@@ -419,13 +419,13 @@ TWO_PERSON_KG = 50 * 0.45359237
 
 
 def _lift_flags(fsas: list[str], buckets: list[list[Parcel]]) -> list[dict[str, Any]]:
-    """Boxes over 50 lb (judged per box, never combined) → two-person handling note."""
+    """Boxes over 50 lb (judged per box, never combined) → dolly handling note."""
     out = []
     for idx, (fsa, bucket) in enumerate(zip(fsas, buckets), start=1):
         heavy = [round(w, 1) for w, _d in bucket if w and w > TWO_PERSON_KG + 1e-6]
         if heavy:
             out.append({
                 "stop": idx, "fsa": fsa, "boxes_over_50_lb": len(heavy), "box_weights_kg": heavy,
-                "note": f"Stop {idx}: {len(heavy)} box(es) over 50 lb — two-person handling / equipment (Term 05).",
+                "note": f"Stop {idx}: {len(heavy)} box(es) over 50 lb — dolly handling, one driver (Term 05).",
             })
     return out

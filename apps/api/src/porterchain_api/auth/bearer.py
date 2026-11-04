@@ -1,4 +1,4 @@
-"""FastAPI Clerk claim dependencies — thin wrapper over KeycloakIdentityProvider."""
+"""FastAPI Keycloak claim dependencies — thin wrapper over KeycloakIdentityProvider."""
 
 from typing import Annotated
 
@@ -81,7 +81,7 @@ async def get_identity_claims(
         if portal in ("driver", "merchant", "customer") and portal != session.target_type:
             raise HTTPException(status_code=403, detail="impersonation_portal_mismatch")
         request.state.impersonation = session
-        # Synthetic claims — never a forged Clerk JWT. Persona resolvers key off metadata.
+        # Synthetic claims — never a forged Keycloak JWT. Persona resolvers key off metadata.
         return IdentityClaims(
             auth_subject=session.target_subject
             or f"impersonation:{session.target_id}",
@@ -110,7 +110,7 @@ async def get_optional_auth_subject(
     db: Session = Depends(get_db),
     x_porterchain_portal: Annotated[str | None, Header()] = None,
 ) -> str | None:
-    """Return Clerk user id when a valid bearer token is present; otherwise None."""
+    """Return Keycloak user id when a valid bearer token is present; otherwise None."""
     if not authorization or not authorization.startswith("Bearer "):
         return None
     token = authorization.removeprefix("Bearer ").strip()

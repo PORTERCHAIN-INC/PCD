@@ -674,38 +674,45 @@ class PricingEngine:
             breakdown.add_item("past_designated_point", "Delivery past the designated point", cents)
 
     def _apply_coverage(self, request: PricingRequest, ctx: PricingContext, breakdown: PriceBreakdown) -> None:
-        """Declared-value cover: free tier always; opt-in upgrade adds one line."""
+        """Declared-value cover (porterchain_pricing.declared_value): per parcel, off until G-INS."""
         from porterchain_pricing.coverage import charge_cents, coverage_label, normalize_coverage, recommend
+        from porterchain_pricing.declared_value import problems
 
         contract_cov = (breakdown.metadata.get("contract_terms") or {}).get("coverage")
         try:
-            cfg = normalize_coverage(contract_cov or ctx.coverage)
+            # G-INS: neither the setting nor a contract override can switch cover on by itself.
+            cfg = normalize_coverage(contract_cov or ctx.coverage, ctx.cargo_insurance)
         except ValueError:
-            cfg = normalize_coverage(None)
+            cfg = normalize_coverage(None, ctx.cargo_insurance)
         upgrade = request.coverage_upgrade
         if upgrade is None:
             mcfg = ctx.merchant_pricing_config or {}
-            upgrade = bool(mcfg.get("coverage_upgrade_default", False))
-        rec = recommend(request.declared_value_cents, request.item_category, cfg)
-        units = request.parcel_count
-        if cfg["unit"] == "stop":
-            meta = breakdown.metadata
-            units = meta.get("compact_billable_stops") or sum(
-                int(r.get("billable_stops") or 1) for r in (meta.get("contract_stops") or [])
-            ) or 1 + len(request.additional_stops or [])
-        cents = charge_cents(bool(upgrade), units, cfg)
+            upgrade = bool(mcfg.get("coverage_upgrade_default", False)) and bool(request.declared_value_cents)
+        parcels = max(int(request.parcel_count or 1), 1)
+        rec = recommend(request.declared_value_cents, request.item_category, cfg, parcels=parcels)
+        unavailable: list[str] = []
+        if upgrade:
+            per = int(request.declared_value_cents or 0) // parcels
+            unavailable = problems(per, request.item_category, cfg)
+        bought = bool(upgrade) and not unavailable
+        cents = charge_cents(bought, parcels, cfg, request.declared_value_cents)
         if cents:
-            unit = {"parcel": " per parcel", "stop": " per stop"}.get(cfg["unit"], "")
-            breakdown.add_item("coverage_upgrade", coverage_label(True, cfg) + unit, cents)
+            breakdown.add_item("coverage_upgrade", coverage_label(True, cfg) + " per parcel", cents)
         breakdown.metadata["coverage"] = {
-            "tier": "upgrade" if upgrade else "included",
-            "covered_up_to_cents": cfg["upgrade_cents"] if upgrade else cfg["included_cents"],
-            "covered_per": cfg.get("included_per", "delivery"),
+            "tier": "declared_value" if bought else "default_liability",
+            "covered_up_to_cents": min(int(request.declared_value_cents or 0), cfg["max_value_cents"] * parcels)
+            if bought else None,
+            "default_liability_cents_per_kg": cfg["default_liability_cents_per_kg"],
+            "covered_per": "parcel",
             "charge_cents": cents,
             "declared_value_cents": request.declared_value_cents,
+            "requested": bool(upgrade),
+            "unavailable": unavailable,
+            "proof_of_value_required": bool(bought),
             "recommended": rec["tier"],
             "reason": rec["reason"],
-            "over_max": rec["tier"] == "over_max",
+            "over_max": "declared_value_over_max" in unavailable,
+            "enabled": cfg["enabled"],
         }
 
     def _apply_origin_pickup(

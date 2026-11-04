@@ -98,10 +98,14 @@ export default function CustomersPage() {
 
       {stats && (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          <StatTile icon={Users} label="Total customers" value={stats.total.toLocaleString()} />
+          <StatTile
+            icon={Users}
+            label="Total customers"
+            value={stats.total.toLocaleString("en-CA")}
+          />
           <StatTile
             icon={Link2}
-            label="Clerk linked"
+            label="Keycloak linked"
             value={String(stats.identity_linked)}
             accent="text-green-600"
           />
@@ -141,7 +145,7 @@ export default function CustomersPage() {
           All
         </FacetButton>
         <FacetButton active={identity === "linked"} onClick={() => setIdentity("linked")}>
-          Clerk linked
+          Keycloak linked
         </FacetButton>
         <FacetButton active={identity === "orphan"} onClick={() => setIdentity("orphan")}>
           Orphan
@@ -156,7 +160,7 @@ export default function CustomersPage() {
           <FilterChip
             label={
               identity === "linked"
-                ? "Identity: Clerk linked"
+                ? "Identity: Keycloak linked"
                 : identity === "orphan"
                   ? "Identity: Orphan"
                   : "Privacy: DSR hold"
@@ -210,7 +214,7 @@ export default function CustomersPage() {
                     </td>
                     <td className="px-4 py-3">
                       <Badge tone={c.identity_linked ? "green" : "slate"}>
-                        {c.identity_linked ? "Clerk linked" : "Orphan"}
+                        {c.identity_linked ? "Keycloak linked" : "Orphan"}
                       </Badge>
                     </td>
                     <td className="px-4 py-3">

@@ -6,7 +6,7 @@ import logging
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.auth.account_lifecycle import activate_user_for_clerk
+from porterchain_api.auth.account_lifecycle import activate_user_for_idp
 from porterchain_api.auth.dev import is_dev_bypass_subject
 from porterchain_api.auth.persona_bundle import invalidate_persona_bundle
 from porterchain_api.auth.prepare import invalidate_auth_prepare
@@ -29,7 +29,7 @@ def sync_authz_after_persona_mutation(db: Session, auth_subject: str | None) -> 
     invalidate_persona_bundle(db, auth_subject)
     invalidate_auth_prepare(db, auth_subject)
 
-    user = activate_user_for_clerk(db, auth_subject)
+    user = activate_user_for_idp(db, auth_subject)
     if not user:
         return
 
@@ -45,4 +45,4 @@ def sync_authz_after_persona_mutation(db: Session, auth_subject: str | None) -> 
 
         TupleWriter().sync_user_from_profiles(db, user)
     except Exception:  # noqa: BLE001
-        logger.exception("authz_sync_after_persona_mutation_failed clerk_subject_present=1")
+        logger.exception("authz_sync_after_persona_mutation_failed idp_subject_present=1")

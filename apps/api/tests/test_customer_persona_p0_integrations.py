@@ -385,7 +385,7 @@ def test_fb_confirmation_dual_writes_stops_and_order_created(db: Session, settin
         quote_id=quote.id,
         email=f"fb-{uuid4().hex[:6]}@p0.test",
         phone="+14165550888",
-        auth_subject=f"clerk_fb_{uuid4().hex[:8]}",
+        auth_subject=f"idp_fb_{uuid4().hex[:8]}",
         anonymous_session_id=session_id,
         consent={
             "terms_accepted": True,

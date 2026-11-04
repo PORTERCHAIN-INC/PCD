@@ -200,6 +200,8 @@ class CrmLeadWriteMixin:
             db.add(deal)
             db.flush()
 
+        org_id = _ensure_org_for_company(db, company, lead)
+
         stamp_status_change(lead, LeadStatus.WON.value)
         lead.status = LeadStatus.WON.value
         lead.decision_status = LeadDecisionStatus.CONVERTED.value
@@ -220,5 +222,33 @@ class CrmLeadWriteMixin:
             "company_id": company.id,
             "contact_id": contact.id if contact else None,
             "deal_id": deal.id if deal else None,
+            "org_id": org_id,
         }
 
+
+
+def _ensure_org_for_company(db: Session, company: CrmCompany, lead: CrmLead) -> str:
+    """Doc 78 §5: Convert creates an organisation with a business type; the lead keeps org_id.
+
+    Unknown business types land as small_shop/other flagged for review. Idempotent:
+    the organisation id is the CRM company id.
+    """
+    from porterchain_api.org_engine import packs, service
+    from porterchain_api.org_engine.models import Organisation
+
+    org = db.get(Organisation, company.id)
+    if org is None:
+        bt = (lead.business_type or "").strip().lower()
+        known = bt in packs.BUSINESS_TYPES
+        org = service.provision(
+            db,
+            org_id=company.id,
+            display_name=company.legal_name or lead.company_name,
+            business_type=bt if known else "small_shop",
+            subtype=None if known else "other",
+            needs_review=not known,
+        )
+    cf = dict(lead.custom_fields or {})
+    cf["org_id"] = org.id
+    lead.custom_fields = cf
+    return org.id

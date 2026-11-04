@@ -11,7 +11,7 @@ import {
   AccountSignInLink,
   AccountSignOutButton,
 } from "@porterchain/ui/account-menu";
-import { driverApi, driverLogout, hasDriverSession } from "@/lib/api";
+import { driverApi, DRIVER_STATUS_EVENT, driverLogout, hasDriverSession } from "@/lib/api";
 import { isAuthConfigured } from "@/lib/env";
 import { useDriverProfile } from "@/components/nav/DriverProfileContext";
 
@@ -27,20 +27,20 @@ export default function DriverAccountMenu() {
   if (isAuthConfigured()) {
     return <DriverAccountMenuWithAuth />;
   }
-  return <DriverAccountMenuBody clerkUser={null} clerkLoaded={false} />;
+  return <DriverAccountMenuBody idpUser={null} idpLoaded={false} />;
 }
 
 function DriverAccountMenuWithAuth() {
-  const { user, isLoaded: clerkLoaded } = useUser();
-  return <DriverAccountMenuBody clerkUser={user} clerkLoaded={clerkLoaded} />;
+  const { user, isLoaded: idpLoaded } = useUser();
+  return <DriverAccountMenuBody idpUser={user} idpLoaded={idpLoaded} />;
 }
 
 function DriverAccountMenuBody({
-  clerkUser: user,
-  clerkLoaded,
+  idpUser: user,
+  idpLoaded,
 }: {
-  clerkUser: ReturnType<typeof useUser>["user"];
-  clerkLoaded: boolean;
+  idpUser: ReturnType<typeof useUser>["user"];
+  idpLoaded: boolean;
 }) {
   const router = useRouter();
   const { profile, setProfile } = useDriverProfile();
@@ -63,8 +63,20 @@ function DriverAccountMenuBody({
       }
       if (!cancelled) setLoading(false);
     })();
+    const refresh = () => {
+      driverApi
+        .me()
+        .then((me) => {
+          if (!cancelled) setProfile(me);
+        })
+        .catch(() => {});
+    };
+    window.addEventListener(DRIVER_STATUS_EVENT, refresh);
+    const timer = window.setInterval(refresh, 60_000);
     return () => {
       cancelled = true;
+      window.removeEventListener(DRIVER_STATUS_EVENT, refresh);
+      window.clearInterval(timer);
     };
   }, [setProfile]);
 

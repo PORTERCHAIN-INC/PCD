@@ -92,7 +92,7 @@ export function ImpersonateModal({
         <p className="text-muted">
           Break-glass only. Opens the {targetType} portal as{" "}
           <strong className="text-primary">{targetLabel}</strong> with a short-lived audited token
-          (not a forged Clerk login). Every start is written to the admin audit log.
+          (not a forged Keycloak login). Every start is written to the admin audit log.
         </p>
         <Field label="Reason (required, min 10 characters)">
           <Input

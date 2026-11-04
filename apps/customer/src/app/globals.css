@@ -304,3 +304,8 @@ body {
     opacity: 1;
   }
 }
+
+/* EN/FR: hide until the French tree is mounted (I18nRoot). */
+html[data-i18n-pending] body {
+  visibility: hidden;
+}

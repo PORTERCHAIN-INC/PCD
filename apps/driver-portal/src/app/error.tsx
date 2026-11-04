@@ -18,6 +18,12 @@ export default function DriverError({
       >
         Retry
       </button>
+      <a
+        href="/auth/logout"
+        className="mt-4 ml-2 inline-block rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700"
+      >
+        Sign out
+      </a>
     </div>
   );
 }

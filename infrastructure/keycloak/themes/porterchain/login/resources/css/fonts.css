@@ -1,0 +1,124 @@
+@font-face {
+  font-family: Carlito;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(../fonts/87db624003e86824-s.407zh-0gg7cw8.woff2) format("woff2");
+  unicode-range: U+1F??;
+}
+@font-face {
+  font-family: Carlito;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(../fonts/912a96105ef6c676-s.2q-ojj5_jcd1h.woff2) format("woff2");
+  unicode-range:
+    U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF,
+    U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: Carlito;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(../fonts/ba66e503c4286e3c-s.4563xbyy27k45.woff2) format("woff2");
+  unicode-range: U+301, U+400-45F, U+490-491, U+4B0-4B1, U+2116;
+}
+@font-face {
+  font-family: Carlito;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(../fonts/bff351158cca5f2c-s.0w_ig4b354wmw.woff2) format("woff2");
+  unicode-range: U+460-52F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: Carlito;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(../fonts/d3bc7a0440ff1a9e-s.07r8dx2dzod98.woff2) format("woff2");
+  unicode-range:
+    U+102-103, U+110-111, U+128-129, U+168-169, U+1A0-1A1, U+1AF-1B0, U+300-301, U+303-304,
+    U+308-309, U+323, U+329, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: Carlito;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(../fonts/d958b2ddddfeaa55-s.p.1hfhzlulhsxg9.woff2) format("woff2");
+  unicode-range:
+    U+??, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F,
+    U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: Carlito;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(../fonts/e0220e36e403827e-s.3a6uqxa0fcnk9.woff2) format("woff2");
+  unicode-range: U+370-377, U+37A-37F, U+384-38A, U+38C, U+38E-3A1, U+3A3-3FF;
+}
+@font-face {
+  font-family: Carlito;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(../fonts/41c76c1d6853487f-s.p.0xw17t5v0n2gg.woff2) format("woff2");
+  unicode-range:
+    U+??, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F,
+    U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: Carlito;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(../fonts/645781468702078e-s.1d_kbegoi2uhi.woff2) format("woff2");
+  unicode-range: U+460-52F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: Carlito;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(../fonts/76ba5a8ca6586eec-s.2-zkal2ozalvi.woff2) format("woff2");
+  unicode-range:
+    U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF,
+    U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: Carlito;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(../fonts/84bdac70c820faec-s.13g2kynyt7bpu.woff2) format("woff2");
+  unicode-range: U+1F??;
+}
+@font-face {
+  font-family: Carlito;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(../fonts/9670a6d76ada992a-s.3y2f8d0y_mo5m.woff2) format("woff2");
+  unicode-range:
+    U+102-103, U+110-111, U+128-129, U+168-169, U+1A0-1A1, U+1AF-1B0, U+300-301, U+303-304,
+    U+308-309, U+323, U+329, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: Carlito;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(../fonts/c98989df7672ee03-s.2rgpqu798wsuj.woff2) format("woff2");
+  unicode-range: U+301, U+400-45F, U+490-491, U+4B0-4B1, U+2116;
+}
+@font-face {
+  font-family: Carlito;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(../fonts/e0e6b23681342614-s.15j7uelnkf41h.woff2) format("woff2");
+  unicode-range: U+370-377, U+37A-37F, U+384-38A, U+38C, U+38E-3A1, U+3A3-3FF;
+}

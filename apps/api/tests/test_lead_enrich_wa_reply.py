@@ -1,4 +1,4 @@
-"""Lead enrich + WA auto-reply unit tests."""
+"""WA auto-reply unit tests (lead enrichment by scraping was removed, doc 78)."""
 
 from __future__ import annotations
 
@@ -7,50 +7,14 @@ from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 
 from porterchain_api.collaboration_engine.lead_agent import reply_inbound_whatsapp
-from porterchain_api.collaboration_engine.lead_enrich import (
-    enrich_lead_email,
-    extract_emails_from_html,
-)
 from porterchain_api.crm_models import CrmLead
 
 
-def test_extract_emails_prefers_info() -> None:
-    html = """
-    <a href="mailto:noreply@example.com">x</a>
-    <a href="mailto:info@acmecorp.ca">info</a>
-    Contact sales@acmecorp.ca today
-    """
-    emails = extract_emails_from_html(html, company="Acme Corp")
-    assert emails[0] == "info@acmecorp.ca"
+def test_no_contact_scraping_module() -> None:
+    """Doc 78 §1: email discovery by scraping is removed (PIPEDA)."""
+    import importlib.util
 
-
-def test_enrich_lead_from_website(db) -> None:
-    lead = CrmLead(
-        company_name=f"Acme {uuid.uuid4().hex[:6]}",
-        phone="+14165550001",
-        website="https://example-does-not-matter.test",
-        source="vendor_import",
-        channel="manual",
-        status="new",
-        consent={},
-        tags=["vendor_import"],
-    )
-    db.add(lead)
-    db.commit()
-    html = '<html><a href="mailto:hello@acmewidgets.ca">Email</a></html>'
-    with patch("porterchain_api.collaboration_engine.lead_enrich.httpx.Client") as Client:
-        client = MagicMock()
-        Client.return_value.__enter__.return_value = client
-        resp = MagicMock()
-        resp.status_code = 200
-        resp.text = html
-        client.get.return_value = resp
-        result = enrich_lead_email(db, lead)
-        db.commit()
-    assert result["status"] == "found"
-    assert lead.email == "hello@acmewidgets.ca"
-    assert (lead.consent or {}).get("legal_basis") == "legitimate_interest"
-    assert not (lead.consent or {}).get("marketing")
+    assert importlib.util.find_spec("porterchain_api.collaboration_engine.lead_enrich") is None
 
 
 def test_wa_auto_reply_care_window(db) -> None:

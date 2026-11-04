@@ -21,7 +21,7 @@ export function DiagnosticsAiUsageView({ embedded = false }: { embedded?: boolea
       {!embedded ? (
         <SettingsPageHeader
           title="AI usage"
-          description="NVIDIA NIM / LLM metering — read-only language assist. Never on pay or Valhalla."
+          description="LLM metering — FEATURE_AI is off in Phase 0. Never on pay or Valhalla."
           actions={
             <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>
               <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
@@ -48,11 +48,11 @@ export function DiagnosticsAiUsageView({ embedded = false }: { embedded?: boolea
       {data ? (
         <>
           <div className="flex flex-wrap gap-2">
-            <Badge tone={data.nim.configured ? "green" : "slate"}>
-              NIM {data.nim.configured ? "configured" : "unconfigured"}
+            <Badge tone={data.llm.configured ? "green" : "slate"}>
+              LLM {data.llm.configured ? "configured" : "off"}
             </Badge>
-            <Badge tone={data.nim.circuit_open ? "red" : "slate"}>
-              Circuit {data.nim.circuit_open ? "open" : "closed"}
+            <Badge tone={data.llm.feature_ai ? "sky" : "slate"}>
+              FEATURE_AI {data.llm.feature_ai ? "on" : "off"}
             </Badge>
             <Badge tone={data.phase2.intelligence ? "sky" : "slate"}>
               phase2 intelligence {data.phase2.intelligence ? "on" : "off"}
@@ -61,17 +61,17 @@ export function DiagnosticsAiUsageView({ embedded = false }: { embedded?: boolea
               ai_dispatch {data.phase2.ai_dispatch ? "on" : "off"}
             </Badge>
             <span className="text-xs text-muted self-center">
-              {data.nim.model} · checked {relativeTime(data.checked_at)}
+              {data.llm.model ?? "no model"} · checked {relativeTime(data.checked_at)}
             </span>
           </div>
 
           <SettingsCard
             title="By feature (24h)"
-            description="Ops enrichers and Ask NIM — tokens are metering only"
+            description="Ops enrichers — tokens are metering only"
           >
             {!data.by_feature.length ? (
               <p className="px-5 py-6 text-sm text-muted">
-                No AI calls in the last 24 hours. Enable NVIDIA_API_KEY + phase2 to record usage.
+                No AI calls in the last 24 hours. FEATURE_AI is off in Phase 0.
               </p>
             ) : (
               <div className="divide-y divide-primary/5">
@@ -130,8 +130,8 @@ export function DiagnosticsAiUsageView({ embedded = false }: { embedded?: boolea
           </SettingsCard>
 
           <p className="text-xs text-muted">
-            Self-hosted NIM: set NVIDIA_API_BASE to your OpenAI-compatible endpoint when free-tier
-            RPM (~40) saturates. See env/api.env.example.
+            No LLM client ships in Phase 0 (doc 60 R2). A self-hosted model would be wired in
+            intelligence_engine/llm.py first.
           </p>
         </>
       ) : null}

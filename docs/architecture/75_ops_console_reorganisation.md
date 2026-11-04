@@ -21,7 +21,7 @@ flowchart TB
   Home --> G[Settings]
   T --> T1[Overview: pickups, live, exceptions, tickets due]
   O --> O1[All orders] & O2[Booking drafts] & O3[Order detail]
-  D --> D1[Plan] & D2[Live map] & D3[Exceptions] & D4[Fleet & vehicles]
+  D --> D1[Plan] & D2[Live map] & D3[Exceptions] & D4[Fleet & vehicles] & D5[Bulk batches]
   N --> N1[Drivers] & N2[Partners: courier/logistics/warehouse/CHA] & N3[Partner jobs]
   C --> C1[Organisations by type] & C2[People/retail] & C3[Leads & pipeline] & C4[Duplicates/merge]
   B --> B1[Invoices] & B2[Payments & Interac matching] & B3[Driver & partner pay] & B4[Rate cards & pricing] & B5[Tax GST/HST] & B6[Cash]
@@ -42,6 +42,7 @@ Roles (SpiceDB `platform`): `owner` (Ravi, all), `dispatcher` (Today, Orders, Di
 | /dispatch/today ("Queue")                                                         | Today (pickups lane) + Dispatch → Plan                                      |
 | /dispatch/plan, /live, /exceptions                                                | Dispatch → Plan, Live map, Exceptions                                       |
 | /dispatch/fleet                                                                   | Dispatch → Fleet & vehicles                                                 |
+| /dispatch/batches                                                                 | Dispatch → Bulk batches (fifth item, added by Ravi 2026-10-29)              |
 | /drivers, /drivers/[id]                                                           | Network → Drivers                                                           |
 | (new) partners, partner jobs                                                      | Network → Partners, Partner jobs (doc 56)                                   |
 | /merchants, /merchants/[id], /customers, /customers/[id]                          | Customers & Orgs → Organisations (filter by business type), People          |

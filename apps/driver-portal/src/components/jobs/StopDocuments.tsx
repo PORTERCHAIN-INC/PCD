@@ -185,7 +185,7 @@ export function StopDocuments({ orderId, onChanged }: { orderId: string; onChang
               ref={proofRef}
               type="file"
               accept="image/*"
-              capture="environment"
+              // L190: no capture attr — phones offer camera OR photo library
               hidden
               onChange={(e) => {
                 const f = e.target.files?.[0];

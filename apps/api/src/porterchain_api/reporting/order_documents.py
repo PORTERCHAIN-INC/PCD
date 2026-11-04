@@ -591,6 +591,19 @@ def pdf_for_invoice_record(db: Any, invoice: Any, *, lines: Sequence[dict[str, A
             }
         )
 
+    from porterchain_api.billing_engine.late_penalty import penalty_fields
+
+    pen = penalty_fields(db, invoice)
+    if pen["penalty_cents"]:
+        line_rows.append(
+            {
+                "description": pen["penalty_label"],
+                "amount_cents": pen["penalty_cents"],
+                "order_number": None,
+                "channel": None,
+                "pricing_model": None,
+            }
+        )
     issuer_name, legal, support = _issuer_from_db(db)
     issued = getattr(invoice, "issued_at", None) or getattr(invoice, "created_at", None)
     due_at = getattr(invoice, "due_at", None)

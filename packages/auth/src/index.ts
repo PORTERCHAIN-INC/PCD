@@ -58,7 +58,7 @@ export { safeAppRedirect } from "./safeRedirect";
 export { authDevBypassEnabled, authDevBypassIgnored, isDevelopmentBuild } from "./devBypass";
 export { hasSessionCookie } from "./oidc/core";
 export type { CookieReader } from "./oidc/core";
-export { humanAuthError } from "./authErrors";
+export { humanAuthError, isBlockedAccountError, isWrongPortalError } from "./authErrors";
 export { signInUnavailableCopy, signUpUnavailableCopy } from "./authUnavailable";
 export {
   AUTH_EVENT_KINDS,

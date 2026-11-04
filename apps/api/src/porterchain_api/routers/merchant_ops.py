@@ -235,6 +235,31 @@ def merchant_quote_preview(
     return _run(ctx, "merchants_read", quote_preview.preview, db, merchant_id, body.model_dump())
 
 
+@router.post("/{merchant_id}/quote-preview/pdf")
+def merchant_quote_preview_pdf(
+    merchant_id: str, body: QuotePreviewBody, ctx: Ctx, db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    lang: str = Query("en", pattern="^(en|fr)$"),
+) -> Response:
+    """Quote PDF for the admin preview. Re-prices server-side; nothing is stored."""
+    from porterchain_api.merchant_engine.account_ops import get_merchant
+    from porterchain_api.reporting.quote_pdf import pdf_for_preview
+
+    res = _run(ctx, "merchants_read", quote_preview.preview, db, merchant_id, body.model_dump())
+    price, route = res["price"], res["route"]
+    if price.get("refused"):
+        raise HTTPException(status_code=400, detail="quote_unavailable")
+    merchant = _run(ctx, "merchants_read", get_merchant, db, merchant_id)
+    pdf, name = pdf_for_preview(
+        db, merchant=merchant, pickup=route.get("pickup"), dropoff=route.get("dropoff"),
+        breakdown={"items": price.get("lines"), "tax_cents": price.get("tax_cents")},
+        total_cents=int(price["final_cents"]), vehicle_class=body.vehicle_class, weight_kg=body.weight_kg,
+        ttl_minutes=int(settings.quote_ttl_minutes or 72 * 60), lang=lang,
+    )
+    return Response(content=pdf, media_type="application/pdf",
+                    headers={"Content-Disposition": f'attachment; filename="{name}"'})
+
+
 @router.get("/{merchant_id}/documents")
 def merchant_documents(merchant_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
     def _go():

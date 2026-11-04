@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Local connection health — no secret values printed.
 
-Required stack for this Mac. Optional vendors (NVIDIA, Shopify, Zoho, Checkr,
-Sentry, lead webhooks, Apple ASC) are not probed. :5433 is not PorterChain.
+Required stack for this Mac. Optional vendors (Shopify, Zoho, Checkr,
+GlitchTip, lead webhooks, Apple ASC) are not probed. :5433 is not PorterChain.
 """
 
 from __future__ import annotations

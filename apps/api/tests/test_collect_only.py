@@ -23,6 +23,12 @@ from tests.test_hub_split import HUB, _events, _hub, _quiet  # noqa: F401  (auto
 pytestmark = pytest.mark.usefixtures("quiet_pool")
 
 
+@pytest.fixture(autouse=True)
+def _collect_only_flag_on(monkeypatch):
+    """The feature is off by default (Phase 0: no storage); these tests cover the kept code."""
+    monkeypatch.setattr(co, "enabled", lambda: True)
+
+
 def _collect_order(db: Session, hub, **kw) -> Order:
     o = _order(db, W, S, **kw)
     o.compliance_metadata = co.mark({}, hub)

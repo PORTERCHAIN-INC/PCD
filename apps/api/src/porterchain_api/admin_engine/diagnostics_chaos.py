@@ -16,9 +16,9 @@ from porterchain_shared.redis_health import ping_redis
 CANONICAL_CHAOS_SCENARIOS: tuple[str, ...] = (
     "day_plan_offline",
     "stripe_offline",
-    "clerk_offline",
+    "idp_offline",
     "firebase_offline",
-    "google_maps_failure",
+    "maps_failure",
     "osrm_failure",
     "valhalla_failure",
     "redis_restart",
@@ -55,9 +55,9 @@ class DiagnosticsChaosMixin:
         scenarios = {
             "day_plan_offline": lambda: self._chaos_day_plan(db, settings),
             "stripe_offline": lambda: self._chaos_stripe(settings),
-            "clerk_offline": lambda: self._chaos_clerk(settings),
+            "idp_offline": lambda: self._chaos_idp(settings),
             "firebase_offline": lambda: self._chaos_firebase(),
-            "google_maps_failure": lambda: self._chaos_maps(),
+            "maps_failure": lambda: self._chaos_maps(),
             "osrm_failure": lambda: self._chaos_osrm(),
             "valhalla_failure": lambda: self._chaos_valhalla(),
             "redis_restart": lambda: self._chaos_redis(),
@@ -130,8 +130,8 @@ class DiagnosticsChaosMixin:
             ],
         }
 
-    def _chaos_clerk(self, settings: Settings) -> dict[str, Any]:
-        # Scenario = Clerk JWKS unreachable. Pass if auth fails closed (JWT required or
+    def _chaos_idp(self, settings: Settings) -> dict[str, Any]:
+        # Scenario = Keycloak JWKS unreachable. Pass if auth fails closed (JWT required or
         # explicit local bypass) — do not fail on live JWKS HTTP errors.
         from porterchain_api.auth.identity_directory import is_identity_configured
 
@@ -139,18 +139,18 @@ class DiagnosticsChaosMixin:
         configured = is_identity_configured(settings)
         if bypass and not configured:
             status: HealthClass = "warning"
-            note = "Clerk dev bypass active (local only)"
+            note = "Keycloak dev bypass active (local only)"
         elif configured or bypass:
             status = "healthy"
             note = "JWT validation on all protected routes (fail-closed without valid token)"
         else:
             status = "critical"
-            note = "Clerk not configured and bypass off — auth surface undefined"
+            note = "Keycloak not configured and bypass off — auth surface undefined"
         return {
             "status": status,
             "logs": [note],
             "checks": [
-                {"name": "clerk_configured", "status": "healthy" if configured else "warning"},
+                {"name": "idp_configured", "status": "healthy" if configured else "warning"},
                 {"name": "dev_bypass", "status": "warning" if bypass else "healthy", "value": bypass},
                 {"name": "fail_closed", "status": "healthy", "note": "protected routes require JWT"},
             ],
@@ -169,13 +169,13 @@ class DiagnosticsChaosMixin:
         }
 
     def _chaos_maps(self) -> dict[str, Any]:
-        # Google Maps offline → Places UX degrades; pricing/dispatch stay on Valhalla/OSRM.
+        # Tiles/Photon offline → address search degrades to Nominatim/FSA; pricing/dispatch stay on Valhalla/OSRM.
         return {
             "status": "healthy",
-            "logs": ["OSRM/Valhalla remain SoT for distance; Google is Places/tiles only"],
+            "logs": ["OSRM/Valhalla remain SoT for distance; tiles/search are display only"],
             "checks": [
                 {"name": "routing_fallback", "status": "healthy", "note": "MapsService Valhalla→OSRM"},
-                {"name": "google_not_routing", "status": "healthy"},
+                {"name": "maps_not_routing", "status": "healthy"},
             ],
         }
 

@@ -50,7 +50,7 @@ async def test_valid_token_maps_sub_roles_org(keypair):
     assert c.email == "owner@example.com"
     assert c.org_id == "org-9"
     assert c.metadata_role == "merchant_owner"
-    assert c.clerk_app == "merchant"
+    assert c.idp_app == "merchant"
     assert c.issuer == ISS and c.authorized_party == "pc-merchant-portal"
 
 

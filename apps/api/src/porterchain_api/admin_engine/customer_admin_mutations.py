@@ -32,7 +32,7 @@ def create_customer(
     full_name: str | None = None,
     send_invite: bool = False,
 ) -> dict[str, Any]:
-    """Mint a retail customer row for Admin phone-book / care. Optional Clerk invite."""
+    """Mint a retail customer row for Admin phone-book / care. Optional Keycloak invite."""
     from porterchain_api.admin_engine.customer_admin_service import CustomerAdminService
 
     normalized = normalize_email(email)
@@ -69,12 +69,12 @@ def create_customer(
         inv = InvitationService().invite_customer(db, ctx, settings, customer)
         identity_action = str((inv.invitation_metadata or {}).get("identity_action") or "invited")
     elif is_directory_configured(settings, "customer"):
-        clerk = directory_for_kind(settings, "customer")
-        found = clerk.find_user_by_email(normalized)
+        keycloak = directory_for_kind(settings, "customer")
+        found = keycloak.find_user_by_email(normalized)
         if found:
             subject_ref = str(found["id"])
             customer.auth_subject = subject_ref
-            clerk.update_user_metadata(
+            keycloak.update_user_metadata(
                 subject_ref,
                 {
                     "role": "customer",
@@ -86,7 +86,7 @@ def create_customer(
             from porterchain_api.auth.authz_sync import sync_authz_after_persona_mutation
 
             sync_authz_after_persona_mutation(db, subject_ref)
-            identity_action = "linked_existing_clerk"
+            identity_action = "linked_existing_idp"
 
     log_admin_audit(
         db,
@@ -114,7 +114,7 @@ def send_invite(
     settings: Settings,
     customer_id: str,
 ) -> dict[str, Any]:
-    """Send or re-send Platform Clerk invite for an existing customer."""
+    """Send or re-send Platform Keycloak invite for an existing customer."""
     from porterchain_api.admin_engine.customer_admin_service import CustomerAdminService
 
     customer = db.get(Customer, customer_id)
@@ -123,7 +123,7 @@ def send_invite(
     if customer.privacy_status == "deletion_hold":
         raise ValueError("customer_privacy_hold")
     if _identity_linked(customer.auth_subject):
-        raise ValueError("customer_already_clerk_linked")
+        raise ValueError("customer_already_idp_linked")
     if not is_directory_configured(settings, "customer"):
         raise ValueError("identity_not_configured")
     if not (customer.email or "").strip():

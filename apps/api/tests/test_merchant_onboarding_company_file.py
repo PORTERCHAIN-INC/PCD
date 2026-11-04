@@ -19,7 +19,7 @@ from porterchain_api.schemas_merchant import MerchantProfileUpdateRequest
 
 
 def _claims(subject_ref: str, email: str) -> IdentityClaims:
-    return IdentityClaims(auth_subject=subject_ref, email=email, clerk_app="merchant")
+    return IdentityClaims(auth_subject=subject_ref, email=email, idp_app="merchant")
 
 
 def _seat(

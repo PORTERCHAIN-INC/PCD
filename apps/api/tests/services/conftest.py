@@ -44,7 +44,7 @@ def ensure_pricing_data(db: Session) -> None:
 def admin_ctx(db: Session) -> AdminContext:
     suffix = uuid4().hex[:8]
     user = AdminUser(
-        auth_subject=f"clerk_admin_{suffix}",
+        auth_subject=f"idp_admin_{suffix}",
         email=f"admin-{suffix}@svc.test",
         name="Service Test Admin",
         role=AdminRole.SUPER_ADMIN.value,
@@ -67,7 +67,7 @@ def merchant_ctx(db: Session) -> MerchantContext:
     db.flush()
     user = MerchantUser(
         merchant_id=merchant.id,
-        auth_subject=f"clerk_merchant_{suffix}",
+        auth_subject=f"idp_merchant_{suffix}",
         email=f"user-{suffix}@svc.test",
         role=MerchantRole.OPS.value,
     )
@@ -102,7 +102,7 @@ def driver(db: Session) -> Driver:
         email=f"driver-{suffix}@svc.test",
         full_name=f"Driver {suffix}",
         status=DriverStatus.APPROVED.value,
-        auth_subject=f"clerk_driver_{suffix}",
+        auth_subject=f"idp_driver_{suffix}",
         is_online=True,
         license_verified=True,
         insurance_verified=True,

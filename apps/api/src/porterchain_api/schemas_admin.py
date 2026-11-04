@@ -384,6 +384,7 @@ class AdminOrderStopInput(BaseModel):
     lat: float | None = None
     lng: float | None = None
     city: str | None = None
+    postal: str | None = None
     time_window_start: datetime | None = None
     time_window_end: datetime | None = None
     service_time_seconds: int | None = None
@@ -401,6 +402,15 @@ class AdminCreateOrderRequest(BaseModel):
     vehicle_class: str = "cargo_van"
     package_type: str = "looseParcel"
     weight_kg: float | None = None
+    #: L128: parcel size (inches) so admin quotes match the merchant/customer parcel model.
+    length_in: float | None = Field(default=None, gt=0, le=500)
+    width_in: float | None = Field(default=None, gt=0, le=500)
+    height_in: float | None = Field(default=None, gt=0, le=500)
+    weight_lb: float | None = Field(default=None, gt=0, le=5000)
+    parcel_count: int = Field(default=1, ge=1, le=500)
+    booking_mode: str = Field(default="parcels", pattern="^(parcels|vehicle)$")
+    dedicated_hours: float | None = Field(default=None, gt=0, le=24)
+    help_stops: int = Field(default=0, ge=0, le=50)
     scheduled_at: datetime
     schedule_mode: str = "now"
     special_instructions: str | None = None
@@ -811,9 +821,9 @@ class PlatformUserItem(BaseModel):
     auth_subject: str | None = None
     provisioned: bool = True
     directory_status: str | None = None  # active | banned | locked | never_signed_in
-    clerk_email_verified: bool = False
-    clerk_password_set: bool = False
-    clerk_last_sign_in_at: datetime | None = None
+    idp_email_verified: bool = False
+    idp_password_set: bool = False
+    idp_last_sign_in_at: datetime | None = None
     detail_href: str | None = None
     created_at: datetime
 
@@ -830,8 +840,8 @@ class PlatformUsersResponse(BaseModel):
     items: list[PlatformUserItem]
     total: int
     facets: PlatformUsersFacets
-    clerk_synced: bool = False
-    clerk_total: int | None = None
+    idp_synced: bool = False
+    idp_total: int | None = None
 
 
 class PlatformUserCreateRequest(BaseModel):
@@ -922,7 +932,7 @@ class StaffEnrollResponse(BaseModel):
     role: str
     enrollment_token: str | None = None
     expires_at: float
-    clerk_invite: bool = False
+    idp_invite: bool = False
     email_sent: bool = False
     passkeys_removed: int | None = None
     sessions_revoked: int | None = None
@@ -982,6 +992,8 @@ class FinanceInvoiceItem(BaseModel):
     amount_cents: int
     tax_cents: int
     fees_cents: int
+    penalty_cents: int = 0
+    penalty_label: str | None = None
     outstanding_cents: int
     amount_paid_cents: int = 0
     credited_cents: int = 0
@@ -1434,7 +1446,7 @@ class CopilotActionBody(BaseModel):
 
 
 class CopilotLlmSuggestBody(BaseModel):
-    """Read-only LLM ops assist (NVIDIA NIM when configured). Not on pay path."""
+    """Read-only LLM ops assist (an LLM (FEATURE_AI, off in Phase 0) when configured). Not on pay path."""
 
     context: str = Field(min_length=1, max_length=8000)
     enable_intelligence: bool = True

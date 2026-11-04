@@ -2,6 +2,7 @@
 
 from fastapi import Body, Query, Response
 
+from porterchain_api.admin_engine.fleet_contracts_service import FleetContractsService
 from porterchain_api.admin_engine.fleet_plan_service import FleetPlanService
 from porterchain_api.admin_engine.logistics_partners_service import HubSplitService, LogisticsPartnersService
 from porterchain_api.routers.admin._deps import (
@@ -19,6 +20,7 @@ from porterchain_api.routers.admin._deps import (
 _plans = FleetPlanService()
 _partners = LogisticsPartnersService()
 _hub = HubSplitService()
+_contracts = FleetContractsService()
 Ctx = Annotated[AdminContext, Depends(get_admin_context)]
 P = "/operations/dispatch"
 
@@ -90,7 +92,7 @@ def dispatch_plan_undo(plan_id: str, ctx: Ctx, db: Session = Depends(get_db)) ->
 
 @router.post(f"{P}/plans/{{plan_id}}/explain")
 def dispatch_plan_explain(plan_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
-    """Explain + suggest only (rules; NVIDIA NIM when enabled). Never changes the plan."""
+    """Explain + suggest only (rules; an LLM (FEATURE_AI, off in Phase 0) when enabled). Never changes the plan."""
     return _run(ctx, "dispatch_read", _plans.explain, db, plan_id)
 
 
@@ -98,6 +100,17 @@ def dispatch_plan_explain(plan_id: str, ctx: Ctx, db: Session = Depends(get_db))
 @router.get(f"{P}/partners")
 def dispatch_partners(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
     return _run(ctx, "dispatch_read", lambda: {"items": _partners.list(db)})
+
+
+@router.get(f"{P}/partners/stats")
+def dispatch_partner_stats(ctx: Ctx, db: Session = Depends(get_db), days: int = Query(30, ge=1, le=365)) -> dict:
+    return _run(ctx, "dispatch_read", _partners.stats, db, days=days)
+
+
+@router.post(f"{P}/partners/bulk-active")
+def dispatch_partner_bulk_active(ctx: Ctx, db: Session = Depends(get_db), body: dict = Body(...)) -> dict:
+    """Pause or reactivate several partners at once (audited per partner)."""
+    return _run(ctx, "dispatch", _partners.bulk_active, db, ctx, list(body.get("ids") or []), bool(body.get("active")))
 
 
 @router.post(f"{P}/partners")
@@ -119,6 +132,13 @@ def dispatch_order_legs(order_id: str, ctx: Ctx, db: Session = Depends(get_db)) 
 def dispatch_order_legs_plan(order_id: str, ctx: Ctx, db: Session = Depends(get_db), save: bool = Query(False)) -> dict:
     """Local / warehouse / FTL / LTL / 3PL legs by rules. ``save=true`` stores them as planned."""
     return _run(ctx, "dispatch", _partners.plan_legs, db, ctx, order_id, save=save)
+
+
+@router.post(f"{P}/orders/{{order_id}}/partner-leg")
+def dispatch_order_assign_partner(order_id: str, ctx: Ctx, db: Session = Depends(get_db), body: dict = Body(...)) -> dict:
+    """L97: hand the order to a courier / contractor fleet partner (one pickup → drop leg)."""
+    return _run(ctx, "dispatch", _partners.assign_partner_leg, db, ctx, order_id,
+                str(body.get("partner_id") or ""), body.get("note"))
 
 
 @router.get(f"{P}/orders/{{order_id}}/hub-split")
@@ -174,6 +194,12 @@ def dispatch_partner_leg_status(leg_id: str, ctx: Ctx, db: Session = Depends(get
                 body.get("note"))
 
 
+@router.post(f"{P}/partner-legs/{{leg_id}}/sync-order")
+def dispatch_partner_leg_sync_order(leg_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
+    """L140 backfill: final leg delivered before the fix -> move the order to Delivered."""
+    return _run(ctx, "dispatch", _partners.sync_order_from_leg, db, ctx, leg_id)
+
+
 # ---------------------------------------------------------------- retention
 @router.get(f"{P}/retention")
 def dispatch_retention_get(ctx: Ctx, db: Session = Depends(get_db)) -> dict:
@@ -193,3 +219,61 @@ def dispatch_retention_run(ctx: Ctx, db: Session = Depends(get_db), dry_run: boo
         if role not in {"super_admin", "admin"}:
             raise HTTPException(status_code=403, detail="retention_admin_only")
     return _run(ctx, "dispatch", _partners.retention_run, db, ctx, dry_run=dry_run)
+
+
+# ---------------------------------------------------------------- fleet partner contracts
+@router.get(f"{P}/fleet-contracts")
+def fleet_contracts_list(ctx: Ctx, db: Session = Depends(get_db), partner_id: str | None = Query(None)) -> dict:
+    return _run(ctx, "dispatch_read", lambda: {"items": _contracts.list(db, partner_id)})
+
+
+@router.post(f"{P}/fleet-contracts")
+def fleet_contracts_create(ctx: Ctx, db: Session = Depends(get_db), body: dict = Body(...)) -> dict:
+    return _run(ctx, "dispatch", _contracts.upsert, db, ctx, body)
+
+
+@router.put(f"{P}/fleet-contracts/{{contract_id}}")
+def fleet_contracts_update(contract_id: str, ctx: Ctx, db: Session = Depends(get_db), body: dict = Body(...)) -> dict:
+    return _run(ctx, "dispatch", _contracts.upsert, db, ctx, body, contract_id)
+
+
+@router.delete(f"{P}/fleet-contracts/{{contract_id}}")
+def fleet_contracts_delete(contract_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> dict:
+    return _run(ctx, "dispatch", _contracts.delete, db, ctx, contract_id)
+
+
+@router.get(f"{P}/partners/{{partner_id}}/payable-statement")
+def fleet_payable_statement(
+    partner_id: str, ctx: Ctx, db: Session = Depends(get_db),
+    start: str = Query(...), end: str = Query(...),
+) -> dict:
+    from datetime import date as _date
+
+    def go():
+        try:
+            s, e = _date.fromisoformat(start), _date.fromisoformat(end)
+        except ValueError as exc:
+            raise ValueError("start/end must be YYYY-MM-DD") from exc
+        if e < s:
+            raise ValueError("end must be on or after start")
+        return _contracts.payable_statement(db, partner_id, s, e)
+
+    return _run(ctx, "dispatch_read", go)
+
+
+# ---------------------------------------------------------------- free-text translations (admin = English)
+_TRANSLATION_MODULE = {"order": "orders_read", "booking": "orders_read", "claim": "claims_read",
+                       "support_ticket": "support_read"}
+
+
+@router.get("/translations")
+def free_text_translations(
+    ctx: Ctx, db: Session = Depends(get_db),
+    entity_type: str = Query(...), entity_id: str = Query(...),
+) -> dict:
+    from porterchain_api.platform.free_text_translation import for_entity
+
+    module = _TRANSLATION_MODULE.get(entity_type)
+    if module is None:
+        raise HTTPException(status_code=400, detail="unknown entity_type")
+    return _run(ctx, module, lambda: {"items": for_entity(db, entity_type, entity_id)})

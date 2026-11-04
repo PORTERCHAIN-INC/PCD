@@ -209,6 +209,16 @@ class ProofOfDeliveryService:
                     proof_type="complete",
                     proof_id=order.id,
                     message=str(exc))
+        # L192: the web portal closes the drop with pod-complete only (never calls
+        # complete_stop), so credit the driver here too. credit_delivery is idempotent per order.
+        from porterchain_driver.earnings import EarningsService
+        from porterchain_driver.stops import _delivery_leg_cents, _hub_split
+
+        _split = _hub_split(order)
+        if _split is None or getattr(_split, "stage", None) != "to_hub":
+            EarningsService().credit_delivery(
+                db, driver, order_id=order.id,
+                amount_cents=_delivery_leg_cents(db, order, _split))
         return PodCaptureResult(
             success=True,
             proof_type="complete",

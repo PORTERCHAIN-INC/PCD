@@ -19,8 +19,8 @@ from porterchain_api.merchant_engine.webhook_delivery_service import deliver_mer
 
 @patch("porterchain_api.admin_engine.identity_directory_service.directory_for_kind")
 @patch("porterchain_api.admin_engine.identity_directory_service.is_directory_configured", return_value=True)
-def test_clerk_directory_create_user(mock_cfg, mock_client, db, admin_ctx, settings) -> None:
-    subject_ref = f"user_new_clerk_{datetime.now(UTC).timestamp()}"
+def test_idp_directory_create_user(mock_cfg, mock_client, db, admin_ctx, settings) -> None:
+    subject_ref = f"user_new_idp_{datetime.now(UTC).timestamp()}"
     mock_client.return_value.create_user.return_value = {"id": subject_ref}
     svc = DirectoryUserService()
     email = f"driver-new-{datetime.now(UTC).timestamp()}@svc.test"
@@ -37,9 +37,9 @@ def test_clerk_directory_create_user(mock_cfg, mock_client, db, admin_ctx, setti
 
 
 @patch("porterchain_api.auth.invitation_service.directory_for_kind")
-def test_invite_driver(mock_clerk, db, admin_ctx, settings, driver) -> None:
+def test_invite_driver(mock_idp, db, admin_ctx, settings, driver) -> None:
     subject_ref = f"user_driver_inv_{datetime.now(UTC).timestamp()}"
-    mock_clerk.return_value.invite_user.return_value = SimpleNamespace(
+    mock_idp.return_value.invite_user.return_value = SimpleNamespace(
         subject=subject_ref,
         invitation_id=f"inv_drv_{datetime.now(UTC).timestamp()}",
         action="invited",
@@ -50,7 +50,7 @@ def test_invite_driver(mock_clerk, db, admin_ctx, settings, driver) -> None:
 
 def test_user_sync_full(db) -> None:
     claims = IdentityClaims(
-        auth_subject=f"clerk_full_{datetime.now(UTC).timestamp()}",
+        auth_subject=f"idp_full_{datetime.now(UTC).timestamp()}",
         email=f"full-{datetime.now(UTC).timestamp()}@test.porterchain.com",
     )
     snapshot = {"role": "customer", "status": "active", "profile": {}, "phone": None}

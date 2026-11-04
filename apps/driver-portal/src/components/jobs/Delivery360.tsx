@@ -1,5 +1,6 @@
 "use client";
 
+import { PhotoField, SignaturePad } from "@/components/media/SignaturePad";
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -15,6 +16,7 @@ import {
 } from "lucide-react";
 import { driverApi } from "@/lib/api";
 import { StopDocuments } from "./StopDocuments";
+import { GuidedFlowPanel } from "./GuidedFlowPanel";
 import { OrderStops } from "./OrderStops";
 import { midStopIsCurrent } from "@/lib/multi-stops";
 import { enqueueOfflineAction } from "@/lib/offline-client";
@@ -110,8 +112,6 @@ export default function Delivery360({
 }) {
   const [pending, setPending] = useState<string | null>(null);
   const [otp, setOtp] = useState("");
-  const [photoUrl, setPhotoUrl] = useState("");
-  const [signature, setSignature] = useState("");
   const [idType, setIdType] = useState("");
   const [idNameMatches, setIdNameMatches] = useState(false);
   const [incidentType, setIncidentType] = useState("customer_not_available");
@@ -146,7 +146,10 @@ export default function Delivery360({
     access_dock: job.next_stop?.access_dock ?? null,
     call_on_arrival: job.next_stop?.call_on_arrival ?? false,
     contact_phone_masked: job.next_stop?.contact_phone_masked ?? null,
-    delivery_notes: job.delivery_notes ?? job.next_stop?.delivery_notes ?? [],
+    // L53: drop-off access notes (site access, buzzer) belong to the delivery stop only.
+    delivery_notes: deliveryPhase
+      ? (job.delivery_notes ?? job.next_stop?.delivery_notes ?? [])
+      : [],
   });
   const stopId = deliveryPhase ? job.delivery_stop_id : job.pickup_stop_id;
   // Warehouse split, pickup leg: the drop is our hub — no receiver proof, no scan gate.
@@ -159,13 +162,28 @@ export default function Delivery360({
     ...(job.pod_requirements?.id_check ? ["id_check"] : []),
   ];
 
+  // L51: human toasts instead of "confirm pickup recorded".
+  const DONE_TEXT: Record<string, string> = {
+    arrive_pickup: "Arrived at pickup",
+    confirm_pickup: "Pickup confirmed",
+    start_delivery: "Delivery started",
+    arrive_delivery: "Arrived at delivery",
+    confirm_delivery: "Delivery confirmed",
+    report_missing: "Missing item reported",
+    scan: "Scan recorded",
+    otp_gen: "Code sent",
+    pod_complete: "Proof of delivery saved",
+    exception: "Problem reported",
+  };
+  const doneText = (a: string) => DONE_TEXT[a] ?? "Done";
+
   async function run(action: string, fn: () => Promise<unknown>) {
     setPending(action);
     setMessage("");
     setMessageError(false);
     try {
       const result = await fn();
-      setMessage(typeof result === "string" ? result : `${action.replace(/_/g, " ")} recorded`);
+      setMessage(typeof result === "string" ? result : doneText(action));
       onUpdated();
     } catch (e) {
       const raw = e instanceof Error ? e.message : "action_failed";
@@ -198,7 +216,7 @@ export default function Delivery360({
     setMessageError(false);
     try {
       await fn();
-      setMessage(`${action.replace(/_/g, " ")} recorded`);
+      setMessage(doneText(action));
       onUpdated();
     } catch {
       enqueueOfflineAction(offlineType, payload);
@@ -236,7 +254,13 @@ export default function Delivery360({
           {leg === "completed"
             ? "Job complete"
             : `${leg === "pickup" ? "Pickup" : "Delivery"} phase`}{" "}
-          · Updated {job.updated_at ? new Date(job.updated_at).toLocaleTimeString() : "—"}
+          · Updated{" "}
+          {job.updated_at
+            ? new Date(job.updated_at).toLocaleTimeString("en-CA", {
+                hour: "numeric",
+                minute: "2-digit",
+              })
+            : "—"}
         </p>
         {!completed && (
           <Link
@@ -260,6 +284,11 @@ export default function Delivery360({
 
       {message && (
         <p
+          ref={(el) => {
+            // L101: the message sits above the stops; bring it into view on phones.
+            if (el && messageError) el.scrollIntoView({ block: "center", behavior: "smooth" });
+          }}
+          role={messageError ? "alert" : "status"}
           className={cn(
             "rounded-xl px-4 py-2 text-sm font-medium",
             messageError ? "bg-red-50 text-red-800" : "bg-emerald-50 text-emerald-800"
@@ -314,6 +343,7 @@ export default function Delivery360({
         </div>
       )}
 
+      {!completed && <GuidedFlowPanel job={job} />}
       {!completed && <StopDocuments orderId={job.order_id} onChanged={onUpdated} />}
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -328,7 +358,7 @@ export default function Delivery360({
               Parcel picked up
               {job.pickup_completed_at && (
                 <span className="ml-auto text-xs font-normal text-emerald-700">
-                  {new Date(job.pickup_completed_at).toLocaleString()}
+                  {fmtDT(job.pickup_completed_at)}
                 </span>
               )}
             </div>
@@ -380,7 +410,7 @@ export default function Delivery360({
           </p>
           {job.delivery_completed_at && (
             <p className="mt-2 text-sm font-semibold text-emerald-700">
-              Delivered {new Date(job.delivery_completed_at).toLocaleString()}
+              Delivered {fmtDT(job.delivery_completed_at)}
             </p>
           )}
         </Section>
@@ -462,7 +492,7 @@ export default function Delivery360({
                   <p className="text-[var(--muted)]">
                     {pkg.tracking_suffix ?? "—"}
                     {pkg.weight_kg != null ? ` · ${pkg.weight_kg} kg` : ""}
-                    {pkg.status ? ` · ${pkg.status}` : ""}
+                    {pkg.status ? ` · ${humanState(pkg.status)}` : ""}
                   </p>
                   {scanPhase === "pickup" &&
                   !completed &&
@@ -482,11 +512,13 @@ export default function Delivery360({
                           <option value="wrong_item">Wrong item</option>
                           <option value="other">Other</option>
                         </select>
-                        <input
-                          value={missingPhoto}
-                          onChange={(e) => setMissingPhoto(e.target.value)}
-                          placeholder="Photo URL (required)"
-                          className="w-full rounded-xl border px-3 py-2 text-sm"
+                        <PhotoField
+                          label={
+                            missingPhoto
+                              ? "Photo added · retake"
+                              : "Take or choose photo (required)"
+                          }
+                          onSaved={(key) => setMissingPhoto(key || "")}
                         />
                         <button
                           type="button"
@@ -566,7 +598,17 @@ export default function Delivery360({
         </Section>
       )}
 
-      {deliveryPhase && !completed && !toHub && (
+      {/* L203: on a multi-stop order the order-level POD belongs to the final drop only;
+          middle drops take their proof in "All stops" above. */}
+      {deliveryPhase && !completed && !toHub && midStopIsCurrent(job.stops) && (
+        <Section title="Proof of Delivery" icon={CheckCircle2}>
+          <p className="text-sm text-gray-600">
+            Take this stop&apos;s proof in All stops above (receiver name or photo, then Delivered).
+            The signature pad opens on the final drop.
+          </p>
+        </Section>
+      )}
+      {deliveryPhase && !completed && !toHub && !midStopIsCurrent(job.stops) && (
         <Section title="Proof of Delivery" icon={CheckCircle2}>
           {job.on_duty === false ? (
             <p
@@ -629,56 +671,48 @@ export default function Delivery360({
               </div>
             ) : null}
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-semibold">
-                <Camera className="h-4 w-4" /> Photo URL
-              </label>
-              <input
-                value={photoUrl}
-                onChange={(e) => setPhotoUrl(e.target.value)}
-                placeholder="https://..."
-                className="w-full rounded-xl border px-3 py-2 text-sm"
-              />
-              <button
-                type="button"
-                disabled={!photoUrl || pending === "photo"}
-                onClick={() =>
-                  runUpload(
+              <span className="flex items-center gap-2 text-sm font-semibold">
+                <Camera className="h-4 w-4" /> Proof photo
+              </span>
+              <PhotoField
+                label="Take or choose photo"
+                onSaved={(key) => {
+                  if (!key) return;
+                  void runUpload(
                     "photo",
                     "camera_upload",
-                    { stop_id: job.delivery_stop_id, file_url: photoUrl, route_id: rid },
-                    () => driverApi.podPhoto(rid, job.delivery_stop_id, photoUrl)
-                  )
-                }
-                className="text-xs font-semibold text-[var(--secondary)]"
-              >
-                Upload photo
-              </button>
+                    { stop_id: job.delivery_stop_id, file_key: key, route_id: rid },
+                    () => driverApi.podPhoto(rid, job.delivery_stop_id, { file_key: key })
+                  );
+                }}
+              />
             </div>
             <div className="space-y-2 sm:col-span-2">
-              <label className="flex items-center gap-2 text-sm font-semibold">
+              <span className="flex items-center gap-2 text-sm font-semibold">
                 <PenLine className="h-4 w-4" /> Signature
-              </label>
-              <textarea
-                value={signature}
-                onChange={(e) => setSignature(e.target.value)}
-                rows={2}
-                className="w-full rounded-xl border px-3 py-2 text-sm"
-              />
-              <button
-                type="button"
-                disabled={!signature || pending === "signature"}
-                onClick={() =>
-                  runUpload(
+              </span>
+              <SignaturePad
+                label="Receiver signature"
+                signerLabel="Receiver name"
+                onSaved={(key, signer) => {
+                  if (!key) return;
+                  void runUpload(
                     "signature",
                     "pod_signature",
-                    { stop_id: job.delivery_stop_id, signature_data: signature, route_id: rid },
-                    () => driverApi.podSignature(rid, job.delivery_stop_id, signature)
-                  )
-                }
-                className="text-xs font-semibold text-[var(--secondary)]"
-              >
-                Save signature
-              </button>
+                    {
+                      stop_id: job.delivery_stop_id,
+                      signature_key: key,
+                      signer_name: signer,
+                      route_id: rid,
+                    },
+                    () =>
+                      driverApi.podSignature(rid, job.delivery_stop_id, {
+                        signature_key: key,
+                        signer_name: signer,
+                      })
+                  );
+                }}
+              />
             </div>
             {job.pod_requirements?.id_check ? (
               <fieldset className="space-y-2 sm:col-span-2">
@@ -767,8 +801,26 @@ export default function Delivery360({
           <ul className="space-y-2 text-sm">
             {[...job.photos, ...job.documents, ...job.signatures].map((p, i) => (
               <li key={i} className="rounded-lg bg-[var(--gray-bg)] px-3 py-2">
-                <span className="font-semibold capitalize">{String(p.type)}</span>
-                <span className="text-[var(--muted)]"> — {String(p.value ?? "").slice(0, 80)}</span>
+                <span className="font-semibold capitalize">
+                  {String(p.type).replace(/_/g, " ")}
+                </span>
+                {/* L55: never show raw storage keys (garage:pod/…). */}
+                {/^https?:\/\//.test(String(p.value ?? "")) ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={String(p.value)}
+                    alt=""
+                    className="mt-2 h-24 w-24 rounded-md object-cover"
+                  />
+                ) : (
+                  <span className="text-[var(--muted)]">
+                    {" "}
+                    —{" "}
+                    {/^[a-z]+:[\w/.-]+$/i.test(String(p.value ?? "")) || !p.value
+                      ? "Saved"
+                      : String(p.value).slice(0, 80)}
+                  </span>
+                )}
               </li>
             ))}
           </ul>
@@ -784,8 +836,8 @@ export default function Delivery360({
               <li key={i} className="text-sm">
                 <p className="font-semibold">{ev.label}</p>
                 <p className="text-xs text-[var(--muted)]">
-                  {ev.occurred_at ? new Date(ev.occurred_at).toLocaleString() : "—"}
-                  {ev.to_state ? ` → ${ev.to_state}` : ""}
+                  {ev.occurred_at ? fmtDT(ev.occurred_at) : "—"}
+                  {ev.to_state ? ` → ${humanState(ev.to_state)}` : ""}
                 </p>
               </li>
             ))}
@@ -807,21 +859,16 @@ export default function Delivery360({
                 </option>
               ))}
             </select>
-            {exceptionMeta?.photoRequired ? (
-              <input
-                value={exceptionPhoto}
-                onChange={(e) => setExceptionPhoto(e.target.value)}
-                placeholder="Photo URL required for this reason"
-                className="w-full rounded-xl border px-3 py-2 text-sm"
-              />
-            ) : (
-              <input
-                value={exceptionPhoto}
-                onChange={(e) => setExceptionPhoto(e.target.value)}
-                placeholder="Photo URL (optional)"
-                className="w-full rounded-xl border px-3 py-2 text-sm"
-              />
-            )}
+            <PhotoField
+              label={
+                exceptionPhoto
+                  ? "Photo added · retake"
+                  : exceptionMeta?.photoRequired
+                    ? "Take or choose photo (required for this reason)"
+                    : "Take or choose photo (optional)"
+              }
+              onSaved={(key) => setExceptionPhoto(key || "")}
+            />
             <textarea
               value={incidentNotes}
               onChange={(e) => setIncidentNotes(e.target.value)}
@@ -861,7 +908,7 @@ export default function Delivery360({
               {job.incidents.map((inc) => (
                 <li key={inc.id} className="rounded-lg bg-[var(--gray-bg)] px-3 py-2 text-sm">
                   <span className="font-semibold capitalize">{inc.incident_type}</span> —{" "}
-                  {inc.status}
+                  {humanState(inc.status)}
                   <p className="text-xs text-[var(--muted)]">{inc.description}</p>
                 </li>
               ))}
@@ -871,4 +918,15 @@ export default function Delivery360({
       )}
     </div>
   );
+}
+
+/** L50: same en-CA style as the other apps ("Oct 30, 2026, 5:41 p.m."). */
+function fmtDT(v: string | number | Date): string {
+  return new Date(v).toLocaleString("en-CA", { dateStyle: "medium", timeStyle: "short" });
+}
+
+/** L49: "DISPATCH_READY" / "driver_accepted" -> "Dispatch ready" / "Driver accepted". */
+function humanState(v: string): string {
+  const t = String(v).replace(/_/g, " ").toLowerCase();
+  return t.charAt(0).toUpperCase() + t.slice(1);
 }

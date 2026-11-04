@@ -1,4 +1,4 @@
-"""Driver authentication — Clerk session only (no Porterchain cookie JWT)."""
+"""Driver authentication — Keycloak session only (no Porterchain cookie JWT)."""
 
 from __future__ import annotations
 

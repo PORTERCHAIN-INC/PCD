@@ -27,4 +27,20 @@ describe("role-aware admin nav", () => {
     const reach = new Set([...nav, ...ADMIN_PALETTE_EXTRA.map((e) => e.href)]);
     for (const r of ADMIN_TOP_LEVEL_ROUTES) expect(reach.has(r)).toBe(true);
   });
+  it("follows the doc 75 information architecture", () => {
+    expect(ADMIN_NAV_GROUPS.map((g) => g.label)).toEqual([
+      "Today",
+      "Orders",
+      "Dispatch",
+      "Network",
+      "Customers & Orgs",
+      "Billing",
+      "Support",
+      "Insights",
+      "Settings",
+    ]);
+    const all = ADMIN_NAV_GROUPS.flatMap((g) => g.items.map((i) => i.href));
+    expect(all).not.toContain("/dashboard");
+    expect(hrefs("dispatcher")).toContain("/account/security");
+  });
 });

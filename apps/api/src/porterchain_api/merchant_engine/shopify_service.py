@@ -141,7 +141,7 @@ def _actor(db: Session, merchant: Merchant) -> MerchantUser:
     if user:
         return user
     email = (merchant.email or "").strip().lower()
-    # Real shop emails get a pending:{email} seat so Clerk sign-in can claim the merchant.
+    # Real shop emails get a pending:{email} seat so Keycloak sign-in can claim the merchant.
     if email and not email.endswith("@merchants.porterchain.invalid"):
         from porterchain_api.merchant_engine.team_service import ensure_merchant_seat
 
@@ -215,6 +215,9 @@ def connect_custom_app(
     row.uninstalled_at = None
     row.installed_at = datetime.now(UTC)
     apply_signup_policy(db, ctx.merchant, source=SIGNUP_SOURCE_SHOPIFY)
+    from porterchain_api.org_engine.service import ensure_org_for_shopify_safe
+
+    ensure_org_for_shopify_safe(db, ctx.merchant, shop)
     db.commit()
     db.refresh(row)
     _post_install_hooks(row, settings)

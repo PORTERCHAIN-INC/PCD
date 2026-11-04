@@ -80,7 +80,7 @@ export function hasStaffAuth(): boolean {
 /**
  * Resolve Playwright storageState for staff IdP.
  * Prefer ADMIN_STORAGE_STATE file (Keycloak session);
- * else empty jar (Clerk/staff bypass on a local admin build).
+ * else empty jar (Keycloak/staff bypass on a local admin build).
  */
 export function resolveStaffStorageState(): StaffStorageState {
   const statePath = process.env.ADMIN_STORAGE_STATE?.trim();

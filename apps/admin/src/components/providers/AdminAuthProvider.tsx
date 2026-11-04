@@ -3,8 +3,18 @@
 import { AppAuthProvider } from "@porterchain/auth";
 import { useAuth } from "@porterchain/auth/oidc/client";
 import { authDevBypassEnabled } from "@porterchain/auth/devBypass";
-import { createContext, useCallback, useContext, useEffect, useMemo, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { STAFF_COOKIE_TOKEN } from "@/lib/staff-session";
+import { useHydrated } from "@/hooks/useHydrated";
 
 export type AdminAuthState = {
   isLoaded: boolean;
@@ -34,15 +44,39 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
 function AdminAuthInner({ children, dev = false }: { children: ReactNode; dev?: boolean }) {
   const oidc = useAuth();
-  const isLoaded = dev || oidc.isLoaded;
-  const isSignedIn = dev || Boolean(oidc.isSignedIn);
+  // The server never knows the browser session. If the client already has it on its first
+  // render, queries start "loading" there but not in the SSR HTML -> React #418 (intermittent,
+  // any page). Expose auth only after mount so SSR and first client paint always match.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const isLoaded = mounted && (dev || oidc.isLoaded);
+  const isSignedIn = mounted && (dev || Boolean(oidc.isSignedIn));
   const authReady = isLoaded && isSignedIn;
+
+  // Callers that fire before the session probe finishes wait for it instead of throwing an
+  // unhandled "Not authenticated" (that crashed pages such as Unit economics on first load).
+  const state = useRef({ isLoaded, isSignedIn });
+  const waiters = useRef<Array<() => void>>([]);
+  useEffect(() => {
+    state.current = { isLoaded, isSignedIn };
+    if (isLoaded) {
+      const w = waiters.current;
+      waiters.current = [];
+      w.forEach((fn) => fn());
+    }
+  }, [isLoaded, isSignedIn]);
 
   const getApiToken = useCallback(async () => {
     if (dev) return "dev";
-    if (isSignedIn) return STAFF_COOKIE_TOKEN;
+    if (!state.current.isLoaded) {
+      await new Promise<void>((resolve) => {
+        waiters.current.push(resolve);
+        window.setTimeout(resolve, 15000);
+      });
+    }
+    if (state.current.isSignedIn) return STAFF_COOKIE_TOKEN;
     throw new Error("Not authenticated");
-  }, [dev, isSignedIn]);
+  }, [dev]);
 
   useEffect(() => {
     if (!authReady || typeof window === "undefined") return;
@@ -127,5 +161,12 @@ export function useAdminAuth(): AdminAuthState {
   if (!ctx) {
     throw new Error("useAdminAuth must be used within AdminAuthProvider");
   }
-  return ctx;
+  // Report signed-out while this component hydrates, so late-streamed boundaries render exactly
+  // what the server rendered (see useHydrated).
+  const hydrated = useHydrated();
+  const pre = useMemo(
+    () => ({ ...ctx, isLoaded: false, isSignedIn: false, authReady: false }),
+    [ctx]
+  );
+  return hydrated ? ctx : pre;
 }

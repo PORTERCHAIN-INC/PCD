@@ -2,7 +2,7 @@
  * React Native 0.86 CocoaPods SPM hook crashes EAS "Install pods":
  *   undefined method `package_product_dependencies' for nil
  *
- * ClerkExpo declares clerk-ios as an SPM product. On EAS / CocoaPods 1.15+
+ * IdpExpo declares keycloak-ios as an SPM product. On EAS / CocoaPods 1.15+
  * that target can live in a pod subproject, so
  * installer.pods_project.targets.find returns nil.
  */

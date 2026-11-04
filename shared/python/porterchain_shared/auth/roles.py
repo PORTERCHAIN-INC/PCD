@@ -1,4 +1,4 @@
-"""Platform RBAC roles — Clerk is the sole identity provider."""
+"""Platform RBAC roles — Keycloak is the sole identity provider."""
 
 from enum import StrEnum
 

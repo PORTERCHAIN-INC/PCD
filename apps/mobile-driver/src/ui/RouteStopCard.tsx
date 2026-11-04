@@ -13,7 +13,7 @@ import {
   primaryAction,
   type StopChecklist,
 } from "../dispatchRoute";
-import { humanError } from "../errorCopy";
+import { humanError, isSilentError } from "../errorCopy";
 import { haptic } from "../haptics";
 import type { RouteState } from "../hooks/useDispatchRoute";
 import { openTurnByTurn } from "../maps";
@@ -298,7 +298,9 @@ export function useRouteStopUi(
                   haptic.success();
                   setPhoto(p);
                 })
-                .catch((e: Error) => setError(humanError(e.message)))
+                .catch((e: Error) => {
+                  if (!isSilentError(e.message)) setError(humanError(e.message)); // L170
+                })
             }
             testID="stop-photo"
           >

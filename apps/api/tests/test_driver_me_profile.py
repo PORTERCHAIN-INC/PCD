@@ -81,10 +81,10 @@ def test_clearing_optional_blocks():
 
 def test_get_profile_shape():
     p = me_profile.get_my_profile(SimpleNamespace(driver=_driver()))
-    assert p["email"] == "a@x.com" and p["identity_managed_by"] == "clerk"
+    assert p["email"] == "a@x.com" and p["identity_managed_by"] == "keycloak"
 
 
-def _clerk_user(email_status="verified", phone_status="verified"):
+def _idp_user(email_status="verified", phone_status="verified"):
     return {
         "primary_email_address_id": "e2",
         "email_addresses": [
@@ -96,12 +96,12 @@ def _clerk_user(email_status="verified", phone_status="verified"):
     }
 
 
-async def _sync(driver, clerk_user):
+async def _sync(driver, idp_user):
     db = MagicMock()
     db.query.return_value.filter.return_value.first.return_value = driver
     creds = SimpleNamespace(credentials="jwt")
     with patch("porterchain_api.auth.bearer.verify_access_token", return_value=SimpleNamespace(auth_subject="user_1")), \
-         patch("porterchain_api.auth.identity_directory.fetch_identity_user", return_value=(clerk_user, "admin")), \
+         patch("porterchain_api.auth.identity_directory.fetch_identity_user", return_value=(idp_user, "admin")), \
          patch.object(me_profile, "db_transaction", lambda _db: nullcontext()):
         return await me_profile.sync_my_identity(creds, db=db, settings=MagicMock()), db
 
@@ -109,7 +109,7 @@ async def _sync(driver, clerk_user):
 @pytest.mark.asyncio
 async def test_sync_copies_only_verified_values():
     d = _driver()
-    out, db = await _sync(d, _clerk_user())
+    out, db = await _sync(d, _idp_user())
     assert d.email == "new@x.com" and d.phone == "+14165552222"
     assert sorted(out["changed"]) == ["email", "phone"]
     assert db.add.call_args.args[0].action == "driver.identity.sync"
@@ -118,7 +118,7 @@ async def test_sync_copies_only_verified_values():
 @pytest.mark.asyncio
 async def test_sync_ignores_unverified_values():
     d = _driver()
-    out, _ = await _sync(d, _clerk_user(email_status="unverified", phone_status="unverified"))
+    out, _ = await _sync(d, _idp_user(email_status="unverified", phone_status="unverified"))
     assert d.email == "a@x.com" and d.phone == "+14165550000" and out["changed"] == []
 
 

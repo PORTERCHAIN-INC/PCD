@@ -45,6 +45,12 @@ INVOICE_STATUSES = frozenset({
 })
 
 
+def _penalty_fields(db: Session, invoice: Invoice) -> dict[str, Any]:
+    from porterchain_api.billing_engine.late_penalty import penalty_fields
+
+    return penalty_fields(db, invoice)
+
+
 @dataclass
 class FinanceFilters:
     status: str | None = None
@@ -174,6 +180,7 @@ class AdminFinanceService:
             "amount_cents": invoice.amount_cents,
             "tax_cents": invoice.tax_cents,
             "fees_cents": invoice.fees_cents,
+            **_penalty_fields(db, invoice),
             "outstanding_cents": outstanding,
             **invoice_payment_fields(db, invoice),
             "currency": invoice.currency,

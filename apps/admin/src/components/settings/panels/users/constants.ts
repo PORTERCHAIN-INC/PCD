@@ -30,13 +30,13 @@ export const USER_TABS: Array<{
 
 /** Columns shown per persona (post auth cutover). */
 export type DirectoryColumn =
-  "role" | "access" | "invitation" | "clerk" | "password" | "organization" | "added" | "actions";
+  "role" | "access" | "invitation" | "keycloak" | "password" | "organization" | "added" | "actions";
 
 export const DIRECTORY_COLUMNS: Record<UserDirectoryTab, DirectoryColumn[]> = {
   staff: ["role", "access", "added", "actions"],
-  driver: ["role", "access", "invitation", "clerk", "password", "added", "actions"],
-  merchant: ["role", "access", "clerk", "organization", "added", "actions"],
-  customer: ["role", "access", "clerk", "added", "actions"],
+  driver: ["role", "access", "invitation", "keycloak", "password", "added", "actions"],
+  merchant: ["role", "access", "keycloak", "organization", "added", "actions"],
+  customer: ["role", "access", "keycloak", "added", "actions"],
 };
 
 export function tabMeta(tab: UserDirectoryTab) {

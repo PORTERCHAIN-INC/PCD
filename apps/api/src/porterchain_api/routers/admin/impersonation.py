@@ -31,7 +31,7 @@ def start_impersonation(
     settings: Settings = Depends(get_settings),
     authorization: Annotated[str | None, Header()] = None,
 ) -> ImpersonationSessionResponse:
-    """Mint a short-lived audited persona session (no forged Clerk JWT)."""
+    """Mint a short-lived audited persona session (no forged Keycloak JWT)."""
     _step_up(request, authorization, settings)
     result = _invoke(
         ctx,

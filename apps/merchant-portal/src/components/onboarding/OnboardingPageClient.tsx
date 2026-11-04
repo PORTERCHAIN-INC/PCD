@@ -15,13 +15,13 @@ import { readSignupAttribution } from "@/lib/signupAttribution";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 
 /**
- * Onboarding must not call Clerk hooks when ClerkProvider is omitted
+ * Onboarding must not call Keycloak hooks when IdpProvider is omitted
  * (empty publishable key in CI / local). Split so hooks only run under
- * a configured Clerk tree.
+ * a configured Keycloak tree.
  */
 export default function OnboardingPageClient() {
   if (!isAuthConfigured()) {
-    // Local dev bypass (Bearer dev): no Clerk tree, the API session is the identity.
+    // Local dev bypass (Bearer dev): no Keycloak tree, the API session is the identity.
     return authDevBypassEnabled() ? <MerchantOnboarding isLoaded isSignedIn /> : null;
   }
   return <MerchantOnboardingWithAuth />;
@@ -108,6 +108,12 @@ function MerchantOnboarding({ isLoaded, isSignedIn }: { isLoaded: boolean; isSig
           >
             Retry
           </button>
+          <a
+            href="/auth/logout"
+            className="mt-4 ml-2 inline-block rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700"
+          >
+            Sign out
+          </a>
         </div>
       </div>
     );

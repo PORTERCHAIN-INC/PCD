@@ -90,6 +90,8 @@ class PricingRequest:
     booking_mode: str = "parcels"
     #: Hours booked for a dedicated vehicle (None = the minimum units).
     dedicated_hours: float | None = None
+    #: Ravi 2026-10-31 vehicle-hourly model: stops (pickup + drops) where load/unload help is requested.
+    help_stops: int = 0
 
 
 @dataclass
@@ -259,5 +261,7 @@ class PricingContext:
     price_version: str | None = None
     #: Raw ``system_config.parcel_coverage``; None = built-in defaults.
     coverage: dict[str, Any] | None = None
+    #: Raw ``system_config.cargo_insurance`` (G-INS gate); cover stays off unless confirmed.
+    cargo_insurance: dict[str, Any] | None = None
     #: Universal conditions of carriage (``carriage_terms`` setting); None = defaults.
     carriage_terms: dict | None = None

@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[3]
 
 MF_HS_PROBE_IDS = (
     "firebase",
-    "google_maps",
+    "maps",
     "osrm",
     "valhalla",
     "notification_engine",
@@ -54,7 +54,7 @@ def test_mf_hs07_non_live_probes_return_health_shape(settings) -> None:
 
     probes = {
         "firebase": svc._probe_firebase(platform),
-        "google_maps": svc._probe_google_maps(platform, live=False, app_env=settings.app_env),
+        "maps": svc._probe_maps(platform, live=False, app_env=settings.app_env),
         "osrm": svc._probe_osrm(platform, live=False),
         "valhalla": svc._probe_valhalla(platform, live=False),
     }

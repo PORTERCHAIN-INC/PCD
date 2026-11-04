@@ -13,6 +13,8 @@ const KIND_LABEL: Record<LogisticsPartner["kind"], string> = {
   ftl: "FTL",
   ltl: "LTL",
   "3pl": "3PL",
+  courier: "Courier",
+  cha: "Customs agent",
 };
 
 const EMPTY: LogisticsPartner = {

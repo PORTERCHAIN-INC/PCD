@@ -109,8 +109,8 @@ def test_require_customer_maps_identity_conflict() -> None:
         ),
         patch.object(
             __import__("porterchain_api.auth.customer", fromlist=["_customers"])._customers,
-            "get_or_create_from_clerk",
-            side_effect=ValueError("identity_conflict:clerk_user_is_admin"),
+            "get_or_create_from_idp",
+            side_effect=ValueError("identity_conflict:idp_user_is_admin"),
         ),
     ):
         with pytest.raises(HTTPException) as ei:

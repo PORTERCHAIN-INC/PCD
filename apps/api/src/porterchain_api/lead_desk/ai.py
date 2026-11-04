@@ -1,4 +1,4 @@
-"""Optional LLM hook. Off unless LEAD_AI_ENABLED=true and an NVIDIA NIM key exists.
+"""Optional LLM hook. Off unless LEAD_AI_ENABLED=true and an an LLM (FEATURE_AI, off in Phase 0) key exists.
 
 No paid dependency is required: every caller has a deterministic fallback and
 treats ``None`` as "no AI".
@@ -16,9 +16,9 @@ def ai_enabled() -> bool:
 
     if not getattr(get_settings(), "lead_ai_enabled", False):
         return False
-    from porterchain_api.intelligence_engine.nim_client import nim_configured
+    from porterchain_api.intelligence_engine.llm import llm_configured
 
-    return nim_configured()
+    return llm_configured()
 
 
 def complete_text(prompt: str, *, max_tokens: int = 200) -> str | None:
@@ -28,7 +28,7 @@ def complete_text(prompt: str, *, max_tokens: int = 200) -> str | None:
 
     prompt = redact(prompt)
     try:
-        from porterchain_api.intelligence_engine.nim_client import chat_completion
+        from porterchain_api.intelligence_engine.llm import chat_completion
 
         out = chat_completion(
             messages=[{"role": "user", "content": prompt}],

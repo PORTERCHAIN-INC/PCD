@@ -1,47 +1,32 @@
-"""Parcel coverage (declared value cover) — pure, no I/O.
+"""Parcel coverage for the engine path (merchant FSA/distance, Shopify, quotes) — pure, no I/O.
 
-Goods (cargo) insurance up to ``included_cents`` ($2,500) is included at no charge,
-applied per ``included_per`` (default: route). An opt-in upgrade covers up to
-``upgrade_cents`` ($25,000) for ``upgrade_price_cents`` ($10), charged per ``unit``
-(default: stop) and replacing the included cover (limits do not stack). Declared values above the upgrade
-ceiling are flagged (``over_max``) so booking can block or route to manual review.
-``recommend`` picks the tier from declared value + item category.
+Ravi 2026-10-29 replaced the old "free $2,500 + $25,000 upgrade for $10/stop" model (it promised cargo
+insurance we do not have yet). Now, via ``declared_value`` (the single source):
+default liability $4.41/kg; optional declared-value cover at 1.5% of value, $3 minimum, per parcel,
+max $2,500 per parcel, excluding cash/jewellery/medicines/perishables, proof of value to claim,
+and OFF until cargo insurance is confirmed (G-INS). ``coverage_upgrade`` now means "buy declared-value cover".
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-SETTINGS_KEY = "parcel_coverage"
-UNITS = ("delivery", "parcel", "stop")
-PER = ("delivery", "route", "parcel")
+from porterchain_pricing import declared_value as DV
 
-DEFAULT_COVERAGE: dict[str, Any] = {
-    "schema": 1,
-    # B4 Cargo Coverage (universal terms): $2,500 goods insurance included; enhanced
-    # $25,000 for +$10 per stop, replacing standard (limits do not stack).
-    "included_cents": 250_000,
-    "upgrade_cents": 2_500_000,
-    "upgrade_price_cents": 1_000,
-    "unit": "stop",
-    "included_per": "route",
-    #: Categories that should carry the upgrade even below the included cap.
-    "high_risk_categories": ["electronics", "jewelry", "art", "medical", "luxury"],
-    #: Recommend the upgrade once declared value reaches this share of the included cap.
-    "recommend_at_pct": 80,
-}
+SETTINGS_KEY = "parcel_coverage"
+_KEYS = tuple(DV.RULES)
 
 
 def default_coverage() -> dict[str, Any]:
-    out = dict(DEFAULT_COVERAGE)
-    out["high_risk_categories"] = list(DEFAULT_COVERAGE["high_risk_categories"])
-    return out
+    return store_coverage(None)
 
 
-def normalize_coverage(raw: Any) -> dict[str, Any]:
-    out = default_coverage()
+def store_coverage(raw: Any) -> dict[str, Any]:
+    """Settings normalizer: validated rules as stored. ``enabled`` here is only a request (see G-INS)."""
     src = raw if isinstance(raw, dict) else {}
-    for key in ("included_cents", "upgrade_cents", "upgrade_price_cents", "recommend_at_pct"):
+    out = {k: v for k, v in DV.RULES.items()}
+    out["excluded_categories"] = list(DV.RULES["excluded_categories"])
+    for key in ("rate_bps", "min_cents", "max_value_cents", "default_liability_cents_per_kg"):
         if src.get(key) is None:
             continue
         try:
@@ -51,44 +36,53 @@ def normalize_coverage(raw: Any) -> dict[str, Any]:
         if val < 0:
             raise ValueError(f"coverage_invalid:{key}")
         out[key] = val
-    if src.get("unit") is not None:
-        if src["unit"] not in UNITS:
-            raise ValueError("coverage_invalid:unit")
-        out["unit"] = src["unit"]
-    if src.get("included_per") in PER:
-        out["included_per"] = src["included_per"]
-    if isinstance(src.get("high_risk_categories"), list):
-        out["high_risk_categories"] = [str(c).strip().lower() for c in src["high_risk_categories"] if str(c).strip()]
-    if out["upgrade_cents"] < out["included_cents"]:
-        raise ValueError("coverage_invalid:upgrade_below_included")
+    if isinstance(src.get("enabled"), bool):
+        out["enabled"] = src["enabled"]
+    if isinstance(src.get("excluded_categories"), list):
+        cats = [str(c).strip().lower() for c in src["excluded_categories"] if str(c).strip()]
+        out["excluded_categories"] = sorted(set(cats) | set(DV.RULES["excluded_categories"]))  # can't un-exclude
     return out
 
 
-def recommend(declared_value_cents: int | None, category: str | None = None, cfg: dict[str, Any] | None = None) -> dict:
-    """Which tier fits: ``included`` | ``upgrade`` | ``over_max``, with a one-line reason."""
+def normalize_coverage(raw: Any, insurance: Any = None) -> dict[str, Any]:
+    """Effective rules for pricing. G-INS: cover is on only if requested AND ``cargo_insurance`` is confirmed.
+    Old-model keys (included_cents, upgrade_cents...) are ignored. Already-effective dicts pass through."""
+    if isinstance(raw, DV.Effective) and insurance is None:
+        return DV.rules(raw)  # already gated earlier in the same quote
+    return DV.rules(store_coverage(raw), insurance)
+
+
+def recommend(declared_value_cents: int | None, category: str | None = None, cfg: dict[str, Any] | None = None,
+              parcels: int = 1) -> dict:
+    """``included`` (default liability) | ``upgrade`` (cover worth buying) | ``over_max`` | ``excluded``."""
     c = normalize_coverage(cfg)
     declared = max(int(declared_value_cents or 0), 0)
-    cat = (category or "").strip().lower()
-    if declared > c["upgrade_cents"]:
-        return {"tier": "over_max", "reason": f"Declared value is above the ${c['upgrade_cents'] / 100:,.0f} maximum."}
-    if declared > c["included_cents"]:
-        return {"tier": "upgrade", "reason": f"Declared value is above the free ${c['included_cents'] / 100:,.0f} cover."}
-    if cat and cat in c["high_risk_categories"]:
-        return {"tier": "upgrade", "reason": f"{cat.title()} items are usually worth upgrading."}
-    if declared and declared * 100 >= c["included_cents"] * c["recommend_at_pct"]:
-        return {"tier": "upgrade", "reason": "Declared value is close to the free cover limit."}
-    return {"tier": "included", "reason": f"Free cover up to ${c['included_cents'] / 100:,.0f} is enough."}
+    per = declared // max(int(parcels or 1), 1)
+    if DV.excluded_group(category, c):
+        return {"tier": "excluded", "reason": "Cash, jewellery, medicines and perishables can't be covered."}
+    if per > c["max_value_cents"]:
+        return {"tier": "over_max",
+                "reason": f"Declared value is above the ${c['max_value_cents'] / 100:,.0f} per-parcel maximum."}
+    if not c["enabled"]:
+        return {"tier": "included", "reason": "Declared-value cover is not available yet. Standard liability "
+                f"is ${c['default_liability_cents_per_kg'] / 100:.2f}/kg."}
+    if declared:
+        return {"tier": "upgrade", "reason": "Standard liability is per kg; cover pays up to the declared value."}
+    return {"tier": "included", "reason": f"Standard liability ${c['default_liability_cents_per_kg'] / 100:.2f}/kg."}
 
 
-def charge_cents(upgrade: bool, parcels: int = 1, cfg: dict[str, Any] | None = None) -> int:
+def charge_cents(upgrade: bool, parcels: int = 1, cfg: dict[str, Any] | None = None,
+                 declared_value_cents: int | None = None) -> int:
     c = normalize_coverage(cfg)
-    if not upgrade:
+    if not upgrade or not c["enabled"] or not declared_value_cents:
         return 0
-    units = max(int(parcels or 1), 1) if c["unit"] in ("parcel", "stop") else 1
-    return c["upgrade_price_cents"] * units
+    n = max(int(parcels or 1), 1)
+    per = int(declared_value_cents) // n
+    return DV.cover_cents(per, c) * n
 
 
 def coverage_label(upgrade: bool, cfg: dict[str, Any] | None = None) -> str:
     c = normalize_coverage(cfg)
-    cap = c["upgrade_cents"] if upgrade else c["included_cents"]
-    return f"Coverage up to ${cap / 100:,.0f}"
+    if upgrade:
+        return f"Declared-value cover ({c['rate_bps'] / 100:g}%, min ${c['min_cents'] / 100:.0f})"
+    return f"Standard liability ${c['default_liability_cents_per_kg'] / 100:.2f}/kg"

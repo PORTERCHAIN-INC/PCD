@@ -26,9 +26,9 @@ export const platformUserSchema = z.object({
   auth_subject: z.string().nullable().optional(),
   provisioned: z.boolean().default(true),
   directory_status: z.string().nullable().optional(),
-  clerk_email_verified: z.boolean().default(false),
-  clerk_password_set: z.boolean().default(false),
-  clerk_last_sign_in_at: z.string().nullable().optional(),
+  idp_email_verified: z.boolean().default(false),
+  idp_password_set: z.boolean().default(false),
+  idp_last_sign_in_at: z.string().nullable().optional(),
   detail_href: z.string().nullable().optional(),
   created_at: z.string(),
 });
@@ -45,8 +45,8 @@ export const platformUsersResponseSchema = z.object({
   items: z.array(platformUserSchema),
   total: z.number(),
   facets: platformUsersFacetsSchema,
-  clerk_synced: z.boolean().default(false),
-  clerk_total: z.number().nullable().optional(),
+  idp_synced: z.boolean().default(false),
+  idp_total: z.number().nullable().optional(),
 });
 
 export type StaffUser = z.infer<typeof staffSchema>;
@@ -65,8 +65,8 @@ export type UserDirectoryFilters = {
   directory_status?: string;
 };
 
-export const CLERK_STATUS_OPTIONS = [
-  { value: "", label: "All Clerk status" },
+export const IDP_STATUS_OPTIONS = [
+  { value: "", label: "All Keycloak status" },
   { value: "active", label: "Active" },
   { value: "never_signed_in", label: "Never signed in" },
   { value: "banned", label: "Banned" },
@@ -93,10 +93,10 @@ export const INVITE_STATUS_OPTIONS = [
 ] as const;
 
 export const IDENTITY_STATUS_OPTIONS = [
-  { value: "", label: "All Clerk" },
-  { value: "registered", label: "Clerk registered" },
-  { value: "invite_pending", label: "Clerk pending" },
-  { value: "not_registered", label: "No Clerk account" },
+  { value: "", label: "All Keycloak" },
+  { value: "registered", label: "Keycloak registered" },
+  { value: "invite_pending", label: "Keycloak pending" },
+  { value: "not_registered", label: "No Keycloak account" },
 ] as const;
 
 export type SettingsSection = {
@@ -210,7 +210,7 @@ export const CONFIG_SECTION_IDS = [
 export const INTEGRATION_SECTION_IDS = [
   "dispatch",
   "stripe",
-  "google_maps",
+  "maps",
   "firebase",
   "storage",
   "channels",
@@ -219,8 +219,8 @@ export const INTEGRATION_SECTION_IDS = [
 export const ENV_OWNED_SECTION_IDS = ["authentication", "security"] as const;
 
 export type LeadIngestSettings = {
-  doppler: { configured: boolean; project: string; config: string };
-  secrets: Record<string, { configured: boolean; in_runtime: boolean; in_doppler: boolean }>;
+  secrets_store: { kind: "sops"; file: string; writable: false };
+  secrets: Record<string, { configured: boolean; in_runtime: boolean }>;
   visible: {
     META_PIXEL_ID: string;
     LINKEDIN_CONVERSION_URN: string;
@@ -230,7 +230,7 @@ export type LeadIngestSettings = {
     REFERRAL_CREDIT_CENTS: number;
   };
   note?: string;
-  save?: { ok?: boolean; written?: string[]; skipped?: string };
+  save?: { ok?: boolean; applied?: boolean; keys?: string[]; how?: string };
 };
 
 export const settingsApi = {
@@ -259,7 +259,7 @@ export const settingsApi = {
     const raw = await adminFetch<unknown>(`${B}/users/${userType}?${qs}`, token);
     return platformUsersResponseSchema.parse(raw);
   },
-  /** Driver-only create (Clerk invite and/or password). */
+  /** Driver-only create (Keycloak invite and/or password). */
   createDriver: (
     token: string,
     body: {
@@ -273,7 +273,7 @@ export const settingsApi = {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  /** Merchant seat reserve — no password / Clerk invite. */
+  /** Merchant seat reserve — no password / Keycloak invite. */
   addMerchantSeat: (
     token: string,
     body: {
@@ -292,11 +292,11 @@ export const settingsApi = {
         role: body.role ?? "merchant_ops",
       }),
     }),
-  updateDriverClerk: (
+  updateDriverIdp: (
     token: string,
     body: { auth_subject: string; name?: string; password?: string; banned?: boolean }
   ) =>
-    adminFetch<Record<string, unknown>>(`${B}/users/driver/clerk`, token, {
+    adminFetch<Record<string, unknown>>(`${B}/users/driver/keycloak`, token, {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
@@ -351,7 +351,7 @@ export const settingsApi = {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  /** Re-send Clerk invite for an existing driver or customer. */
+  /** Re-send Keycloak invite for an existing driver or customer. */
   inviteUser: (token: string, userType: "driver" | "customer", platformUserId: string) =>
     adminFetch<Record<string, unknown>>(`${B}/users/${userType}/invite`, token, {
       method: "POST",
@@ -366,6 +366,12 @@ export const settingsApi = {
     adminFetch<StaffAccountResult>(`${B}/staff/${userId}/enroll-reissue`, token, {
       method: "POST",
     }),
+  setStaffActive: (token: string, userId: string, active: boolean) =>
+    adminFetch<{ id: string; is_active: boolean }>(
+      `${B}/staff/${userId}/${active ? "reactivate" : "deactivate"}`,
+      token,
+      { method: "POST" }
+    ),
   recoverStaffDevice: (token: string, userId: string, reason?: string) => {
     const qs = reason ? `?reason=${encodeURIComponent(reason)}` : "";
     return adminFetch<StaffAccountResult>(`${B}/staff/${userId}/recover-device${qs}`, token, {
@@ -419,7 +425,6 @@ export const settingsApi = {
     body: {
       secrets?: Record<string, string>;
       visible?: Partial<LeadIngestSettings["visible"]>;
-      generate?: string[];
     }
   ) =>
     adminFetch<LeadIngestSettings>(`${B}/lead-ingest`, token, {

@@ -129,6 +129,10 @@ class OrderPlatformDetailMixin:
             raw_proofs = live_raw.get("proofs")
             if isinstance(raw_proofs, list):
                 proofs = [p for p in raw_proofs if isinstance(p, dict)]
+        # In-house driver app POD lives in DriverStopMeta, not the live-tracking feed.
+        from porterchain_api.merchant_engine.tracking_service import local_pod_proofs
+
+        proofs = proofs + local_pod_proofs(db, order)
 
         timeline = []
         for ev in events:

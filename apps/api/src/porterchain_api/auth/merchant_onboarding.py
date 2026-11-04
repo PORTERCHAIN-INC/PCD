@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from porterchain_api.auth.claims import IdentityClaims
 from porterchain_api.auth.dev import allow_auth_dev_bypass
 from porterchain_api.auth.persona_bundle import load_persona_bundle
-from porterchain_api.auth.user_sync_service import UserSyncService, _is_pending_clerk_id
+from porterchain_api.auth.user_sync_service import UserSyncService, _is_pending_idp_id
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantStatus
 from porterchain_api.domain.catalog_labels import onboarding_step_status_label
@@ -30,6 +30,7 @@ from porterchain_api.merchant_engine.verticals import (
     VERTICAL_INDUSTRY,
     VERTICAL_LABELS,
     is_valid_merchant_vertical,
+    vertical_option,
 )
 from porterchain_api.merchant_engine.portal_signup import (
     link_or_create_portal_merchant,
@@ -46,25 +47,25 @@ def resolve_merchant_contact(
     claims: IdentityClaims,
     settings: Settings | None,
 ) -> str | None:
-    """Resolve Clerk-attested email only (JWT or verified Backend primary). Never DB."""
+    """Resolve Keycloak-attested email only (JWT or verified Backend primary). Never DB."""
     _ = db
-    from porterchain_api.auth.email_identity import normalize_email, resolve_verified_clerk_email
+    from porterchain_api.auth.email_identity import normalize_email, resolve_verified_idp_email
 
     email = normalize_email(claims.email)
     if email:
         return email
 
     subject_ref = claims.auth_subject or ""
-    if not subject_ref or _is_pending_clerk_id(subject_ref) or not settings:
+    if not subject_ref or _is_pending_idp_id(subject_ref) or not settings:
         return None
     try:
-        return resolve_verified_clerk_email(
+        return resolve_verified_idp_email(
             jwt_email=None,
             auth_subject=subject_ref,
             settings=settings,
         )
     except PermissionError:
-        logger.warning("merchant_email_clerk_lookup_failed", exc_info=False)
+        logger.warning("merchant_email_idp_lookup_failed", exc_info=False)
         return None
 
 
@@ -84,7 +85,7 @@ def ensure_merchant_portal_signup(
     settings: Settings | None = None,
 ) -> None:
     """
-    Any authenticated merchant-portal Clerk session is a merchant candidate.
+    Any authenticated merchant-portal Keycloak session is a merchant candidate.
 
     First sign-in at :3001 creates merchants + merchant_users so admin /merchants
     lists them immediately. Starting status comes from the activation policy —
@@ -95,12 +96,12 @@ def ensure_merchant_portal_signup(
     if not email:
         raise HTTPException(status_code=400, detail="email_required")
 
-    if subject_ref and not _is_pending_clerk_id(subject_ref):
+    if subject_ref and not _is_pending_idp_id(subject_ref):
         bundle = load_persona_bundle(db, subject_ref)
         if bundle.admin is not None:
-            raise HTTPException(status_code=403, detail="identity_conflict:clerk_user_is_admin")
+            raise HTTPException(status_code=403, detail="identity_conflict:idp_user_is_admin")
         if bundle.driver is not None:
-            raise HTTPException(status_code=403, detail="identity_conflict:clerk_user_is_driver")
+            raise HTTPException(status_code=403, detail="identity_conflict:idp_user_is_driver")
 
     link_or_create_portal_merchant(
         db,
@@ -142,7 +143,7 @@ def evaluate_merchant_onboarding(
     subject_ref = claims.auth_subject or ""
     merchant_user, merchant = _resolve_seat(db, claims, settings=settings)
 
-    identity_linked = not _is_pending_clerk_id(subject_ref)
+    identity_linked = not _is_pending_idp_id(subject_ref)
     if settings and allow_auth_dev_bypass(settings):
         identity_linked = True
 
@@ -171,9 +172,9 @@ def evaluate_merchant_onboarding(
 
     steps: list[dict[str, Any]] = [
         {
-            "id": "clerk_account",
+            "id": "idp_account",
             "label": "Signed in",
-            "description": "You signed in at the merchant portal. Password and MFA stay in your Clerk account.",
+            "description": "You signed in at the merchant portal. Your password and sign-in codes are managed from your profile.",
             "complete": identity_linked,
             "status": "complete" if identity_linked else "pending",
         },
@@ -232,7 +233,7 @@ def evaluate_merchant_onboarding(
 
     blockers: list[str] = []
     if not identity_linked:
-        blockers.append("clerk_account")
+        blockers.append("idp_account")
     if not invited:
         blockers.append("merchant_provisioned")
     if invited and not user_active:
@@ -267,7 +268,7 @@ def evaluate_merchant_onboarding(
         "vertical": str(vertical_slug) if vertical_slug else None,
         "vertical_label": VERTICAL_LABELS.get(str(vertical_slug), None) if vertical_slug else None,
         "vertical_options": [
-            {"slug": slug, "label": VERTICAL_LABELS[slug]} for slug in MERCHANT_VERTICAL_SLUGS
+            vertical_option(slug) for slug in MERCHANT_VERTICAL_SLUGS
         ],
     }
 

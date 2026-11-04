@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPorterchainApiBase } from "@/lib/api-base";
+import { getPorterchainFetchBase } from "@/lib/api-base";
 
 /** Instant price for the website calculator. Proxies the public estimate API (no PII). */
 export async function POST(request: Request) {
@@ -7,7 +7,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const forwardedFor =
       request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip") ?? "";
-    const res = await fetch(`${getPorterchainApiBase()}/v1/public/estimate`, {
+    const res = await fetch(`${getPorterchainFetchBase()}/v1/public/estimate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

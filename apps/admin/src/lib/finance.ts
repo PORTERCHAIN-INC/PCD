@@ -32,6 +32,8 @@ const invoiceSchema = z.object({
   amount_cents: z.number(),
   tax_cents: z.number(),
   fees_cents: z.number(),
+  penalty_cents: z.number().optional(),
+  penalty_label: z.string().nullable().optional(),
   outstanding_cents: z.number(),
   amount_paid_cents: z.number().optional().default(0),
   credited_cents: z.number().optional().default(0),
@@ -346,6 +348,7 @@ export const financeApi = {
       method: string;
       amount_cents?: number;
       reference?: string;
+      paid_at?: string;
       allow_reference_mismatch?: boolean;
     }
   ) =>

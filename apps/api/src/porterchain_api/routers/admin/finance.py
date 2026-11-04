@@ -257,11 +257,21 @@ def finance_record_invoice_payment(
     from porterchain_api.admin_engine.ar_payments import record_admin_payment
 
     try:
-        return record_admin_payment(db, ctx, invoice_id, body)
+        result = record_admin_payment(db, ctx, invoice_id, body)
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    # Paid in full (penalty included) -> reinstate a business suspended for a late penalty.
+    from porterchain_api.billing_engine.late_penalty import auto_unsuspend
+    from porterchain_api.booking_models import Invoice
+
+    inv = db.get(Invoice, invoice_id)
+    if inv is not None and inv.merchant_id:
+        reinstated = auto_unsuspend(db, inv.merchant_id)
+        if isinstance(result, dict) and reinstated:
+            result = {**result, "merchant_reinstated": True}
+    return result
 
 
 @router.post("/finance/invoices/{invoice_id}/remind")

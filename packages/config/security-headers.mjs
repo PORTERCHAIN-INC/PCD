@@ -2,7 +2,7 @@
  * Shared HTTP security headers + Content-Security-Policy builders (readiness audit #11).
  *
  * Strategy:
- * - ENFORCED baseline CSP everywhere: directives that cannot break Clerk/Stripe/Maps/analytics
+ * - ENFORCED baseline CSP everywhere: directives that cannot break Keycloak/Stripe/Maps/analytics
  *   (no plugins, no <base> hijack, no framing by other sites).
  * - Website additionally ships a full allowlist policy as Content-Security-Policy-Report-Only
  *   (browser console reports violations, nothing is blocked). Promote it to enforced with
@@ -30,6 +30,13 @@ export function baselineSecurityHeaders(opts = {}) {
   return headers;
 }
 
+/** The websocket origin for an API origin (http -> ws, https -> wss), for live updates. */
+function wsOriginOf(origin) {
+  if (origin.startsWith("https://")) return `wss://${origin.slice(8)}`;
+  if (origin.startsWith("http://")) return `ws://${origin.slice(7)}`;
+  return "";
+}
+
 function originOf(url) {
   try {
     const u = new URL(url);
@@ -39,27 +46,16 @@ function originOf(url) {
   }
 }
 
-const CLERK = [
-  "https://clerk.porterchain.com",
-  "https://clerk.admin.porterchain.com",
-  "https://clerk.driver.porterchain.com",
-  "https://accounts.porterchain.com",
-  "https://*.clerk.accounts.dev",
-  "https://*.clerk.com",
-  "https://challenges.cloudflare.com",
-];
 /**
- * Clerk bot/abuse protection (Clerk CSP docs). script-src + frame-src take the bare host;
- * connect-src needs the `:*` port wildcard because protect hosts serve on non-443 ports.
- * Required by Clerk's "Challenge suspicious sign-ups" check (Shopify review 4.5.5 hang).
+ * Keycloak (self-hosted IdP). Sign-in is a top-level redirect, so only form-action needs it
+ * (Keycloak login/logout forms post back to the IdP host).
  */
-const CLERK_PROTECT = "https://*.protect.clerk.com";
-const CLERK_PROTECT_CONNECT = "https://*.protect.clerk.com:*";
-const CLERK_IMG = "https://img.clerk.com";
-const CLERK_TELEMETRY = ["https://clerk-telemetry.com", "https://*.clerk-telemetry.com"];
-const CLERK_SCRIPT = [...CLERK, CLERK_PROTECT];
-const CLERK_CONNECT = [...CLERK, CLERK_PROTECT_CONNECT, CLERK_IMG, ...CLERK_TELEMETRY];
-const CLERK_FRAME = [...CLERK, CLERK_PROTECT];
+const KEYCLOAK_DEFAULT = ["https://auth.porterchain.com", "http://localhost:8180"];
+/** Plus the public Keycloak origin of this build (e.g. LAN stack http://192.168.x.x:18280). */
+function keycloakOrigins() {
+  const extra = originOf(process.env.NEXT_PUBLIC_KEYCLOAK_URL ?? "");
+  return [...new Set([...KEYCLOAK_DEFAULT, ...(extra ? [extra] : [])])];
+}
 const GOOGLE = [
   "https://www.googletagmanager.com",
   "https://*.google-analytics.com",
@@ -85,15 +81,15 @@ const ADS = [
   "wss://*.hotjar.com",
 ];
 const STRIPE = ["https://js.stripe.com", "https://api.stripe.com", "https://hooks.stripe.com"];
-const SENTRY = [
-  "https://*.ingest.sentry.io",
-  "https://*.ingest.us.sentry.io",
-  "https://*.ingest.de.sentry.io",
-];
+/** GlitchTip (self-hosted error tracking): the origin of the public DSN, when set. */
+function errorTrackingOrigins(dsn) {
+  const origin = originOf(dsn ?? "");
+  return origin ? [origin] : [];
+}
 
 /**
  * Full website policy.
- * @param {{ apiUrl?: string, extraConnect?: string[], dev?: boolean }} [opts]
+ * @param {{ apiUrl?: string, errorsDsn?: string, extraConnect?: string[], dev?: boolean }} [opts]
  */
 export function websiteCsp(opts = {}) {
   const api = originOf(opts.apiUrl ?? "");
@@ -102,22 +98,14 @@ export function websiteCsp(opts = {}) {
     api,
     "https://porterchain.com",
     "https://*.porterchain.com",
-    ...CLERK_CONNECT,
     ...GOOGLE,
     ...ADS,
     ...STRIPE,
-    ...SENTRY,
+    ...errorTrackingOrigins(opts.errorsDsn),
     ...(opts.extraConnect ?? []),
   ].filter(Boolean);
   if (opts.dev) connect.push("ws:", "http://localhost:*");
-  const scriptSrc = [
-    "'self'",
-    "'unsafe-inline'",
-    ...CLERK_SCRIPT,
-    ...GOOGLE,
-    ...ADS,
-    "https://js.stripe.com",
-  ];
+  const scriptSrc = ["'self'", "'unsafe-inline'", ...GOOGLE, ...ADS, "https://js.stripe.com"];
   if (opts.dev) scriptSrc.push("'unsafe-eval'");
   return [
     "default-src 'self'",
@@ -126,14 +114,14 @@ export function websiteCsp(opts = {}) {
     "img-src 'self' data: blob: https:" + (opts.dev ? " http://localhost:*" : ""),
     "font-src 'self' data: https://fonts.gstatic.com",
     `connect-src ${[...new Set(connect)].join(" ")}`,
-    `frame-src 'self' ${[...CLERK_FRAME, "https://js.stripe.com", "https://hooks.stripe.com", "https://www.googletagmanager.com", "https://www.youtube.com", "https://www.youtube-nocookie.com", "https://www.google.com"].join(" ")}`,
+    `frame-src 'self' ${["https://js.stripe.com", "https://hooks.stripe.com", "https://www.googletagmanager.com", "https://www.youtube.com", "https://www.youtube-nocookie.com", "https://www.google.com"].join(" ")}`,
     "worker-src 'self' blob:",
     "media-src 'self' https: blob:",
     "manifest-src 'self'",
     "base-uri 'self'",
     "object-src 'none'",
     "frame-ancestors 'none'",
-    "form-action 'self' https://*.clerk.accounts.dev https://clerk.porterchain.com https://accounts.porterchain.com",
+    `form-action 'self' ${keycloakOrigins().join(" ")}`,
   ].join("; ");
 }
 
@@ -157,17 +145,13 @@ const FIREBASE = [
 /**
  * Enforced per-portal policy with script rules (security audit 2026-10-10).
  * Scripts only from self + the vendors each app really loads; no plugins, no framing,
- * no <base> hijack, forms only to self/Clerk. 'unsafe-inline' stays for Next.js
+ * no <base> hijack, forms only to self/Keycloak. 'unsafe-inline' stays for Next.js
  * bootstrap scripts (no nonce: static rendering), 'unsafe-eval' only in dev.
  * @param {{ app: "admin"|"merchant"|"customer"|"driver", apiUrl?: string, mapTileUrl?: string,
- *           valhallaUrl?: string, frameAncestors?: string, dev?: boolean }} opts
+ *           valhallaUrl?: string, errorsDsn?: string, frameAncestors?: string, dev?: boolean }} opts
  */
 export function portalCsp(opts) {
   const app = opts.app;
-  const clerk = app === "admin" ? [] : CLERK;
-  const clerkScript = app === "admin" ? [] : CLERK_SCRIPT;
-  const clerkConnect = app === "admin" ? [] : CLERK_CONNECT;
-  const clerkFrame = app === "admin" ? [] : CLERK_FRAME;
   const stripe = app === "customer" || app === "merchant" ? STRIPE : [];
   const shopify = app === "merchant" ? SHOPIFY : [];
   const firebase = app === "driver" || app === "admin" ? FIREBASE : [];
@@ -177,7 +161,6 @@ export function portalCsp(opts) {
   const scriptSrc = [
     "'self'",
     "'unsafe-inline'",
-    ...clerkScript,
     ...stripe.slice(0, 1),
     ...shopify.slice(0, 1),
     "https://www.googletagmanager.com",
@@ -190,12 +173,12 @@ export function portalCsp(opts) {
     "https://*.porterchain.com",
     "wss://*.porterchain.com",
     ...extraOrigins,
-    ...clerkConnect,
+    wsOriginOf(originOf(opts.apiUrl ?? "")),
     ...stripe,
     ...shopify,
     ...MAPS,
     ...firebase,
-    ...SENTRY,
+    ...errorTrackingOrigins(opts.errorsDsn),
     "https://*.google-analytics.com",
     "https://*.analytics.google.com",
   ];
@@ -206,8 +189,8 @@ export function portalCsp(opts) {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: blob: https:" + (opts.dev ? " http://localhost:*" : ""),
     "font-src 'self' data: https://fonts.gstatic.com",
-    `connect-src ${[...new Set(connect)].join(" ")}`,
-    `frame-src 'self' ${[...clerkFrame, ...stripe, ...shopify].join(" ")}`.trim(),
+    `connect-src ${[...new Set(connect.filter(Boolean))].join(" ")}`,
+    `frame-src 'self' ${[...stripe, ...shopify].join(" ")}`.trim(),
     "worker-src 'self' blob:",
     "child-src 'self' blob:",
     "media-src 'self' blob: https:",
@@ -215,8 +198,9 @@ export function portalCsp(opts) {
     "base-uri 'self'",
     "object-src 'none'",
     `frame-ancestors ${opts.frameAncestors ?? "'none'"}`,
-    `form-action 'self' ${clerk.join(" ")}`.trim(),
-    ...(opts.dev ? [] : ["upgrade-insecure-requests"]),
+    `form-action 'self' ${keycloakOrigins().join(" ")}`.trim(),
+    // Plain-http LAN/local stacks (NEXT_PUBLIC_SITE_URL=http://…) must not upgrade: no TLS there.
+    ...(opts.dev || opts.plainHttp ? [] : ["upgrade-insecure-requests"]),
   ].join("; ");
 }
 
@@ -228,18 +212,24 @@ export function portalSecurityHeaders(app, opts = {}) {
     apiUrl: env.NEXT_PUBLIC_PORTERCHAIN_API_URL,
     mapTileUrl: env.NEXT_PUBLIC_MAP_TILE_URL,
     valhallaUrl: env.NEXT_PUBLIC_VALHALLA_URL,
+    errorsDsn: env.NEXT_PUBLIC_GLITCHTIP_DSN,
     dev: env.NODE_ENV !== "production",
+    plainHttp: String(env.NEXT_PUBLIC_SITE_URL || "").startsWith("http://"),
     frameAncestors: opts.frameAncestors,
   });
+  const plainHttp = String(env.NEXT_PUBLIC_SITE_URL || "").startsWith("http://");
   const headers = [
     { key: "X-Content-Type-Options", value: "nosniff" },
     { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
     { key: "Content-Security-Policy", value: csp },
-    {
+  ];
+  // COOP is ignored (with a console warning) on untrustworthy plain-http origins; send it only on HTTPS.
+  if (!plainHttp) {
+    headers.push({
       key: "Cross-Origin-Opener-Policy",
       value: opts.frameAncestors ? "unsafe-none" : "same-origin-allow-popups",
-    },
-  ];
+    });
+  }
   if (!opts.frameAncestors) headers.push({ key: "X-Frame-Options", value: "DENY" });
   return headers;
 }

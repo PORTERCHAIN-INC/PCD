@@ -49,10 +49,11 @@ def dispatch_exceptions(
     db: Session = Depends(get_db),
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
+    fixes: bool = Query(True, description="False = counts/items only, no suggested fixes (fast)"),
 ) -> dict:
     """One queue, worst then newest first: open exceptions, failed/damaged/lost/returns,
     late/at-risk ETAs, unassigned >15 min. Paged; ``total``/``counts`` cover the whole queue."""
-    return _invoke(ctx, "dispatch_read", _board.exceptions_queue, db, offset=offset, limit=limit)
+    return _invoke(ctx, "dispatch_read", _board.exceptions_queue, db, offset=offset, limit=limit, with_fixes=fixes)
 
 
 @router.post(f"{P}/exceptions/apply")

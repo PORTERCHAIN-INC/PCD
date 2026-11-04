@@ -15,7 +15,6 @@ REPO = Path(__file__).resolve().parents[3]
 API_SRC = REPO / "apps" / "api" / "src" / "porterchain_api"
 MERCHANT_PORTAL = REPO / "apps" / "merchant-portal" / "src"
 OPENAPI = REPO / "docs" / "api" / "openapi.json"
-CLERK_ENV_EXAMPLE = REPO / "env" / "clerk.env.example"
 API_ENV_EXAMPLE = REPO / "env" / "api.env.example"
 
 _FORBIDDEN_PORTAL = (
@@ -119,13 +118,10 @@ def test_neg_arch_004_admin_merchants_router_has_no_hard_delete() -> None:
 
 
 def test_neg_arch_005_clerk_merchant_triad_in_env_examples() -> None:
-    """NEG-ARCH-005"""
-    blob = ""
-    for path in (CLERK_ENV_EXAMPLE, API_ENV_EXAMPLE):
-        if path.is_file():
-            blob += path.read_text(encoding="utf-8")
-    assert "CLERK_MERCHANT_SECRET_KEY" in blob or "CLERK_MERCHANT_PUBLISHABLE_KEY" in blob
-    assert "ADMIN_CLERK_SECRET_KEY" not in blob
+    """NEG-ARCH-005 (Keycloak): merchant auth is the Keycloak realm, no Clerk keys."""
+    blob = API_ENV_EXAMPLE.read_text(encoding="utf-8")
+    assert "KEYCLOAK_URL=" in blob
+    assert "CLERK_" not in blob
 
 
 def test_neg_arch_006_firebase_not_used_as_merchant_auth() -> None:

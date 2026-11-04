@@ -69,7 +69,7 @@ def main() -> int:
     if "/v1/express/checkout" not in website_api:
         failures.append("website api.ts missing guest /v1/express/checkout")
     if "/v1/bookings\"" in website_api or "\"/v1/bookings\"" in website_api:
-        failures.append("website must not call Clerk-bound POST /v1/bookings (use /v1/express/checkout)")
+        failures.append("website must not call Keycloak-bound POST /v1/bookings (use /v1/express/checkout)")
     express = _read(ROOT / "website/src/components/book/ExpressBook.tsx")
     for needle in ("website", "form_elapsed_ms"):
         if needle not in express:

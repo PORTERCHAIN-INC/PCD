@@ -48,7 +48,7 @@ def _setup_quote(db: Session, settings: Settings):
         quote_id=quote.id,
         email="stripe.webhook@test.porterchain.com",
         phone="+1 416-555-0300",
-        auth_subject="clerk_stripe_webhook",
+        auth_subject="idp_stripe_webhook",
         anonymous_session_id=session_id,
         consent={
             "terms_accepted": True,

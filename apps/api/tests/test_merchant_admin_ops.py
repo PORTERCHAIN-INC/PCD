@@ -420,3 +420,23 @@ def test_paid_cycle_invoice_does_not_hold(db, merchant, cycle_cleanup):
                    created_at=datetime.now(UTC) - timedelta(days=50)))
     db.commit()
     assert credit.overdue_invoices(db, merchant) == []
+
+
+def test_quote_preview_pdf_endpoint(as_role, merchant, monkeypatch):
+    """Admin 'Download quote PDF': re-priced server-side, one HST line, CAD total."""
+    monkeypatch.setattr(
+        "porterchain_api.integrations.shopify_carrier_rates.quote_merchant_rate",
+        lambda db, m, **kw: (3390, {"subtotal_cents": 3000, "tax_cents": 390,
+                                    "items": [{"code": "base", "amount_cents": 3000},
+                                              {"code": "hst", "amount_cents": 390}],
+                                    "metadata": {"distance_meters": 12000}}),
+    )
+    res = as_role("support").post(
+        f"/v1/admin/merchant-ops/{merchant.id}/quote-preview/pdf?lang=fr",
+        json={"pickup": {"formatted": "1 King St W", "lat": 43.65, "lng": -79.38, "postal": "M5H 1A1"},
+              "dropoff": {"formatted": "200 Bay St", "lat": 43.64, "lng": -79.38, "postal": "M5J 2J5"}},
+    )
+    assert res.status_code == 200, res.text
+    assert res.headers["content-type"] == "application/pdf"
+    text = res.content.decode("latin-1")
+    assert "SOUMISSION" in text and "33,90 $ CAD" in text and text.count("(TVH)") == 1
