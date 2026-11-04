@@ -30,8 +30,7 @@ def dashboard(
 
     DriverComplianceExpiryService().refresh_and_commit(db, ctx.driver)
     guard_portal_ready(ctx, settings)
-    if svc.platform.shift.enforce_shift_limit(db, ctx.driver):
-        db.commit()  # L184: a 16h+ open shift is clocked out before "Online" is shown
+    svc.enforce_shift_limit(db, ctx.driver)  # L184
     snap = svc.platform.dashboard.snapshot(db, ctx.driver)
     return DriverDashboardResponse(
         todays_earnings_cents=snap.todays_earnings_cents,
@@ -186,10 +185,7 @@ def set_availability(
 def get_shift(
     ctx: Annotated[DriverContext, Depends(get_driver_context)],
     db: Session = Depends(get_db)):
-    snap = svc.platform.shift.snapshot(db, ctx.driver)
-    if snap.get("auto_clocked_out"):
-        db.commit()  # L185: persist the 16h auto clock-out (GET used to roll it back)
-    return snap
+    return svc.shift_snapshot(db, ctx.driver)  # L185
 
 
 @router.post("/shift/start")

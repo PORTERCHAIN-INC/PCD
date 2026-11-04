@@ -11,6 +11,7 @@ from porterchain_api.admin_engine.rbac import AdminContext, AdminRole
 from porterchain_api.auth.admin import get_admin_context
 from porterchain_api.auth.merchant import get_merchant_context
 from porterchain_api.batch_engine import service as svc
+from porterchain_api.batch_engine.listing import list_batches
 from porterchain_api.batch_engine.models import DeliveryBatch
 from porterchain_api.db import db_transaction, get_db
 
@@ -51,14 +52,7 @@ def create(body: BatchBody, ctx=Depends(get_merchant_context), db: Session = Dep
 
 
 def _list(db: Session, merchant_id: str | None, limit: int) -> dict:
-    q = db.query(DeliveryBatch)
-    if merchant_id:
-        q = q.filter(DeliveryBatch.merchant_id == merchant_id)
-    rows = q.order_by(DeliveryBatch.created_at.desc()).limit(min(max(limit, 1), 200)).all()
-    return {"batches": [{"id": b.id, "merchant_id": b.merchant_id, "status": b.status,
-                         "parcels": (b.plan or {}).get("parcels"), "routes": (b.plan or {}).get("routes"), "waves": (b.plan or {}).get("waves"),
-                         "pickup_docs": (b.plan or {}).get("pickup_docs") or [],
-                         "created_at": b.created_at.isoformat() if b.created_at else None} for b in rows]}
+    return list_batches(db, merchant_id, limit)
 
 
 @merchant_router.get("")

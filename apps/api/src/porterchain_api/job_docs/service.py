@@ -226,3 +226,16 @@ def assert_acknowledged(db: Session, driver_id: str, step: str, **subject: Any) 
     pending = driver_step(db, driver_id, step, **subject)["must_ack"]
     if pending:
         raise ValueError(f"instruction_not_acknowledged:{pending[0]}")
+
+
+def batch_route_ids(db: Session, batch_id: str) -> list[str]:
+    """Route ids of a bulk batch (documents are stored per route)."""
+    from porterchain_api.batch_engine.models import BatchRoute
+
+    return [r.id for r in db.query(BatchRoute).filter(BatchRoute.batch_id == batch_id).all()]
+
+
+def order_package_ids(db: Session, order_id: str) -> set[str]:
+    from porterchain_api.booking_models import Package
+
+    return {p.id for p in db.query(Package).filter(Package.order_id == order_id).all()}

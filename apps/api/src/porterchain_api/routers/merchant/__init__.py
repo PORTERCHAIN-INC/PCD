@@ -7,6 +7,7 @@ from porterchain_api.routers.merchant._deps import (
 )
 
 from porterchain_api.routers.merchant import dashboard_booking  # noqa: F401
+from porterchain_api.routers.merchant import booking_quote_pdf  # noqa: F401
 from porterchain_api.routers.merchant import route_imports  # noqa: F401
 from porterchain_api.routers.merchant import orders_tracking  # noqa: F401
 from porterchain_api.routers.merchant import order_returns  # noqa: F401

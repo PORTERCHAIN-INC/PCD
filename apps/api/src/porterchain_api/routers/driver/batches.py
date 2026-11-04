@@ -4,7 +4,7 @@ from typing import Any
 
 from porterchain_api.batch_engine import models as _models  # noqa: F401
 from porterchain_api.batch_engine import service as svc
-from porterchain_api.batch_engine.models import BatchHandover, BatchRoute
+from porterchain_api.batch_engine.listing import driver_incoming_handovers, driver_open_routes
 from porterchain_api.db import db_transaction
 from porterchain_api.media_store.service import require_own_keys
 from porterchain_api.routers.driver._deps import (
@@ -38,10 +38,7 @@ def _run(db: Session, fn):
 
 @router.get("/batches/routes")
 def my_routes(ctx: Ctx, db: Session = Depends(get_db)):
-    rows = db.query(BatchRoute).filter(BatchRoute.driver_id == str(ctx.driver.id),
-                                       BatchRoute.status.notin_(("closed", "locked"))).order_by(BatchRoute.wave).all()
-    return {"items": [{"id": r.id, "batch_id": r.batch_id, "route_no": r.route_no, "wave": r.wave,
-                       "status": r.status} for r in rows]}
+    return driver_open_routes(db, str(ctx.driver.id))
 
 
 @router.get("/batches/routes/{route_id}/pickup")
@@ -108,10 +105,7 @@ def handover(route_id: str, body: dict[str, Any], ctx: Ctx, db: Session = Depend
 
 @router.get("/batches/handovers/incoming")
 def incoming(ctx: Ctx, db: Session = Depends(get_db)):
-    rows = db.query(BatchHandover).filter(BatchHandover.to_driver_id == str(ctx.driver.id),
-                                          BatchHandover.status == "pending").all()
-    return {"items": [{"id": h.id, "from_driver_id": h.from_driver_id, "parcels": len(h.parcel_ids),
-                       "place_kind": h.place_kind} for h in rows]}
+    return driver_incoming_handovers(db, str(ctx.driver.id))
 
 
 @router.post("/batches/handovers/{handover_id}/accept")

@@ -70,11 +70,10 @@ def _merchant_owns(db: Session, merchant_id: str, kind: str, sid: str) -> None:
 
 
 def _docs(db: Session, kind: str, sid: str) -> dict[str, Any]:
-    from porterchain_api.batch_engine.models import BatchRoute
     if kind == "orders":
         return {"documents": JD.documents_out(db, order_id=sid)}
-    routes = db.query(BatchRoute).filter(BatchRoute.batch_id == sid).all()
-    return {"documents": [{**d, "route_id": r.id} for r in routes for d in JD.documents_out(db, route_id=r.id)]}
+    route_ids = JD.batch_route_ids(db, sid)
+    return {"documents": [{**d, "route_id": rid} for rid in route_ids for d in JD.documents_out(db, route_id=rid)]}
 
 
 def _body(b: BaseModel) -> dict[str, Any]:
@@ -172,11 +171,11 @@ def _customer(db: Session, claims: IdentityClaims, settings: Settings):
 
 
 def _own_order(db: Session, customer_id: str, order_id: str):
-    from porterchain_api.booking_models import Order, Package
+    from porterchain_api.booking_models import Order
     o = db.get(Order, order_id)
     if not o or str(o.customer_id or "") != str(customer_id):
         raise HTTPException(status_code=404, detail="order_not_found")
-    return {p.id for p in db.query(Package).filter(Package.order_id == order_id).all()}
+    return JD.order_package_ids(db, order_id)
 
 
 @customer_router.get("/orders/{oid}/instructions")
