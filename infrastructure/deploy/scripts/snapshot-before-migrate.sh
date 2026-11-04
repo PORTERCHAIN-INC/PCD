@@ -20,9 +20,14 @@ usage() {
 # interpolates the *new* compose file against the *old* .env here (the new file is
 # already copied, secrets are not synced yet), and a missing required var aborted
 # the 2026-11-04 deploy before anything was recorded.
+# Scope to this compose project so other stacks on the host (crm-*) never match.
+COMPOSE_PROJECT="${COMPOSE_PROJECT_NAME:-$(awk '/^name:/ { print $2; exit }' "$COMPOSE_FILE" 2>/dev/null)}"
+COMPOSE_PROJECT="${COMPOSE_PROJECT:-porterchain-prod}"
+
 image_for() {
   local service="$1"
-  docker ps --filter "label=com.docker.compose.service=${service}" --filter status=running \
+  docker ps --filter "label=com.docker.compose.project=${COMPOSE_PROJECT}" \
+    --filter "label=com.docker.compose.service=${service}" --filter status=running \
     --format '{{.Image}}' | head -n1
 }
 
