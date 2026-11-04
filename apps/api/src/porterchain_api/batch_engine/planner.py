@@ -128,7 +128,7 @@ def plan(rows: list[dict[str, Any]], *, vehicle_class: str = "cargo_van", driver
 
 
 def make_barcode(batch_id: str, row_no: int) -> str:
-    h = hashlib.sha1(f"{batch_id}:{row_no}".encode()).hexdigest()[:8].upper()
+    h = hashlib.sha1(f"{batch_id}:{row_no}".encode(), usedforsecurity=False).hexdigest()[:8].upper()
     return f"PCB{h}{row_no:04d}"
 
 

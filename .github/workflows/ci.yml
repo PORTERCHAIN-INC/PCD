@@ -101,7 +101,7 @@ jobs:
         env:
           POSTGRES_USER: porterchain
           POSTGRES_PASSWORD: porterchain
-          POSTGRES_DB: porterchain
+          POSTGRES_DB: porterchain_test
         ports:
           - 55432:5432
         options: >-
@@ -148,7 +148,7 @@ jobs:
 
       - name: Alembic upgrade head
         env:
-          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@127.0.0.1:55432/porterchain
+          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@127.0.0.1:55432/porterchain_test
           APP_ENV: local
         run: |
           export PYTHONPATH=src:../../shared/python:../../services/python:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
@@ -160,7 +160,7 @@ jobs:
       - name: API tests (PostgreSQL)
         env:
           REDIS_URL: redis://127.0.0.1:56379/0
-          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@127.0.0.1:55432/porterchain
+          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@127.0.0.1:55432/porterchain_test
           APP_ENV: local
         run: |
           export PYTHONPATH=src:../../shared/python:../../services/python:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform:../../apps/worker
@@ -175,7 +175,7 @@ jobs:
 
       - name: Module validation script
         env:
-          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@127.0.0.1:55432/porterchain
+          DATABASE_URL: postgresql+psycopg://porterchain:porterchain@127.0.0.1:55432/porterchain_test
           APP_ENV: local
         run: |
           export PYTHONPATH=src:../../shared/python:../../services/python:../../services/pricing-engine:../../services/event-bus:../../services/driver-platform
@@ -253,7 +253,7 @@ jobs:
         env:
           POSTGRES_USER: porterchain
           POSTGRES_PASSWORD: porterchain
-          POSTGRES_DB: porterchain
+          POSTGRES_DB: porterchain_test
         ports:
           - 55432:5432
         options: >-
@@ -274,7 +274,7 @@ jobs:
       run:
         working-directory: apps/api
     env:
-      DATABASE_URL: postgresql+psycopg://porterchain:porterchain@127.0.0.1:55432/porterchain
+      DATABASE_URL: postgresql+psycopg://porterchain:porterchain@127.0.0.1:55432/porterchain_test
       REDIS_URL: redis://127.0.0.1:56379/0
       APP_ENV: local
     steps:
