@@ -42,8 +42,8 @@ export const TERMS_OF_SERVICE: ConsentDocument = {
     {
       title: "Liability and claims",
       paragraphs: [
-        "Porterchain maintains commercial insurance and WSIB registration for its operations. Liability for loss or damage is limited as set out in your quote, merchant agreement, or applicable tariff, except where prohibited by law.",
-        "Claims for loss, damage, or service issues must be reported promptly with shipment references and supporting documentation. Contact ops@porterchain.com for claims assistance.",
+        "Porterchain carries commercial general liability and motor truck cargo insurance and maintains WSIB registration for its operations. Liability for loss or damage is $4.41 per kg (Ontario Uniform Conditions of Carriage) unless declared-value cover was bought at booking, and never more than $50,000 per shipment ($25,000 for target commodities such as alcohol, tobacco and electronics), or as set out in your merchant agreement, except where prohibited by law.",
+        "Please report loss or damage to ops@porterchain.com as soon as you can, ideally within 5 business days of delivery, with the order number, photos, proof of value and a description. Written notice must reach us no later than 60 days after delivery, or 9 months after shipment if the goods were never delivered, as the Ontario Uniform Conditions of Carriage require. Keep the goods and packaging for inspection. We reply within one business day and aim to decide within 30 days of receiving a complete claim. PorterChain carries commercial general liability insurance ($2,000,000 per occurrence) and motor truck cargo insurance with Lloyd's Underwriters; a certificate of insurance is available to merchants on request.",
       ],
     },
     {

@@ -18,7 +18,7 @@ Location: Greater Toronto Area
 Website: porterchain.com/en
 Pinned post 1: Book by 11 AM. Delivered 2–9 PM today, Mon–Sat, anywhere in the GTA. Sedan, SUV, van or 16 ft box truck. Two postal codes = your exact price, HST included, no sign-up → porterchain.com/en
 Pinned post 2 (thread opener): How a GTA delivery should work: 1) price in 10 seconds 2) right vehicle for the load 3) live map for you and your receiver 4) photo proof on every drop 5) clear liability and claims. That's PorterChain. 🧵
-Pinned post 3: PorterChain liability is clear: $4.41/kg standard, with optional declared-value cover up to $2,500 per parcel coming once our cargo insurance is confirmed. Price your next run: porterchain.com/en/delivery-cost-calculator
+Pinned post 3: PorterChain liability is clear: $4.41/kg standard, with optional declared-value cover up to $2,500 per parcel where offered at booking, backed by $50,000-per-shipment cargo insurance. Price your next run: porterchain.com/en/delivery-cost-calculator
 Cadence: 3 posts/week — 1 real delivery photo (with customer permission, no receiver details), 1 tip (cut-offs, vehicle fit, packing), 1 local GTA logistics observation. Reply to GTA small-business threads; never spam.
 
 ## LinkedIn — company page
@@ -30,7 +30,7 @@ PorterChain is a GTA delivery company for businesses that need things moved loca
 - Book by 11 AM, delivered 2–9 PM the same day, Monday to Saturday; later orders go the next operating day.
 - Sedan/SUV (≈80 kg), cargo van (≈900 kg) or 16 ft box truck (≈3,000 kg), all on a standard Ontario G licence.
 - Exact price from two postal codes, HST included, before you sign up.
-- Live tracking, photo proof of delivery, $4.41/kg standard liability; optional declared-value cover (1.5%, $3 min, up to $2,500 per parcel) once cargo insurance is confirmed.
+- Live tracking, photo proof of delivery, $4.41/kg standard liability; optional declared-value cover (1.5%, $3 min, up to $2,500 per parcel) where offered at booking; $50,000-per-shipment cargo insurance (Lloyd's).
 - Merchants pay by Interac e-Transfer; customers by card.
   Core areas: Vaughan, Concord, Brampton, Mississauga. Serving the GTA plus about 150 km.
   Founded by Ravi Chauhan. Get an instant price: porterchain.com/en
@@ -47,7 +47,7 @@ PorterChain is a GTA delivery company for businesses that need things moved loca
 - Hours: Mon–Fri 8:00–18:00, Sat 9:00–14:00, Sun closed
 - Phone: (647) 619-7951 · Website: https://porterchain.com/en?utm_source=gbp&utm_medium=organic
 - Booking/Appointment link: https://porterchain.com/en/delivery-cost-calculator?utm_source=gbp&utm_medium=booking
-- Description (≤750): PorterChain is a GTA business courier for same-day and next-day local delivery. Book by 11 AM and we deliver 2–9 PM the same day, Monday to Saturday. Choose a sedan, SUV, cargo van or 16 ft box truck for anything from small parcels to pallets. Enter two postal codes to see your exact price with HST included, no sign-up needed. Every delivery has live tracking, photo proof of delivery and clear liability ($4.41/kg standard; optional declared-value cover up to $2,500 per parcel once cargo insurance is confirmed). Businesses pay by Interac e-Transfer; customers pay by card. Core areas: Vaughan, Concord, Brampton and Mississauga, serving the GTA plus about 150 km.
+- Description (≤750): PorterChain is a GTA business courier for same-day and next-day local delivery. Book by 11 AM and we deliver 2–9 PM the same day, Monday to Saturday. Choose a sedan, SUV, cargo van or 16 ft box truck for anything from small parcels to pallets. Enter two postal codes to see your exact price with HST included, no sign-up needed. Every delivery has live tracking, photo proof of delivery and clear liability ($4.41/kg standard; optional declared-value cover up to $2,500 per parcel where offered at booking; $50,000-per-shipment cargo insurance). Businesses pay by Interac e-Transfer; customers pay by card. Core areas: Vaughan, Concord, Brampton and Mississauga, serving the GTA plus about 150 km.
 - Services: Same-day courier · Next-day delivery · Business courier · Van delivery · Box truck delivery · Pallet delivery · Medical delivery (cooler) · Shopify order delivery
 - Photos: logo, cover, real vehicles (plates blurred), driver at pickup (consent), a POD photo example (no receiver data)
 - Reviews: ask every real customer after a successful delivery; reply to every review within 48 h. Never buy or incentivise reviews.

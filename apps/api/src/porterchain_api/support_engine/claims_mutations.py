@@ -15,6 +15,7 @@ from porterchain_api.domain.claims import CLAIM_TYPES, claim_number
 from porterchain_api.support_engine.claim_terms import claim_terms_meta
 from porterchain_api.support_engine.claims_constants import CLAIM_STATUSES, set_claim_meta
 from porterchain_api.support_engine.support_helpers import SupportActor
+from porterchain_pricing import insurance_policy as POLICY
 from porterchain_shared.events.catalog import DomainEventType
 
 
@@ -326,6 +327,8 @@ class ClaimsMutationsMixin:
             cap = max_compensation_cents(db)
             if cap > 0 and amount > cap:
                 raise ValueError("compensation_exceeds_policy_cap")
+            if amount > POLICY.CARGO["motor_truck_cargo_cents"]:
+                raise ValueError("compensation_exceeds_cargo_insurance_limit")
         res = dict(claim.resolution or {})
         res["compensation"] = compensation
         claim.resolution = res
@@ -361,6 +364,10 @@ class ClaimsMutationsMixin:
         if not claim:
             raise LookupError("claim_not_found")
         res = dict(claim.resolution or {})
+        insurance = {"provider": POLICY.INSURER, "policy_ref": POLICY.POLICY_REF,
+                     "deductible_cents": POLICY.DEDUCTIBLE_CENTS, **(insurance or {})}
+        if insurance.get("claimed_cents") is not None:
+            insurance["recoverable_cents"] = POLICY.insurer_recoverable_cents(insurance["claimed_cents"])
         res["insurance"] = insurance
         claim.resolution = res
         if claim.status not in ("compensated", "closed", "archived"):

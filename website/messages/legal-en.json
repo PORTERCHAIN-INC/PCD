@@ -44,7 +44,8 @@
       {
         "title": "Third-party service providers",
         "paragraphs": [
-          "We share information with trusted processors only as needed to deliver our services. These providers are contractually required to protect your data."
+          "We share information with trusted processors only as needed to deliver our services. These providers are contractually required to protect your data.",
+          "If you make a claim, or a delivery leads to an insurance claim, we share the details needed to handle it (order, proof of delivery, photos, value and contact details) with our insurance broker (Able Insurance Brokers Ltd.) and insurer (Lloyd's Underwriters) and their adjusters."
         ],
         "list": [
           "Keycloak — merchant and customer authentication",
@@ -121,15 +122,15 @@
       {
         "title": "Prohibited goods and conduct",
         "paragraphs": [
-          "You may not use Porterchain to transport illegal goods, hazardous materials without prior written approval, items that violate carrier insurance terms, or shipments that endanger drivers or the public.",
+          "You may not use Porterchain to transport illegal goods, hazardous materials without prior written approval, items that violate carrier insurance terms, or shipments that endanger drivers or the public. We do not carry firearms or weapons, cash or securities, cannabis, human or animal remains, live animals, live plants or cut flowers, or tobacco or alcohol across provincial borders. Cash, jewellery, medicines and perishables can travel but can't be covered by declared-value cover. Target commodities (alcohol, tobacco and vaping products, electronics, pharmaceuticals, cosmetics and fragrances) are accepted with a $25,000 limit per shipment; tell us before booking if a load is worth more.",
           "We reserve the right to refuse, hold, or return any shipment that violates these Terms or applicable law."
         ]
       },
       {
         "title": "Liability and claims",
         "paragraphs": [
-          "Our liability for loss or damage is limited to $4.41 per kg of the goods affected (O. Reg. 643/05), unless declared-value cover was bought at booking. Optional declared-value cover (1.5% of the declared value, $3 minimum, up to $2,500 per parcel; cash, jewellery, medicines and perishables excluded; proof of value required to claim) will be offered once our cargo insurance is confirmed. Coverage is subject to the exclusions in these terms and in your merchant agreement, except where prohibited by law.",
-          "Claims for loss, damage, or service issues must be reported promptly with shipment references and supporting documentation. Contact ops@porterchain.com for claims assistance."
+          "Our liability for loss or damage is limited to $4.41 per kg of the goods affected (Ontario Uniform Conditions of Carriage, O. Reg. 643/05), unless declared-value cover was bought at booking. Optional declared-value cover, where offered at booking, costs 1.5% of the declared value ($3 minimum) and covers up to $2,500 per parcel; cash, jewellery, medicines and perishables can't be covered, and proof of value (invoice or receipt) is required to claim. In every case the most we pay for one shipment is $50,000, or $25,000 if the shipment contains target commodities (alcohol, tobacco and vaping products, electronics, pharmaceuticals, cosmetics and fragrances). We are not liable for indirect or consequential loss, or for loss caused by an act of God, war, the shipper's fault, or the inherent nature or defective packing of the goods, except where the law says otherwise. Coverage is subject to these terms and your merchant agreement.",
+          "Please report loss or damage to ops@porterchain.com as soon as you can, ideally within 5 business days of delivery, with the order number, photos, proof of value and a description. Written notice must reach us no later than 60 days after delivery, or 9 months after shipment if the goods were never delivered, as the Ontario Uniform Conditions of Carriage require. Keep the goods and packaging for inspection. We reply within one business day and aim to decide within 30 days of receiving a complete claim. PorterChain carries commercial general liability insurance ($2,000,000 per occurrence) and motor truck cargo insurance with Lloyd's Underwriters; a certificate of insurance is available to merchants on request."
         ]
       },
       {

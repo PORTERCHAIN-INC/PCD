@@ -7,13 +7,14 @@ the claim records whether it was filed late and which records are still missing.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy.orm import Session
 
 from porterchain_api.booking_models import Order
 from porterchain_api.merchant_models import Merchant
+from porterchain_pricing import insurance_policy as POLICY
 from porterchain_pricing.contract_schedule import load_contract_schedule
 from porterchain_pricing.contract_terms import (
     claim_deadline,
@@ -58,4 +59,10 @@ def claim_terms_meta(
         "required_records": list(terms["claims"]["required_records"]),
         "missing_records": missing_claim_records(terms, provided_records or []),
         "notify_email": terms["claims"].get("notify_email"),
+        # Ontario uniform conditions: the legal outer limit for written notice, whatever the contract asks.
+        "statutory_notice_deadline": (
+            (delivered or datetime.now(UTC)).date() + timedelta(days=POLICY.STATUTORY_NOTICE_DAYS)
+        ).isoformat(),
+        "cargo_limit_cents": POLICY.CARGO["motor_truck_cargo_cents"],
+        "insurance_deductible_cents": POLICY.DEDUCTIBLE_CENTS,
     }

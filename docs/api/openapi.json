@@ -95979,7 +95979,7 @@
               }
             ],
             "title": "Coverage Upgrade",
-            "description": "Buy declared-value cover (1.5% of declared value, $3 min, max $2,500 per parcel; needs declared_value_cents). Off until cargo insurance is confirmed (G-INS). None = merchant default."
+            "description": "Buy declared-value cover (1.5% of declared value, $3 min, max $2,500 per parcel; needs declared_value_cents). Needs the cargo_insurance setting confirmed (G-INS); policy on file from 2026-11-05. None = merchant default."
           },
           "item_category": {
             "anyOf": [

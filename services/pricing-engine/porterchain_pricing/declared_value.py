@@ -7,10 +7,15 @@
 * HST applies to the cover fee (Ravi 2026-10-29): it is taxed with the delivery subtotal.
 * Without cover our liability is the Ontario default: $4.41 per kg (O. Reg. 643/05 Sch. 1, s. 9).
 * OFF until cargo insurance is confirmed (doc 84 open item G-INS): while off, nobody can buy it.
+  Policy on file from 2026-11-05: Lloyd's motor truck cargo, $50,000 per shipment, $25,000 when the load has
+  target commodities, $2,500 deductible (``insurance_policy``). A super admin still flips ``cargo_insurance``.
+* Per shipment, all parcel caps together never exceed the cargo limit (``shipment_claim_cap_cents``).
 """
 from __future__ import annotations
 
 from typing import Any
+
+from porterchain_pricing import insurance_policy as POLICY
 
 RULES: dict[str, Any] = {
     "enabled": False,  # G-INS: flip only after the cargo insurer confirms
@@ -143,3 +148,12 @@ def claim_cap_cents(weight_kg: float, *, covered: bool, declared_value_cents: in
         return {"cap_cents": base, "basis": "proof_of_value_missing"}
     v = min(max(int(declared_value_cents or 0), 0), int(rules(r)["max_value_cents"]))
     return {"cap_cents": max(v, base), "basis": "declared_value_cover"}
+
+
+def shipment_claim_cap_cents(parcel_caps_cents: list[int], categories: list[str | None] | None = None) -> dict[str, Any]:
+    """Most we pay for one shipment: the parcel caps added up, never above the cargo policy limit
+    ($50,000; $25,000 when any parcel is a target commodity)."""
+    total = sum(max(int(c or 0), 0) for c in parcel_caps_cents)
+    limit = POLICY.shipment_limit_cents(categories)
+    return {"cap_cents": min(total, limit), "limit_cents": limit, "capped": total > limit,
+            "target_commodity": limit == POLICY.CARGO["target_commodities_cents"]}

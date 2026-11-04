@@ -2802,7 +2802,7 @@
       "title": "Insurance & COI",
       "description": "Liability and the claims process for merchant programs.",
       "breadcrumb": "Insurance",
-      "body": "COI is available for active merchant programs on request.\n\nThis page is a noindex scaffold until legal finalizes public insurance language.\n\nSee /trust for the trust center overview."
+      "body": "PorterChain Inc. is insured with Lloyd's Underwriters through Able Insurance Brokers Ltd. for the policy period November 5, 2026 to November 5, 2027.\n\nCommercial general liability: $2,000,000 each occurrence and $2,000,000 general aggregate; personal and advertising injury $1,000,000; tenants legal liability $250,000; medical payments $15,000.\n\nMotor truck cargo: $50,000 per shipment; target commodities $25,000; towing, storage and debris removal $10,000.\n\nInsurance protects PorterChain; it does not change our liability to you, which is set out in our Terms of Service ($4.41 per kg, or the declared value where declared-value cover was bought). Limits may be reduced by paid claims and are subject to the policy terms and exclusions.\n\nA certificate of insurance (COI) is available to active merchant programs on request: ops@porterchain.com."
     },
     "serviceStandards": {
       "title": "Service standards",
@@ -2848,7 +2848,7 @@
         },
         "3": {
           "title": "Coverage on every parcel",
-          "description": "Standard liability is $4.41 per kg (Ontario rules). Optional declared-value cover (1.5% of the value, $3 minimum, up to $2,500 per parcel) will be offered once our cargo insurance is confirmed."
+          "description": "Standard liability is $4.41 per kg (Ontario rules). We carry motor truck cargo insurance (Lloyd's Underwriters, up to $50,000 per shipment); what we pay on a claim is still set by these liability limits. Optional declared-value cover (1.5% of the value, $3 minimum, up to $2,500 per parcel) can be added at booking where offered."
         },
         "4": {
           "title": "Proof of delivery",
@@ -2919,7 +2919,7 @@
       },
       "note": {
         "title": "Coverage included",
-        "body": "Standard liability is $4.41 per kg (Ontario rules). Optional declared-value cover (1.5% of the value, $3 minimum, up to $2,500 per parcel) will be offered once our cargo insurance is confirmed. We reply to every claim within one business day."
+        "body": "Standard liability is $4.41 per kg (Ontario rules). We carry motor truck cargo insurance (Lloyd's Underwriters, up to $50,000 per shipment); what we pay on a claim is still set by these liability limits. Optional declared-value cover (1.5% of the value, $3 minimum, up to $2,500 per parcel) can be added at booking where offered. We reply to every claim within one business day."
       },
       "cta": {
         "title": "Ready to book with proof on every drop?",

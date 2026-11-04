@@ -42,6 +42,34 @@ class SupportKbMixin:
                     "version": 1,
                     "published": True,
                 },
+                {
+                    "id": "faq-loss-damage",
+                    "category_id": "customers",
+                    "title": "Lost or damaged goods",
+                    "body": (
+                        "Liability is $4.41/kg (Ontario rules) unless declared-value cover was bought (up to $2,500 "
+                        "per parcel, proof of value needed). Max $50,000 per shipment, $25,000 with target "
+                        "commodities. Email ops@porterchain.com with the order number and photos, ideally within "
+                        "5 business days; written notice is required within 60 days of delivery."
+                    ),
+                    "version": 1,
+                    "published": True,
+                },
+                {
+                    "id": "internal-insurance",
+                    "category_id": "internal",
+                    "title": "Our insurance (COI 2026-11-04)",
+                    "body": (
+                        "Lloyd's Underwriters, policy B5000191409, broker Able Insurance Brokers (905) 629-2253, "
+                        "2026-11-05 to 2027-11-05. CGL $2M occurrence / $2M aggregate, P&AI $1M, tenants legal "
+                        "$250K, medical $15K. Motor truck cargo $50K, target commodities $25K, towing/storage/"
+                        "debris $10K. $2,500 deductible on every line. No auto, non-owned auto or umbrella: "
+                        "drivers' own vehicles carry their own insurance. Report cargo losses over the deductible "
+                        "to the broker promptly; record them with Claims > Insurance."
+                    ),
+                    "version": 1,
+                    "published": False,
+                },
             ],
             "faq": [
                 {"question": "Where is my parcel?", "answer": "Check tracking or contact support with your tracking number."},
