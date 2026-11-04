@@ -162,3 +162,14 @@ www.porterchain.com {
 http://www.porterchain.com {
 	redir https://porterchain.com{uri} permanent
 }
+
+# Keycloak (Phase 0). Admin console and ops endpoints are not public:
+# reach the admin console through an SSH tunnel to 127.0.0.1:58180.
+auth.porterchain.com {
+	import common
+	@blocked path /admin /admin/* /metrics /metrics/* /health /health/*
+	respond @blocked "Not found" 404
+	reverse_proxy keycloak:8080 {
+		header_up X-Forwarded-Proto https
+	}
+}
