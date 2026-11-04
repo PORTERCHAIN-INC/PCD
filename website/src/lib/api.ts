@@ -1,3 +1,4 @@
+import { expressQuoteBody, type ParcelSize } from "@/lib/express-quote";
 import type {
   DeliveryInstructions,
   DeliveryManageOptions,
@@ -218,6 +219,7 @@ export interface FastQuoteInput {
   vehicle_class: string;
   scheduled_at: string;
   anonymous_session_id?: string;
+  parcel_size?: ParcelSize;
 }
 
 export interface FastPreview {
@@ -234,8 +236,9 @@ export interface FastQuote extends FastPreview {
   vehicle_class: string;
 }
 
+// Customers book parcels; hourly whole-vehicle pricing is merchants only.
 function quoteBody(input: FastQuoteInput) {
-  return JSON.stringify({ ...input, booking_mode: "vehicle", schedule_mode: "now" });
+  return expressQuoteBody(input);
 }
 
 export function fastPreview(input: FastQuoteInput) {
