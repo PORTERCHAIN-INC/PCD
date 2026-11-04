@@ -126,4 +126,4 @@ if [[ "$healthy" != 1 ]]; then
   exit 1
 fi
 
-echo "Rollback complete from $MANIFEST (no migration was run)"
+echo "Rollback complete from $MANIFEST (dump=${DUMP:-none, database unchanged}; config=${CONFIG_DIR:-not restored})"

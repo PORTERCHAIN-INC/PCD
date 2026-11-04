@@ -434,15 +434,25 @@ jobs:
               exit 1
             fi
             echo "sync-secrets: runtime.env bytes=$(wc -c < runtime.env)"
-            if ! bash sync-secrets.sh 2>&1; then
-              echo "::error::sync-secrets.sh failed — see output above"
+            restore_pre_migrate() {
+              # Put back the pre-deploy .env/compose/Caddyfile and pinned images (DB untouched).
+              echo "::error::$1"
+              CONFIRM_RESTORE=yes bash scripts/rollback-prod.sh backups/pre-migrate-pending.manifest \
+                || echo "::error::pre-migrate restore failed — config is in CONFIG_DIR of backups/pre-migrate-pending.manifest"
               exit 1
+            }
+            if ! bash sync-secrets.sh 2>&1; then
+              restore_pre_migrate "sync-secrets.sh failed — see output above"
             fi
             echo "Compose env file ready ($(wc -c < .env) bytes)"
-            docker compose -f docker-compose.prod.yml pull \
+            if ! docker compose -f docker-compose.prod.yml pull \
               postgres redis spicedb-db-init spicedb-migrate spicedb valhalla \
-              api worker web admin merchant driver customer caddy
-            bash scripts/recover-prod-stack.sh
+              api worker web admin merchant driver customer caddy; then
+              restore_pre_migrate "image pull failed"
+            fi
+            if ! bash scripts/recover-prod-stack.sh; then
+              restore_pre_migrate "recover-prod-stack.sh failed before migrate"
+            fi
             if ! bash scripts/snapshot-before-migrate.sh capture-database; then
               CONFIRM_RESTORE=yes bash scripts/rollback-prod.sh backups/pre-migrate-pending.manifest \
                 || echo "::error::image pin after a failed pre-migrate dump failed"
