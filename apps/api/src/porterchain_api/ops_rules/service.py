@@ -169,16 +169,13 @@ def end_shift_check(db: Session, driver_id: str) -> dict[str, Any]:
 # ---- SC-085 concealed damage claim
 def concealed_damage_claim(db: Session, order: Any, *, reporter: str, photos: list[str], note: str,
                            window_days: int | None = None) -> Any:
-    from porterchain_api.admin_models import Claim
+    from porterchain_api.admin_engine.claims_write import add_claim
     delivered = getattr(order, "delivered_at", None) or getattr(order, "updated_at", None)
     if order.state not in ("DELIVERED", "POD_COMPLETED", "INVOICED", "CLOSED") or delivered is None:
         raise ValueError("order_not_delivered")
     if delivered.tzinfo is None:
         delivered = delivered.replace(tzinfo=UTC)
     chk = rules.concealed_damage_check(delivered, datetime.now(UTC), photos, window_days)
-    c = Claim(order_id=order.id, merchant_id=getattr(order, "merchant_id", None), claim_type="concealed_damage",
-              status=chk["status"], description=note[:4000],
-              evidence={"photos": photos, "reporter": reporter, **chk})
-    db.add(c)
-    db.flush()
-    return c
+    return add_claim(db, order_id=order.id, merchant_id=getattr(order, "merchant_id", None),
+                     claim_type="concealed_damage", status=chk["status"], description=note[:4000],
+                     evidence={"photos": photos, "reporter": reporter, **chk})

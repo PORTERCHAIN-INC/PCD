@@ -496,6 +496,6 @@ from porterchain_api.billing_engine.merchant_service import rows_to_csv  # noqa:
 
 
 def _supplier_tax_identity(db: Session, inv: Any) -> dict[str, Any]:
-    from porterchain_api.booking_engine.invoice_service import supplier_tax_identity
+    from porterchain_api.platform.engine_ports.booking_engine__invoice_service import supplier_tax_identity
 
     return supplier_tax_identity(db, inv)

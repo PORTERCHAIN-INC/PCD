@@ -215,7 +215,7 @@ def connect_custom_app(
     row.uninstalled_at = None
     row.installed_at = datetime.now(UTC)
     apply_signup_policy(db, ctx.merchant, source=SIGNUP_SOURCE_SHOPIFY)
-    from porterchain_api.org_engine.service import ensure_org_for_shopify_safe
+    from porterchain_api.platform.engine_ports.org_engine__service import ensure_org_for_shopify_safe
 
     ensure_org_for_shopify_safe(db, ctx.merchant, shop)
     db.commit()

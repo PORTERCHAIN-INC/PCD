@@ -128,12 +128,12 @@ def backfill_from_merchants(db: Session, *, dry_run: bool = True) -> dict[str, A
     Shopify-connected merchants become ``shopify_merchant``; the rest ``small_shop``/``other``
     flagged ``needs_review`` for Ravi's one-page review. Re-running is a no-op.
     """
-    from porterchain_api.merchant_models import Merchant, ShopifyShop
+    from porterchain_api.platform.engine_ports.merchant_engine__lookups import merchants_by_created, shopify_merchant_ids
 
     existing = set(db.scalars(select(Organisation.merchant_id).where(Organisation.merchant_id.is_not(None))))
-    shopify = set(db.scalars(select(ShopifyShop.merchant_id)))
+    shopify = shopify_merchant_ids(db)
     created: list[dict[str, Any]] = []
-    for m in db.scalars(select(Merchant).order_by(Merchant.created_at)):
+    for m in merchants_by_created(db):
         if m.id in existing:
             continue
         is_shop = m.id in shopify

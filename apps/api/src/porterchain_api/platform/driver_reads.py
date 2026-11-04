@@ -42,3 +42,9 @@ def get_driver_by_idp(db: Session, auth_subject: str) -> Driver | None:
 
 def list_drivers(db: Session) -> list[Driver]:
     return db.query(Driver).all()
+
+
+def stop_meta_for_order(db: Session, order_id: str) -> object | None:
+    from porterchain_api.driver_models import DriverStopMeta
+
+    return db.query(DriverStopMeta).filter(DriverStopMeta.order_id == order_id).first()

@@ -132,7 +132,7 @@ def remind_invoice(
 
     portal = (get_settings().merchant_portal_url or "").rstrip("/")
     pay_url = f"{portal}/billing/invoices/{invoice.id}" if portal else None
-    from porterchain_api.admin_engine.merchant_ar_service import interac_instructions
+    from porterchain_api.platform.engine_ports.admin_engine__merchant_ar_service import interac_instructions
 
     payload["interac_line"] = interac_instructions(db, invoice)
     if pay_url:

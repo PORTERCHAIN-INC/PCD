@@ -89,7 +89,7 @@ def complete_invoice_checkout(db: Session, session: dict[str, Any]) -> dict[str,
     txn = f"stripe:{intent_id or session.get('id')}"
     if db.query(Payment).filter(Payment.transaction_id == txn).first():
         return {"status": "already_paid"}
-    from porterchain_api.admin_engine.merchant_ar_service import MerchantArService
+    from porterchain_api.platform.engine_ports.admin_engine__merchant_ar_service import MerchantArService
 
     try:
         out = MerchantArService().record_payment(

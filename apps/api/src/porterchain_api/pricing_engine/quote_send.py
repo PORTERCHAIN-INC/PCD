@@ -51,7 +51,7 @@ def quote_state(row: PricingSentQuote, now: datetime | None = None) -> str:
 
 def deliver_quote_email(db: Session, row: PricingSentQuote, link: str) -> dict[str, Any]:
     try:
-        from porterchain_api.notification_engine.delivery_service import DeliveryService
+        from porterchain_api.platform.engine_ports.notification_engine__delivery_service import DeliveryService
 
         log = DeliveryService().deliver({
             "channel": "email", "template": "pricing_quote_sent", "recipient": row.email,

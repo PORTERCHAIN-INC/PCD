@@ -190,7 +190,7 @@ def install_from_session_token(
         if fallback:
             row.default_pickup_address_id = fallback.id
     apply_signup_policy(db, merchant, source=SIGNUP_SOURCE_SHOPIFY)
-    from porterchain_api.org_engine.service import ensure_org_for_shopify_safe
+    from porterchain_api.platform.engine_ports.org_engine__service import ensure_org_for_shopify_safe
 
     ensure_org_for_shopify_safe(db, merchant, shop)
     db.commit()

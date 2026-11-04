@@ -84,13 +84,9 @@ def _rows(db: Any) -> list[Any]:
     if isinstance(info, dict) and _CACHE_KEY in info:
         return info[_CACHE_KEY]
     try:
-        from porterchain_api.admin_models import TaxRegistration
+        from porterchain_api.admin_engine.tax_registrations import registration_rows
 
-        rows = (
-            db.query(TaxRegistration)
-            .order_by(TaxRegistration.effective_from.asc(), TaxRegistration.created_at.asc())
-            .all()
-        )
+        rows = registration_rows(db)
     except Exception:  # table missing (old DB) or a mocked session: act as non-registrant
         rows = []
     rows = [r for r in rows if hasattr(r, "effective_from")]
@@ -191,7 +187,7 @@ def record_registration(
     before the latest existing change (history stays in order; issued invoices are never
     re-taxed either way).
     """
-    from porterchain_api.admin_models import TaxRegistration
+    from porterchain_api.admin_engine.tax_registrations import add_registration
 
     number = normalize_gst_hst(gst_hst_number)
     name = str(legal_name or "").strip()
@@ -212,14 +208,13 @@ def record_registration(
     current = registration_at(db, effective_from)
     if current.gst_hst_number == number and (current.legal_name or "") == (name if number else ""):
         raise ValueError("registration_unchanged")
-    row = TaxRegistration(
+    row = add_registration(
+        db,
         gst_hst_number=number or None,
         legal_name=name or None,
         effective_from=effective_from,
         note=(note or "").strip()[:500] or None,
         created_by=actor_id,
     )
-    db.add(row)
-    db.flush()
     clear_cache(db)
     return row

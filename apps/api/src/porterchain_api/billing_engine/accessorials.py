@@ -141,7 +141,7 @@ def stamp(order: Any, acc: Accessorial, invoice_id: str) -> None:
 
 def adjustment_lines(db: Session, orders: list[Any]) -> list[Accessorial]:
     """Doc 72 §9.4 per-order adjustments (waiting, extra stop, credits...) billed as their own lines."""
-    from porterchain_api.pricing_engine.models import PricingOrderAdjustment
+    from porterchain_api.platform.engine_ports.pricing_engine__models import PricingOrderAdjustment
 
     by_id = {o.id: o for o in orders}
     if not by_id:

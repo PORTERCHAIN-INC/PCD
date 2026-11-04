@@ -21,7 +21,7 @@ def run_due_cycles(svc, db: Session, *, now: datetime | None = None) -> dict[str
 
     Idempotent — orders already on an invoice are excluded, so re-running is a no-op.
     """
-    from porterchain_api.billing_engine import weekly_billing
+    from porterchain_api.platform.engine_ports.billing_engine__pkg import weekly_billing
 
     # Weekly billing (Ravi 2026-10-31): last Mon-Sun Toronto week, invoiced from Wednesday.
     if not weekly_billing.invoice_day_reached(now):

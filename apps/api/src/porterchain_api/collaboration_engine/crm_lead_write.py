@@ -233,8 +233,8 @@ def _ensure_org_for_company(db: Session, company: CrmCompany, lead: CrmLead) -> 
     Unknown business types land as small_shop/other flagged for review. Idempotent:
     the organisation id is the CRM company id.
     """
-    from porterchain_api.org_engine import packs, service
-    from porterchain_api.org_engine.models import Organisation
+    from porterchain_api.platform.engine_ports.org_engine__pkg import packs, service
+    from porterchain_api.platform.engine_ports.org_engine__models import Organisation
 
     org = db.get(Organisation, company.id)
     if org is None:

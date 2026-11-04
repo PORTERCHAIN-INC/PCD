@@ -113,13 +113,13 @@ def _proof_types(order: Order) -> list[str] | None:
     """Proof kinds captured at the stop (photo / signature), for the delivered email (L180)."""
     from sqlalchemy.orm import object_session
 
-    from porterchain_api.driver_models import DriverStopMeta
+    from porterchain_api.platform.driver_reads import stop_meta_for_order
 
     db = object_session(order)
     if db is None:
         return None
     try:
-        row = db.query(DriverStopMeta).filter(DriverStopMeta.order_id == order.id).first()
+        row = stop_meta_for_order(db, order.id)
     except Exception:  # noqa: BLE001 — generic proof line
         return None
     proofs = (row.meta or {}).get("proofs", []) if row else []

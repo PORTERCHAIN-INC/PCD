@@ -22,8 +22,8 @@ def flags_for(order: Any) -> dict[str, Any]:
 
 
 def flow_specs_for_order(db: Session, order: Any) -> dict[str, Any]:
-    from porterchain_api.org_engine import packs
-    from porterchain_api.org_engine.models import OperatingProfile, Organisation
+    from porterchain_api.platform.engine_ports.org_engine__pkg import packs
+    from porterchain_api.platform.engine_ports.org_engine__models import OperatingProfile, Organisation
 
     flags = flags_for(order)
     code, subtype, pickup_mode = "retail_customer", None, "on_demand"

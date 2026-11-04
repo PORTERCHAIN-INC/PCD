@@ -18,7 +18,7 @@ class DriverOfflineExecutor:
         action = action_type.lower()
         if action in ("hos_event", "dvir"):
             # Doc 80 §2: HOS timestamps are the phone clock at the event; never rewritten on sync.
-            from porterchain_api.compliance_engine import service as comp
+            from porterchain_api.platform.engine_ports.compliance_engine__pkg import service as comp
 
             (comp.record_hos if action == "hos_event" else comp.submit_dvir)(db, str(driver.id), payload)
             return

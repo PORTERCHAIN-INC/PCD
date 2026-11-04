@@ -59,7 +59,7 @@ def _status(db: Session, invoice: Invoice, now: datetime) -> str:
         effective_payment_terms,
         invoice_status,
     )
-    from porterchain_api.merchant_engine.lookups import get_merchant
+    from porterchain_api.platform.engine_ports.merchant_engine__lookups import get_merchant
 
     order = db.query(Order).filter(Order.id == invoice.order_id).first() if invoice.order_id else None
     merchant = get_merchant(db, invoice.merchant_id)
@@ -82,10 +82,10 @@ def _money(cents: int) -> str:
 
 def suspend_for_penalty(db: Session, merchant: Any, invoice: Invoice) -> bool:
     """System suspend (same event, notice and email as an admin suspend). False if not active."""
-    from porterchain_api.admin_engine import events as E
-    from porterchain_api.booking_engine._core import emit_event
+    from porterchain_api.platform.engine_ports.admin_engine__pkg import events as E
+    from porterchain_api.platform.engine_ports.booking_engine___core import emit_event
     from porterchain_api.domain.merchant_states import MerchantStatus
-    from porterchain_api.merchant_engine.lifecycle import set_status
+    from porterchain_api.platform.engine_ports.merchant_engine__lifecycle import set_status
 
     if merchant is None or str(merchant.status or "").upper() != MerchantStatus.ACTIVE.value:
         return False
@@ -115,7 +115,7 @@ def apply_due_penalties(
 ) -> dict[str, int]:
     """Penalise every overdue business invoice once and suspend its business. Commits."""
     from porterchain_api.billing_engine.merchant_service import invoice_total_cents
-    from porterchain_api.merchant_engine.lookups import get_merchant
+    from porterchain_api.platform.engine_ports.merchant_engine__lookups import get_merchant
 
     if pct is None:
         from porterchain_api.config import get_settings
@@ -172,7 +172,7 @@ def apply_due_penalties(
 
 def _billing_email(merchant):
     """L66: overdue suspension / reinstatement are billing mail -> primary AP contact, else company email."""
-    from porterchain_api.merchant_engine.invoice_reminder import primary_billing_email
+    from porterchain_api.platform.engine_ports.merchant_engine__invoice_reminder import primary_billing_email
 
     return primary_billing_email(merchant) or merchant.email
 
@@ -181,13 +181,10 @@ def unsuspend_candidates(db: Session, merchant_id: str | None = None) -> list[di
     """Suspended businesses whose penalised invoices are now paid in full (penalty included)."""
     from porterchain_api.billing_engine.merchant_service import outstanding_cents
     from porterchain_api.domain.merchant_states import MerchantStatus
-    from porterchain_api.merchant_models import Merchant
+    from porterchain_api.platform.engine_ports.merchant_engine__lookups import suspended_merchants
 
     out = []
-    q = db.query(Merchant).filter(Merchant.status.in_([MerchantStatus.SUSPENDED.value, "suspended"]))
-    if merchant_id:
-        q = q.filter(Merchant.id == merchant_id)
-    for m in q.all():
+    for m in suspended_merchants(db, [MerchantStatus.SUSPENDED.value, "suspended"], merchant_id):
         entries = db.query(BillingLedgerEntry).filter(
             BillingLedgerEntry.kind == KIND, BillingLedgerEntry.merchant_id == m.id
         ).all()
@@ -207,11 +204,11 @@ def auto_unsuspend(db: Session, merchant_id: str | None = None, *, commit: bool 
     """Ravi's rule: once everything penalised is paid in full (penalty included), reinstate the
     business automatically. Same unsuspend event as admin, so the business gets an in-app notice
     and the EN/FR "account reinstated" email. Only businesses suspended for a late penalty qualify."""
-    from porterchain_api.admin_engine import events as E
-    from porterchain_api.booking_engine._core import emit_event
+    from porterchain_api.platform.engine_ports.admin_engine__pkg import events as E
+    from porterchain_api.platform.engine_ports.booking_engine___core import emit_event
     from porterchain_api.domain.merchant_states import MerchantStatus
-    from porterchain_api.merchant_engine.lifecycle import set_status
-    from porterchain_api.merchant_engine.lookups import get_merchant
+    from porterchain_api.platform.engine_ports.merchant_engine__lifecycle import set_status
+    from porterchain_api.platform.engine_ports.merchant_engine__lookups import get_merchant
 
     done: list[str] = []
     for c in unsuspend_candidates(db, merchant_id):

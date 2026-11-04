@@ -70,8 +70,8 @@ def _clean(body: dict[str, Any]) -> dict[str, Any]:
 
 class FleetContractsService:
     def list(self, db: Session, partner_id: str | None = None) -> list[dict[str, Any]]:
-        from porterchain_api.dispatch_engine.models import FleetPartnerContract as C
-        from porterchain_api.dispatch_engine.models import LogisticsPartner
+        from porterchain_api.platform.engine_ports.dispatch_engine__models import FleetPartnerContract as C
+        from porterchain_api.platform.engine_ports.dispatch_engine__models import LogisticsPartner
 
         q = db.query(C)
         if partner_id:
@@ -86,8 +86,8 @@ class FleetContractsService:
 
     def upsert(self, db: Session, ctx: Any, body: dict[str, Any], contract_id: str | None = None) -> dict[str, Any]:
         from porterchain_api.admin_engine.logistics_partners_service import _audit
-        from porterchain_api.dispatch_engine.models import FleetPartnerContract as C
-        from porterchain_api.dispatch_engine.models import LogisticsPartner
+        from porterchain_api.platform.engine_ports.dispatch_engine__models import FleetPartnerContract as C
+        from porterchain_api.platform.engine_ports.dispatch_engine__models import LogisticsPartner
 
         data = _clean(body)
         if contract_id:
@@ -113,7 +113,7 @@ class FleetContractsService:
 
     def delete(self, db: Session, ctx: Any, contract_id: str) -> dict[str, Any]:
         from porterchain_api.admin_engine.logistics_partners_service import _audit
-        from porterchain_api.dispatch_engine.models import FleetPartnerContract as C
+        from porterchain_api.platform.engine_ports.dispatch_engine__models import FleetPartnerContract as C
 
         c = db.get(C, contract_id)
         if c is None:
@@ -125,7 +125,7 @@ class FleetContractsService:
 
     @staticmethod
     def _no_overlap(db: Session, partner_id: str, start: date, end: date | None, self_id: str | None) -> None:
-        from porterchain_api.dispatch_engine.models import FleetPartnerContract as C
+        from porterchain_api.platform.engine_ports.dispatch_engine__models import FleetPartnerContract as C
 
         far = date(9999, 12, 31)
         for o in db.query(C).filter(C.partner_id == partner_id).all():
@@ -136,7 +136,7 @@ class FleetContractsService:
 
     @staticmethod
     def contract_on(db: Session, partner_id: str, day: date) -> Any:
-        from porterchain_api.dispatch_engine.models import FleetPartnerContract as C
+        from porterchain_api.platform.engine_ports.dispatch_engine__models import FleetPartnerContract as C
 
         for c in db.query(C).filter(C.partner_id == partner_id).all():
             if c.effective_from <= day and (c.effective_to is None or day <= c.effective_to):
@@ -165,7 +165,7 @@ class FleetContractsService:
     def payable_statement(self, db: Session, partner_id: str, start: date, end: date) -> dict[str, Any]:
         """Per completed job: units, rate, charge (min applied); total for [start, end]."""
         from porterchain_api.booking_models import Order
-        from porterchain_api.dispatch_engine.models import LogisticsPartner, OrderLeg
+        from porterchain_api.platform.engine_ports.dispatch_engine__models import LogisticsPartner, OrderLeg
 
         partner = db.get(LogisticsPartner, partner_id)
         if partner is None:

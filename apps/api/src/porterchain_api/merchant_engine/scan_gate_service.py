@@ -239,7 +239,7 @@ class ScanGateService:
         else:
             if pkg.status in (STATUS_MANIFESTED, STATUS_MISSING_AT_PICKUP):
                 raise ValueError("scan_pickup_required_first")
-            from porterchain_api.order_engine.buckets import PICKUP_LEG
+            from porterchain_api.platform.engine_ports.order_engine__buckets import PICKUP_LEG
 
             # The pickup stop must be confirmed before any box can be marked delivered.
             raw_state = getattr(order, "state", None)

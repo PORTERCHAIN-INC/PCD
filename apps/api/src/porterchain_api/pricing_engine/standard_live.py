@@ -53,7 +53,7 @@ def zone_for_fsa(fsa: str) -> str:
 def org_id_for_merchant(db: Session, merchant_id: str | None) -> str | None:
     if not merchant_id:
         return None
-    from porterchain_api.org_engine.models import Organisation
+    from porterchain_api.platform.engine_ports.org_engine__models import Organisation
 
     org = db.scalar(select(Organisation).where(Organisation.merchant_id == merchant_id))
     return org.id if org else merchant_id

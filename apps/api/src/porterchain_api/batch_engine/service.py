@@ -7,7 +7,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from porterchain_api.batch_engine import planner as P
-from porterchain_api.flow_engine import flow_spec as fs
+from porterchain_api.platform.engine_ports.flow_engine__pkg import flow_spec as fs
 from porterchain_api.job_docs import service as JD
 from porterchain_api.batch_engine.models import (
     BatchException, BatchHandover, BatchParcel, BatchRoute, CustodyEvent, DeliveryBatch,
@@ -538,7 +538,7 @@ def _notify(r: BatchRoute, kind: str, **data: Any) -> None:
     from sqlalchemy.orm import object_session
     db = object_session(r)
     if db is not None:
-        from porterchain_api.notification_engine.notice_push import push_notice
+        from porterchain_api.platform.engine_ports.notification_engine__notice_push import push_notice
         push_notice(db, r.driver_id, kind, r.id)
 
 

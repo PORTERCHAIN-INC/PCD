@@ -255,6 +255,6 @@ class OrderPlatformHelpersMixin:
 
 
 def _promised_eta(order: Any) -> Any:
-    from porterchain_api.booking_engine.order_sla import resolve_sla_deadline
+    from porterchain_api.platform.engine_ports.booking_engine__order_sla import resolve_sla_deadline
 
     return getattr(order, "sla_deadline_at", None) or resolve_sla_deadline(order)

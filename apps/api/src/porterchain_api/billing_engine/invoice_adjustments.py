@@ -57,10 +57,9 @@ def normalise_reason(code: str | None) -> str:
 
 
 def approval_threshold_cents(db: Session) -> int:
-    from porterchain_api.admin_models import SystemConfig
+    from porterchain_api.platform.engine_ports.merchant_engine__config_read import config_dict
 
-    row = db.query(SystemConfig).filter(SystemConfig.key == "settings_finance").first()
-    cfg = row.value if row is not None and isinstance(row.value, dict) else {}
+    cfg = config_dict(db, "settings_finance")
     raw = cfg.get("credit_note_approval_threshold_cents")
     try:
         val = int(raw)
@@ -303,9 +302,9 @@ def _recipient_name(db: Session, invoice: Invoice) -> str:
         if c is not None:
             return (c.full_name or "").strip() or "Customer"
     if invoice.merchant_id:
-        from porterchain_api.merchant_models import Merchant
+        from porterchain_api.platform.engine_ports.merchant_engine__lookups import get_merchant
 
-        m = db.get(Merchant, invoice.merchant_id)
+        m = get_merchant(db, invoice.merchant_id)
         if m is not None:
             return (m.legal_name or m.company_name or "").strip() or "Merchant"
     return "Customer"

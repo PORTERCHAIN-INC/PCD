@@ -149,3 +149,28 @@ def get_seat_by_idp(db: Session, auth_subject: str | None) -> MerchantUser | Non
     if not auth_subject:
         return None
     return db.query(MerchantUser).filter(MerchantUser.auth_subject == auth_subject).first()
+
+
+def first_seat(db: Session, merchant_id: str) -> MerchantUser | None:
+    return db.query(MerchantUser).filter(MerchantUser.merchant_id == merchant_id).first()
+
+
+def suspended_merchants(db: Session, statuses: list[str], merchant_id: str | None = None) -> list[Merchant]:
+    q = db.query(Merchant).filter(Merchant.status.in_(statuses))
+    if merchant_id:
+        q = q.filter(Merchant.id == merchant_id)
+    return q.all()
+
+
+def merchants_by_created(db: Session) -> list[Merchant]:
+    from sqlalchemy import select
+
+    return list(db.scalars(select(Merchant).order_by(Merchant.created_at)))
+
+
+def shopify_merchant_ids(db: Session) -> set[str]:
+    from sqlalchemy import select
+
+    from porterchain_api.merchant_models import ShopifyShop
+
+    return set(db.scalars(select(ShopifyShop.merchant_id)))
