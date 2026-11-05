@@ -153,9 +153,7 @@ export default function CustomerDetailClient({ id }: { id: string }) {
   }
 
   const showInvite = canWrite && !data.identity_linked && data.privacy_status !== "deletion_hold";
-  const showConvert =
-    canWrite && data.privacy_status !== "deletion_hold";
-
+  const showConvert = canWrite && data.privacy_status !== "deletion_hold";
 
   return (
     <AdminPage
@@ -207,7 +205,9 @@ export default function CustomerDetailClient({ id }: { id: string }) {
               )}
             </p>
             {(inviteError || inviteOk || convertError) && (
-              <p className={`mt-2 text-sm ${inviteError || convertError ? "text-red-600" : "text-green-700"}`}>
+              <p
+                className={`mt-2 text-sm ${inviteError || convertError ? "text-red-600" : "text-green-700"}`}
+              >
                 {inviteError || convertError || inviteOk}
               </p>
             )}

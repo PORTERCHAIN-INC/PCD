@@ -4,12 +4,21 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from porterchain_api.admin_engine.customer_lifecycle import convert_to_merchant
+import pytest
+
+from porterchain_api.admin_engine.merchant_lifecycle import convert_from_customer
+from porterchain_api.admin_engine.merchant_service import AdminMerchantService
 from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
 from porterchain_api.booking_models import Customer, Order
-from porterchain_api.domain.merchant_states import MerchantStatus
+from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.domain.states import OrderState
 from porterchain_api.merchant_models import Merchant, MerchantUser
+
+
+def _convert(db, admin_ctx, settings, customer_id, **kwargs):
+    return convert_from_customer(
+        AdminMerchantService(), db, admin_ctx, settings, customer_id, **kwargs
+    )
 
 
 def test_convert_to_merchant_keeps_orders_and_soft_deletes_customer(
@@ -36,7 +45,7 @@ def test_convert_to_merchant_keeps_orders_and_soft_deletes_customer(
     db.add(order)
     db.commit()
 
-    first = convert_to_merchant(
+    first = _convert(
         db,
         admin_ctx,
         settings,
@@ -65,8 +74,6 @@ def test_convert_to_merchant_keeps_orders_and_soft_deletes_customer(
     assert order.customer_id == customer.id
     assert order.merchant_id is None
 
-    from porterchain_api.domain.merchant_states import MerchantRole
-
     seat = (
         db.query(MerchantUser)
         .filter(MerchantUser.merchant_id == merchant.id, MerchantUser.email == merchant.email)
@@ -75,7 +82,7 @@ def test_convert_to_merchant_keeps_orders_and_soft_deletes_customer(
     assert seat is not None
     assert seat.role == MerchantRole.OWNER.value
 
-    second = convert_to_merchant(
+    second = _convert(
         db,
         admin_ctx,
         settings,
@@ -97,7 +104,5 @@ def test_convert_to_merchant_blocks_privacy_hold(db, admin_ctx, settings) -> Non
     )
     db.add(customer)
     db.commit()
-    import pytest
-
     with pytest.raises(ValueError, match="customer_privacy_hold"):
-        convert_to_merchant(db, admin_ctx, settings, customer.id, send_invite=False)
+        _convert(db, admin_ctx, settings, customer.id, send_invite=False)

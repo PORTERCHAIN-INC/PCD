@@ -195,10 +195,13 @@ def convert_customer_to_merchant(
 ) -> AdminConvertCustomerToMerchantResponse:
     """Convert a retail customer into a merchant. Historical orders stay on the customer."""
     _guard(ctx, "customers")
-    from porterchain_api.admin_engine.customer_lifecycle import convert_to_merchant
+    from porterchain_api.admin_engine.merchant_lifecycle import convert_from_customer
+    from porterchain_api.admin_engine.merchant_service import AdminMerchantService
 
+    svc = AdminMerchantService()
     try:
-        result = convert_to_merchant(
+        result = convert_from_customer(
+            svc,
             db,
             ctx,
             settings,
@@ -217,7 +220,13 @@ def convert_customer_to_merchant(
             "email_seat_taken",
         } else 400
         raise HTTPException(status_code=code, detail=detail) from exc
-    return AdminConvertCustomerToMerchantResponse(**result)
+    return AdminConvertCustomerToMerchantResponse(
+        customer_id=result["customer_id"],
+        merchant_id=result["merchant_id"],
+        status=result["status"],
+        company_name=result.get("company_name"),
+        idempotent=bool(result.get("idempotent")),
+    )
 
 
 @router.get("/{customer_id}/care")

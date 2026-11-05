@@ -169,7 +169,6 @@ export type CreateCustomerResult = {
   created_at: string | null;
 };
 
-
 export type ConvertCustomerToMerchantInput = {
   company_name?: string | null;
   auto_activate?: boolean;
