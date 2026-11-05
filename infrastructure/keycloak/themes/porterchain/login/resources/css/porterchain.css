@@ -547,7 +547,9 @@ body.pc-body {
 .pc-page:has([data-k="pcPersonaAdmin"]) #kc-social-providers {
   display: none;
 }
-#kc-social-providers a span {
+/* Google/Apple get CSS labels below; other IdPs (Clerk bridge) keep their own display name */
+#social-google span,
+#social-apple span {
   display: none;
 }
 #social-google:after {
