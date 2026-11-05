@@ -126,6 +126,10 @@ export default function CustomerDetailClient({ id }: { id: string }) {
     return <EmptyState title="Customer not found" hint={error || "Unknown customer"} />;
   }
 
+  const displayName = data.display_name;
+  const showInvite = canWrite && !data.identity_linked && data.privacy_status !== "deletion_hold";
+  const showConvert = canWrite && data.privacy_status !== "deletion_hold";
+
   async function convertToMerchant() {
     if (
       !window.confirm(
@@ -139,7 +143,7 @@ export default function CustomerDetailClient({ id }: { id: string }) {
     try {
       const token = await getApiToken();
       const result = await customersApi.convertToMerchant(token, id, {
-        company_name: data.display_name || undefined,
+        company_name: displayName || undefined,
         auto_activate: true,
         send_invite: false,
       });
@@ -151,9 +155,6 @@ export default function CustomerDetailClient({ id }: { id: string }) {
       setConvertBusy(false);
     }
   }
-
-  const showInvite = canWrite && !data.identity_linked && data.privacy_status !== "deletion_hold";
-  const showConvert = canWrite && data.privacy_status !== "deletion_hold";
 
   return (
     <AdminPage
