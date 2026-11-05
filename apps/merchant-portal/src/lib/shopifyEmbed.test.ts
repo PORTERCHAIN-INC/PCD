@@ -18,6 +18,14 @@ test("api-key meta then App Bridge are the first things in <head>", () => {
   assert.doesNotMatch(firstScript ?? "", /async|defer|type=/);
 });
 
+test("favicon uses PorterChain logo after App Bridge head requirements", () => {
+  const head = html.slice(html.indexOf("<head>") + 6, html.indexOf("</head>"));
+  assert.match(head, /rel="icon"[^>]*href="\/brand\/porterchain-mark\.png"/);
+  const iconAt = head.indexOf('rel="icon"');
+  const bridgeAt = head.indexOf(APP_BRIDGE_SRC);
+  assert.ok(bridgeAt >= 0 && iconAt > bridgeAt);
+});
+
 test("page states the 150 km service area and posts the session token", () => {
   assert.match(html, /Toronto and up to 150 km/);
   assert.match(html, /\/v1\/integrations\/shopify\/session/);

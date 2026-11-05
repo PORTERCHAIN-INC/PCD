@@ -68,6 +68,8 @@ export function embeddedAppHtml(opts: {
 <script src="${APP_BRIDGE_SRC}"></script>
 <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>PorterChain Delivery</title>
+<link rel="icon" href="/brand/porterchain-mark.png" type="image/png" />
+<link rel="apple-touch-icon" href="/brand/porterchain-mark.png" />
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#0f2742;margin:0}
 main{max-width:36rem;margin:0 auto;padding:2rem 1rem}h1{font-size:1.5rem;margin:0 0 1rem}
