@@ -31,7 +31,9 @@ const gate = portalMiddleware({
 export default async function middleware(req: NextRequest) {
   if (req.nextUrl.pathname === "/" && !authDevBypassEnabled()) {
     const signedIn = hasSessionCookie(req.cookies) || hasDevSession(req) || hasImp(req);
-    return NextResponse.redirect(new URL(signedIn ? "/onboarding" : "/login", req.url));
+    return NextResponse.redirect(
+      new URL(signedIn ? "/onboarding" : "/auth/login?return_to=%2Fonboarding", req.url)
+    );
   }
   return gate(req);
 }

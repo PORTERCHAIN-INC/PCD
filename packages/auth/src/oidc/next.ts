@@ -6,6 +6,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { cookieSecure } from "../cookieSecure";
 import {
   flowCookieName,
+  hasSessionCookie,
   sessionCookieName,
   appOrigin,
   authorizeUrl,
@@ -30,6 +31,7 @@ import {
   type Session,
   type SessionUser,
 } from "./core";
+import { portalForClient, portalOrigin, portalRedirect } from "./portals";
 
 /** Refresh token lifetime cap for the cookie (Keycloak SSO max is shorter and wins). */
 const SESSION_MAX_AGE = 60 * 60 * 12;
@@ -113,8 +115,20 @@ async function callback(req: NextRequest, c: OidcConfig) {
   if (!code) return fail("missing_code");
   try {
     const s = await exchangeCode(c, code, flow.verifier, `${origin}/auth/callback`);
+    // Shared sign-in page: land the user in the portal their roles allow (Keycloak SSO signs them in there).
+    const here = portalForClient(c.clientId);
+    const target = portalRedirect(here, s.user.roles);
+    const dest = target && here ? portalOrigin(target, here, origin) : null;
+    if (dest) {
+      const res = NextResponse.redirect(
+        `${dest}/auth/login?return_to=${encodeURIComponent("/?sso=1")}`
+      );
+      res.cookies.set(flowCookieName(), "", { path: "/auth", maxAge: 0 });
+      return res;
+    }
     const res = NextResponse.redirect(`${origin}${flow.returnTo}`);
     res.cookies.set(flowCookieName(), "", { path: "/auth", maxAge: 0 });
+    res.cookies.set(HOP_COOKIE, "", { path: "/", maxAge: 0 });
     return apply(res, await sessionCookies(s, c));
   } catch (e) {
     return fail(e instanceof Error ? e.message : "token_exchange_failed");
@@ -184,6 +198,28 @@ export async function handleAuthRoute(
   }
 }
 
+const HOP_COOKIE = "pc_auth_hop";
+
+/** Send a signed-out browser straight to Keycloak; a second bounce within 15 s shows the error page instead of looping. */
+function toKeycloak(req: NextRequest, signIn: string, back: string | null): NextResponse {
+  if (req.cookies.get(HOP_COOKIE)?.value) {
+    const res = NextResponse.redirect(new URL(`${signIn}?auth_error=sign_in_loop`, req.url));
+    res.cookies.set(HOP_COOKIE, "", { path: "/", maxAge: 0 });
+    return res;
+  }
+  const u = new URL("/auth/login", req.url);
+  if (back && back !== signIn) u.searchParams.set("return_to", back);
+  const res = NextResponse.redirect(u);
+  res.cookies.set(HOP_COOKIE, "1", {
+    path: "/",
+    maxAge: 15,
+    httpOnly: true,
+    sameSite: "lax",
+    secure: secure(),
+  });
+  return res;
+}
+
 export type AuthGateOptions = {
   /** Path prefixes that never need a session (/auth is always public). */
   publicPaths: string[];
@@ -211,17 +247,23 @@ function isPublic(path: string, prefixes: string[]) {
  */
 export async function authGate(req: NextRequest, o: AuthGateOptions): Promise<NextResponse> {
   const path = req.nextUrl.pathname;
+  const signIn = o.signInPath ?? "/sign-in";
+  // The portal sign-in page only reports errors now; signed-out visits go straight to Keycloak.
+  if (
+    path === signIn &&
+    !req.nextUrl.searchParams.get("auth_error") &&
+    !hasSessionCookie(req.cookies)
+  ) {
+    return toKeycloak(req, signIn, req.nextUrl.searchParams.get("redirect_url"));
+  }
   if (isPublic(path, o.publicPaths) || o.allow?.(req)) return NextResponse.next();
   const c = oidcConfig();
-  const signIn = o.signInPath ?? "/sign-in";
   const deny = () => {
     if (path.startsWith("/api/")) {
       return NextResponse.json({ detail: "missing_bearer_token" }, { status: 401 });
     }
-    const u = new URL(signIn, req.url);
-    const back = `${path}${req.nextUrl.search}`;
-    if (back !== signIn) u.searchParams.set("redirect_url", back);
-    return NextResponse.redirect(u);
+    // Straight to the shared Keycloak page (no portal pre-login screen); errors come back to signIn.
+    return toKeycloak(req, signIn, `${path}${req.nextUrl.search}`);
   };
   if (!c) return deny();
   let s = await readSession(req.cookies, c);

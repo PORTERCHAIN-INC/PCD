@@ -442,13 +442,6 @@ ul {
 body.pc-body {
   font-family: Carlito, Calibri, Candara, "Segoe UI", Arial, sans-serif;
 }
-/* invite-only portals (admin, driver): no self sign-up link, like the old invite-only appearance */
-.pc-page:has([data-k="pcPersonaAdmin"]) #kc-registration-container,
-.pc-page:has([data-k="pcPersonaDriver"]) #kc-registration-container,
-.pc-page:has([data-k="pcPersonaAdmin"]) #kc-registration,
-.pc-page:has([data-k="pcPersonaDriver"]) #kc-registration {
-  display: none;
-}
 /* The old sign-in had no "try another way" / remember-me; keep language switch minimal */
 #kc-select-try-another-way-form,
 #try-another-way {
@@ -542,10 +535,6 @@ body.pc-body {
 #kc-social-providers .kc-social-provider-name,
 #kc-social-providers span {
   font-weight: 500;
-}
-/* admin staff login: invite-only + TOTP, no social buttons */
-.pc-page:has([data-k="pcPersonaAdmin"]) #kc-social-providers {
-  display: none;
 }
 /* Google/Apple get CSS labels below; other IdPs (Clerk bridge) keep their own display name */
 #social-google span,
