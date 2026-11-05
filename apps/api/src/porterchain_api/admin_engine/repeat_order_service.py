@@ -13,13 +13,16 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session
 
-from porterchain_api.booking_engine import events as E
-from porterchain_api.booking_engine._core import emit_event
-from porterchain_api.booking_engine.numbers import generate_order_number, generate_tracking_number
-from porterchain_api.booking_engine.order_metadata import resolve_order_type
 from porterchain_api.booking_models import Order
 from porterchain_api.config import Settings
 from porterchain_api.domain.states import OrderSource, OrderState
+from porterchain_api.platform.engine_ports import booking_engine__events as E
+from porterchain_api.platform.engine_ports.booking_engine___core import emit_event
+from porterchain_api.platform.engine_ports.booking_engine__numbers import (
+    generate_order_number,
+    generate_tracking_number,
+)
+from porterchain_api.platform.engine_ports.booking_engine__order_metadata import resolve_order_type
 
 TORONTO = ZoneInfo("America/Toronto")
 _DROP_META_KEYS = frozenset(
@@ -175,11 +178,11 @@ def create_repeat_order(
     contract_id = None
     warnings: list[str] = []
     if original.merchant_id:
-        from porterchain_api.merchant_engine.booking_validation import (
+        from porterchain_api.platform.engine_ports.merchant_engine__booking_validation import (
             BookingValidationError,
             MerchantSyncService,
         )
-        from porterchain_api.merchant_engine.lookups import get_merchant
+        from porterchain_api.platform.engine_ports.merchant_engine__lookups import get_merchant
 
         merchant = get_merchant(db, original.merchant_id)
         if not merchant:
@@ -236,14 +239,14 @@ def create_repeat_order(
     co.attach_legs(db, order, hub, actor_type="admin", actor_id=actor_id)
 
     try:
-        from porterchain_api.booking_engine.stop_sync import dual_write_stops
+        from porterchain_api.platform.engine_ports.booking_engine__stop_sync import dual_write_stops
 
         dual_write_stops(db, order)
     except Exception:  # noqa: BLE001
         pass
 
     try:
-        from porterchain_api.merchant_engine.package_service import PackageService
+        from porterchain_api.platform.engine_ports.merchant_engine__package_service import PackageService
 
         PackageService().sync_from_order(db, order)
     except Exception:  # noqa: BLE001
