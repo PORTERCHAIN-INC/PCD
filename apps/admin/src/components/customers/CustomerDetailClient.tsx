@@ -16,6 +16,7 @@ import {
   Send,
   Settings as SettingsIcon,
   ShieldAlert,
+  Store,
 } from "lucide-react";
 import { cn } from "@porterchain/ui/utils";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -81,6 +82,8 @@ export default function CustomerDetailClient({ id }: { id: string }) {
   const [inviteBusy, setInviteBusy] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviteOk, setInviteOk] = useState<string | null>(null);
+  const [convertBusy, setConvertBusy] = useState(false);
+  const [convertError, setConvertError] = useState<string | null>(null);
   const { data, error, loading } = useApiData(
     (t) => customersApi.detail(t, id),
     [id, detailVersion],
@@ -123,7 +126,35 @@ export default function CustomerDetailClient({ id }: { id: string }) {
     return <EmptyState title="Customer not found" hint={error || "Unknown customer"} />;
   }
 
+  const displayName = data.display_name;
   const showInvite = canWrite && !data.identity_linked && data.privacy_status !== "deletion_hold";
+  const showConvert = canWrite && data.privacy_status !== "deletion_hold";
+
+  async function convertToMerchant() {
+    if (
+      !window.confirm(
+        "Convert this retail customer into a merchant? Past orders stay on this customer record. The customer portal login becomes a merchant portal login."
+      )
+    ) {
+      return;
+    }
+    setConvertBusy(true);
+    setConvertError(null);
+    try {
+      const token = await getApiToken();
+      const result = await customersApi.convertToMerchant(token, id, {
+        company_name: displayName || undefined,
+        auto_activate: true,
+        send_invite: false,
+      });
+      router.push(`/merchants/${result.merchant_id}`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Convert failed";
+      setConvertError(msg);
+    } finally {
+      setConvertBusy(false);
+    }
+  }
 
   return (
     <AdminPage
@@ -174,9 +205,11 @@ export default function CustomerDetailClient({ id }: { id: string }) {
                 <span className="font-mono text-xs">Stripe {data.stripe_customer_id}</span>
               )}
             </p>
-            {(inviteError || inviteOk) && (
-              <p className={`mt-2 text-sm ${inviteError ? "text-red-600" : "text-green-700"}`}>
-                {inviteError || inviteOk}
+            {(inviteError || inviteOk || convertError) && (
+              <p
+                className={`mt-2 text-sm ${inviteError || convertError ? "text-red-600" : "text-green-700"}`}
+              >
+                {inviteError || convertError || inviteOk}
               </p>
             )}
           </div>
@@ -196,6 +229,15 @@ export default function CustomerDetailClient({ id }: { id: string }) {
               disabled={data.privacy_status === "deletion_hold"}
             >
               <Plus className="h-4 w-4" /> Add order
+            </Button>
+          )}
+          {showConvert && (
+            <Button
+              variant="outline"
+              disabled={convertBusy}
+              onClick={() => void convertToMerchant()}
+            >
+              <Store className="h-4 w-4" /> {convertBusy ? "Converting…" : "Convert to merchant"}
             </Button>
           )}
           {canWrite ? <BookingLinkButton id={data.id} /> : null}

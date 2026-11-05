@@ -169,6 +169,20 @@ export type CreateCustomerResult = {
   created_at: string | null;
 };
 
+export type ConvertCustomerToMerchantInput = {
+  company_name?: string | null;
+  auto_activate?: boolean;
+  send_invite?: boolean;
+};
+
+export type ConvertCustomerToMerchantResult = {
+  customer_id: string;
+  merchant_id: string;
+  status: string;
+  company_name?: string | null;
+  idempotent: boolean;
+};
+
 export type CustomerInviteResult = {
   id: string;
   email: string;
@@ -198,6 +212,11 @@ export const customersApi = {
     }),
   invite: (t: string, id: string) =>
     adminFetch<CustomerInviteResult>(`${B}/${id}/invite`, t, { method: "POST" }),
+  convertToMerchant: (t: string, id: string, body: ConvertCustomerToMerchantInput = {}) =>
+    adminFetch<ConvertCustomerToMerchantResult>(`${B}/${id}/convert-to-merchant`, t, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   detail: (t: string, id: string) => adminFetch<CustomerDetail>(`${B}/${id}`, t),
   orders: (t: string, id: string, params: { limit?: number; state?: string } = {}) =>
     adminFetch<CustomerOrder[]>(

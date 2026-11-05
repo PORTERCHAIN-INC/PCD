@@ -1272,6 +1272,22 @@ class AdminCreateCustomerResponse(BaseModel):
     created_at: str | None = None
 
 
+class AdminConvertCustomerToMerchantRequest(BaseModel):
+    """Promote a retail customer into a merchant org (orders stay on the customer)."""
+
+    company_name: str | None = Field(default=None, max_length=255)
+    auto_activate: bool = True
+    send_invite: bool = False
+
+
+class AdminConvertCustomerToMerchantResponse(BaseModel):
+    customer_id: str
+    merchant_id: str
+    status: str
+    company_name: str | None = None
+    idempotent: bool = False
+
+
 class AdminCustomerInviteResponse(BaseModel):
     id: str
     email: str

@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 from typing import Any
 
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import AdminContext
+from porterchain_api.config import Settings
 from porterchain_api.domain.crm_states import CompanyMerchantStatus
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine.offboard import (
@@ -499,3 +502,31 @@ def ops_invoices(db: Session, merchant: Merchant):
             )
         )
     return out
+
+
+def convert_from_customer(
+    svc: Any,
+    db: Session,
+    ctx: AdminContext,
+    settings: Settings,
+    customer_id: str,
+    *,
+    company_name: str | None = None,
+    auto_activate: bool = True,
+    send_invite: bool = False,
+) -> dict[str, Any]:
+    """Promote a retail customer into a merchant. Orders stay on the customer id."""
+    from porterchain_api.merchant_engine.convert_customer import (
+        convert_from_customer as convert_compose,
+    )
+
+    return convert_compose(
+        svc,
+        db,
+        ctx,
+        settings,
+        customer_id,
+        company_name=company_name,
+        auto_activate=auto_activate,
+        send_invite=send_invite,
+    )
