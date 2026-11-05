@@ -7,6 +7,7 @@ import {
   portalsForRoles,
   websitePortalOrigin,
   websitePortalRedirect,
+  websiteSignInUrl,
 } from "./oidc/portals.ts";
 
 test("roles map to portals, staff first", () => {
@@ -70,5 +71,24 @@ test("website sign-in routes non-customer roles to their portal", () => {
       PC_PORTAL_URL_ADMIN: "http://localhost:53002",
     }),
     "http://localhost:53002"
+  );
+});
+
+test("portals send signed-out users to the website Sign in", () => {
+  assert.equal(
+    websiteSignInUrl("https://admin.porterchain.com", {}),
+    "https://porterchain.com/login"
+  );
+  assert.equal(
+    websiteSignInUrl("https://driver.porterchain.com", {}),
+    "https://porterchain.com/login"
+  );
+  assert.equal(websiteSignInUrl("https://porterchain.com", {}), null);
+  assert.equal(websiteSignInUrl("http://localhost:53002", {}), null);
+  assert.equal(
+    websiteSignInUrl("http://localhost:53002", {
+      PC_SITE_SIGN_IN_URL: "http://localhost:53005/login",
+    }),
+    "http://localhost:53005/login"
   );
 });

@@ -102,3 +102,24 @@ export function websitePortalOrigin(
     return null;
   }
 }
+
+/**
+ * The one Sign in entry point is the website (porterchain.com/login -> Keycloak pc-website); portals
+ * send signed-out users there and the website routes them back by role. PC_SITE_SIGN_IN_URL, else
+ * strip the portal label (admin.porterchain.com -> https://porterchain.com/login). Null = stay local.
+ */
+export function websiteSignInUrl(
+  origin: string,
+  env: Record<string, string | undefined> = process.env
+): string | null {
+  const fromEnv = (env.PC_SITE_SIGN_IN_URL ?? "").trim();
+  if (fromEnv) return fromEnv;
+  try {
+    const u = new URL(origin);
+    const [first, ...rest] = u.hostname.split(".");
+    if (!PORTAL_ORDER.includes(first as Portal) || rest.length < 2 || u.port) return null;
+    return `${u.protocol}//${rest.join(".")}/login`;
+  } catch {
+    return null;
+  }
+}
