@@ -503,6 +503,7 @@ services:
       PORT: "3000"
       KEYCLOAK_URL: ${KEYCLOAK_URL:-https://auth.porterchain.com}
       AUTH_SESSION_SECRET: ${AUTH_SESSION_SECRET:?AUTH_SESSION_SECRET (SOPS) is required}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID_WEB:-pc-website}
       ROUTING_ENGINE: valhalla
       VALHALLA_BASE_URL: http://valhalla:8002
       OSRM_HOST: ${OSRM_HOST:-}
@@ -524,6 +525,7 @@ services:
       PORT: "3002"
       KEYCLOAK_URL: ${KEYCLOAK_URL:-https://auth.porterchain.com}
       AUTH_SESSION_SECRET: ${AUTH_SESSION_SECRET:?AUTH_SESSION_SECRET (SOPS) is required}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID_ADMIN:-pc-admin}
     expose:
       - "3002"
     networks:
@@ -541,6 +543,7 @@ services:
       PORT: "3001"
       KEYCLOAK_URL: ${KEYCLOAK_URL:-https://auth.porterchain.com}
       AUTH_SESSION_SECRET: ${AUTH_SESSION_SECRET:?AUTH_SESSION_SECRET (SOPS) is required}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID_MERCHANT:-pc-merchant-portal}
       # Public Shopify client id: rendered as the shopify-api-key meta on /shopify-app
       # (App Bridge cannot mint session tokens without it). Never the secret.
       SHOPIFY_API_KEY: ${SHOPIFY_API_KEY:-}
@@ -562,6 +565,7 @@ services:
       PORT: "3003"
       KEYCLOAK_URL: ${KEYCLOAK_URL:-https://auth.porterchain.com}
       AUTH_SESSION_SECRET: ${AUTH_SESSION_SECRET:?AUTH_SESSION_SECRET (SOPS) is required}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID_DRIVER:-pc-driver-portal}
     expose:
       - "3003"
     networks:
@@ -579,6 +583,7 @@ services:
       PORT: "3004"
       KEYCLOAK_URL: ${KEYCLOAK_URL:-https://auth.porterchain.com}
       AUTH_SESSION_SECRET: ${AUTH_SESSION_SECRET:?AUTH_SESSION_SECRET (SOPS) is required}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID_CUSTOMER:-pc-customer-portal}
     expose:
       - "3004"
     networks:
