@@ -75,6 +75,7 @@ export function QuickActions({
       : []),
     { label: "Mark exception", onClick: () => actions.onMarkException(), danger: true },
     { label: "Cancel order", onClick: actions.onCancel, danger: true },
+    { label: "Repeat order", onClick: actions.onRepeatOrder, primary: true },
     { label: "Duplicate order", onClick: actions.onDuplicate },
     { label: "Rebook", onClick: actions.onRebook },
     { label: "Create return", onClick: actions.onCreateReturn },

@@ -358,6 +358,31 @@ class AdminOrdersService(OrderPlatformService):
             "amount_cents": invoice.amount_cents,
         }
 
+    def create_repeat_committed(
+        self, db: Session, settings, order_id: str, *, actor_id: str | None = None
+    ) -> dict:
+        """Clone an order for today (America/Toronto) at the exact same price."""
+        from porterchain_api.admin_engine.repeat_order_service import create_repeat_order, repeat_summary
+
+        original = db.query(Order).filter(Order.id == order_id).first()
+        if not original:
+            raise LookupError("order_not_found")
+        order = create_repeat_order(db, settings, original, actor_id=actor_id)
+        db.commit()
+        from porterchain_api.booking_engine.order_transitions import transition_to_dispatch_ready
+
+        if not order.is_sandbox:
+            transition_to_dispatch_ready(
+                db,
+                order,
+                event_type="order.dispatch_ready",
+                actor_type="admin",
+                actor_id=actor_id,
+                payload={"repeated_from": original.id, "price_locked": True},
+            )
+        db.refresh(order)
+        return repeat_summary(order)
+
     def create_return_committed(self, db: Session, settings, order_id: str, *, actor_id: str | None = None) -> dict:
         """L105: admin Create return books the return pickup (customer -> merchant), as the merchant portal does."""
         from porterchain_api.merchant_engine import return_service as returns

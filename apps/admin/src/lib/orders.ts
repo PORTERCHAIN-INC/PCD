@@ -241,6 +241,19 @@ export const ordersApi = {
       state: string;
       price_cents: number | null;
     }>(`${B}/${id}/return`, token, { method: "POST" }),
+  repeatOrder: (token: string, id: string) =>
+    adminFetch<{
+      order_id: string;
+      order_number: string;
+      tracking_number: string;
+      state: string;
+      amount_cents: number;
+      currency: string;
+      scheduled_at: string | null;
+      source_order_id: string | null;
+      source_tracking_number: string | null;
+      price_locked: boolean;
+    }>(`${B}/${id}/repeat`, token, { method: "POST" }),
   generateInvoice: (token: string, id: string) =>
     adminFetch<{
       order_id: string;
