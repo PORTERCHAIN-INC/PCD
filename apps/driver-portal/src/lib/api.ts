@@ -725,3 +725,18 @@ export const safetyApi = {
       body: JSON.stringify(body),
     }),
 };
+
+/**
+ * PorterChain's own certificate of insurance (cargo + CGL). Ontario (O. Reg. 643/05) requires proof
+ * of cargo insurance in each vehicle, so drivers can open it or save it to their phone.
+ */
+export async function openCompanyInsuranceCertificate(): Promise<void> {
+  let res = await fetch(`${API_BASE}/insurance/certificate`, { credentials: "include" });
+  if (res.status === 401 && (await refreshIdpSession())) {
+    res = await fetch(`${API_BASE}/insurance/certificate`, { credentials: "include" });
+  }
+  if (!res.ok) throw new Error("certificate_unavailable");
+  const url = URL.createObjectURL(await res.blob());
+  window.open(url, "_blank", "noopener");
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}

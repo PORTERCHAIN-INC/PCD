@@ -68,7 +68,7 @@ H2: Price it. Book it. Track it.
 | One vehicle size fits all | Sedan, SUV, van or 16 ft box truck — matched to your load |
 | "It's on the way" | Live map for you and your receiver |
 | Proof on request, maybe | Photo proof on every drop |
-| Coverage fine print | $4.41/kg standard liability; optional declared-value cover (1.5%, $3 min, up to $2,500 per parcel) once cargo insurance is confirmed |
+| Coverage fine print | $4.41/kg standard liability; optional declared-value cover (1.5%, $3 min, up to $2,500 per parcel) where offered at booking; $50,000-per-shipment cargo insurance (Lloyd's) |
 | Card only | Merchants pay by Interac e-Transfer; customers by card |
 
 ## WHO USES US (compact strip, links to existing industry pages)
@@ -83,7 +83,7 @@ H2: Built so you never have to wonder.
 
 - Live tracking from pickup to drop-off, shared with your receiver
 - Photo proof of delivery on every stop
-- $4.41/kg standard liability; optional declared-value cover (1.5%, $3 min, up to $2,500 per parcel) once cargo insurance is confirmed
+- $4.41/kg standard liability; optional declared-value cover (1.5%, $3 min, up to $2,500 per parcel) where offered at booking; $50,000-per-shipment cargo insurance (Lloyd's)
 - Driver privacy: receivers see the driver's first name only
 - Privacy under PIPEDA; marketing email only with consent (CASL)
 - Run by founder Ravi Chauhan and a local GTA team — call +1 (647) 619-7951
@@ -99,7 +99,7 @@ Band: "Shopify app — in review. Same-day rates at your checkout, booked automa
 2. Can you deliver today? Yes, if you book by 11 AM: delivered 2–9 PM the same day, Mon–Sat. Book later and it goes the next operating day, or pick a date.
 3. Where do you deliver? The GTA plus about 150 km. Our core areas are Vaughan, Concord, Brampton and Mississauga. The calculator confirms your postal codes instantly.
 4. Which vehicle do I need? Sedan/SUV up to about 80 kg, cargo van up to about 900 kg, 16 ft box truck up to about 3,000 kg. The calculator suggests one.
-5. What if something is damaged or lost? Our standard liability is $4.41 per kg. Optional declared-value cover (1.5% of value, $3 minimum, up to $2,500 per parcel) will be offered once our cargo insurance is confirmed. Report it with the tracking number and photos; we reply within one business day.
+5. What if something is damaged or lost? Our standard liability is $4.41 per kg. We carry motor truck cargo insurance (Lloyd's Underwriters, up to $50,000 per shipment); what we pay on a claim is still set by these liability limits. Optional declared-value cover (1.5% of value, $3 minimum, up to $2,500 per parcel) can be added at booking where offered. Report it with the tracking number and photos; we reply within one business day.
 6. How do I pay? Businesses with a merchant account pay by Interac e-Transfer per billing cycle. Customers pay by card at booking (processed by Stripe; we never store card numbers).
 7. Do I need a contract? No contract, no minimum. Open a free business account when you have regular volume.
 8. Can you handle medical deliveries? Yes. For medical items that need to stay cool, we use coolers. We don't offer refrigerated vehicles.

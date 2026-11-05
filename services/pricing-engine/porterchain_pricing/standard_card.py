@@ -66,7 +66,7 @@ STANDARD_V1_LINES: dict[str, Any] = {
     },
     "guardrails": {"min_pct": -30, "max_pct": 50},
     # Ravi 2026-10-29: optional declared-value cover, 1.5% of value, $3 min, $2,500 max per parcel; excluded goods;
-    # proof of value to claim; default liability $4.41/kg. Off until cargo insurance is confirmed (G-INS).
+    # proof of value to claim; default liability $4.41/kg. Needs the cargo_insurance setting confirmed (G-INS); policy on file from 2026-11-05.
     "declared_value": copy.deepcopy(_DV_RULES),
 }
 

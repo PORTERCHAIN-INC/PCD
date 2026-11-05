@@ -42,6 +42,7 @@ We collect a driver's location **only while the driver is on shift**. We use it 
 - **The driver** assigned to your delivery: only what is needed to complete it.
 - **The merchant** that booked the delivery: delivery status and proof of delivery.
 - **Service providers** who process data for us under contract: see the Subprocessor List (hosting in Canada on DigitalOcean, sign-in by Clerk, payments by Stripe, email by ZeptoMail, SMS by Twilio, error monitoring by Sentry, and others). Some are in the United States or other countries, so your information may be accessed under those countries' laws. We use contracts (and, for EU data, the EU Standard Contractual Clauses) to protect it.
+- **Our insurance broker and insurer** (Able Insurance Brokers Ltd. and Lloyd's Underwriters) and their adjusters: only the details needed to handle a claim (order, proof of delivery, photos, value, contact details).
 - **Authorities**, when the law requires it.
 - **A buyer** of our business, under the same protections.
 

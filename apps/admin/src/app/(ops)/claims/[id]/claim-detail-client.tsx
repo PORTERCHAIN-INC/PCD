@@ -74,9 +74,32 @@ export default function ClaimDetailClient({ id }: { id: string }) {
         onSaveInvestigation={(data) =>
           void action((t) => claimsApi.updateInvestigation(t, id, data))
         }
-        onSaveCompensation={(approved) =>
-          void action((t) => claimsApi.setCompensation(t, id, { approved_amount_cents: approved }))
+        onSaveCompensation={(approved, goodwillReason) =>
+          void action((t) =>
+            claimsApi.setCompensation(t, id, {
+              approved_amount_cents: approved,
+              ...(goodwillReason ? { goodwill_reason: goodwillReason } : {}),
+            })
+          ).catch((e: unknown) =>
+            setAnnounce(e instanceof Error ? e.message.replace(/_/g, " ") : "Could not save")
+          )
         }
+        policyActions={{
+          onDraftLetter: async (body) => {
+            const t = await getApiToken();
+            const out = await claimsApi.draftLetter(t, id, body);
+            void refetch();
+            return out;
+          },
+          onPrepareBrokerNotice: async () => {
+            const t = await getApiToken();
+            const out = await claimsApi.prepareBrokerNotice(t, id);
+            void refetch();
+            return out;
+          },
+          onRecordBrokerNotified: (body) =>
+            action((t) => claimsApi.recordBrokerNotified(t, id, body)),
+        }}
         onSaveInsurance={(provider) =>
           void action((t) => claimsApi.setInsurance(t, id, { provider }))
         }

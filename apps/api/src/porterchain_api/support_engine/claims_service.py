@@ -11,6 +11,7 @@ from porterchain_api.support_engine.claims_constants import ClaimFilters
 from porterchain_api.support_engine.claims_detail import ClaimsDetailMixin
 from porterchain_api.support_engine.claims_helpers import ClaimsHelpersMixin
 from porterchain_api.support_engine.claims_mutations import ClaimsMutationsMixin
+from porterchain_api.support_engine.claims_policy_view import ClaimsPolicyMixin
 from porterchain_api.support_engine.claims_query import ClaimsQueryMixin
 from porterchain_api.support_engine.claims_smart import ClaimsSmartMixin
 
@@ -21,6 +22,7 @@ class AdminClaimsService(
     ClaimsDetailMixin,
     ClaimsMutationsMixin,
     ClaimsSmartMixin,
+    ClaimsPolicyMixin,
 ):
     """Unified claims service composed from domain mixins."""
 

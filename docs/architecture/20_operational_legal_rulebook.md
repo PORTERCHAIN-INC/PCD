@@ -52,19 +52,19 @@ Status: **B** built · **P** partial · **M** missing · **N/A**. Source marks: 
 
 ## D. PorterChain as courier / carrier (incl. rented box truck, L30/L34)
 
-| Rule                                                     | Document                    | Retention                           | Enforced                              | St  | Source                             |
-| -------------------------------------------------------- | --------------------------- | ----------------------------------- | ------------------------------------- | --- | ---------------------------------- |
-| Cargo liability insurance; evidence carried in vehicle   | certificate                 | policy life                         | not modelled                          | M   | ✔ O. Reg. 643/05 s.3               |
-| BOL for non-exempt shipments (fields s.4(1)(a)–(s))      | BOL PDF per shipment        | 6 y                                 | none                                  | M   | ✔ O. Reg. 643/05 s.4               |
-| Liability limits + declared value                        | terms + BOL                 | 6 y                                 | partial fields                        | P   | ✔ Sch.1 arts.9,10                  |
-| Local-municipality exemption scope                       | route geography             | —                                   | not evaluated (150 km leaves Toronto) | M   | ✔ O. Reg. 643/05 s.2               |
-| CVOR for box truck (threshold by weight UNVERIFIED)      | CVOR certificate in vehicle | registration life                   | 0 refs                                | M   | ✔ ontario.ca CVOR pages            |
-| TDG: none carried in Phase 1                             | refusal logic               | —                                   | DG approval path still exists         | P   | ○ TDG                              |
-| Cooler GDP: temp control, logger, calibration, excursion | readings + reports          | UNVERIFIED                          | manual only                           | P   | ○ GUI-0069                         |
-| Tax records 6 y                                          | —                           | 6 y                                 | Interac B, POD P                      | P   | ○ ITA I-3.3; ○ CRA keeping records |
-| Breach recording + reporting                             | breach log                  | per PIPEDA regs (UNVERIFIED period) | `breach_log`                          | B   | ○ PIPEDA/OPC                       |
-| Accessibility (AODA) of portals                          | audit                       | —                                   | M                                     | M   | ○ AODA                             |
-| Claims handling deadlines                                | 60 d / 9 months             | 6 y                                 | M                                     | M   | ✔ Sch.1 art.12                     |
+| Rule                                                     | Document                    | Retention                           | Enforced                                                                                                               | St  | Source                             |
+| -------------------------------------------------------- | --------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | --- | ---------------------------------- |
+| Cargo liability insurance; evidence carried in vehicle   | certificate                 | policy life                         | policy in `porterchain_pricing/insurance_policy.py` (Lloyd's, 2026-11-05→2027-11-05); in-vehicle COI copy not modelled | M   | ✔ O. Reg. 643/05 s.3               |
+| BOL for non-exempt shipments (fields s.4(1)(a)–(s))      | BOL PDF per shipment        | 6 y                                 | none                                                                                                                   | M   | ✔ O. Reg. 643/05 s.4               |
+| Liability limits + declared value                        | terms + BOL                 | 6 y                                 | partial fields                                                                                                         | P   | ✔ Sch.1 arts.9,10                  |
+| Local-municipality exemption scope                       | route geography             | —                                   | not evaluated (150 km leaves Toronto)                                                                                  | M   | ✔ O. Reg. 643/05 s.2               |
+| CVOR for box truck (threshold by weight UNVERIFIED)      | CVOR certificate in vehicle | registration life                   | 0 refs                                                                                                                 | M   | ✔ ontario.ca CVOR pages            |
+| TDG: none carried in Phase 1                             | refusal logic               | —                                   | DG approval path still exists                                                                                          | P   | ○ TDG                              |
+| Cooler GDP: temp control, logger, calibration, excursion | readings + reports          | UNVERIFIED                          | manual only                                                                                                            | P   | ○ GUI-0069                         |
+| Tax records 6 y                                          | —                           | 6 y                                 | Interac B, POD P                                                                                                       | P   | ○ ITA I-3.3; ○ CRA keeping records |
+| Breach recording + reporting                             | breach log                  | per PIPEDA regs (UNVERIFIED period) | `breach_log`                                                                                                           | B   | ○ PIPEDA/OPC                       |
+| Accessibility (AODA) of portals                          | audit                       | —                                   | M                                                                                                                      | M   | ○ AODA                             |
+| Claims handling deadlines                                | 60 d / 9 months             | 6 y                                 | M                                                                                                                      | M   | ✔ Sch.1 art.12                     |
 
 ## E. Partners / subprocessors
 
@@ -99,3 +99,28 @@ Status: **B** built · **P** partial · **M** missing · **N/A**. Source marks: 
 - **Cancellation:** retail customers are never charged a cancellation fee; merchants and partners only per signed contract.
 - **Broker jobs:** Ontario has no broker licence (O. Reg. 556/92 revoked 2006) but HTA s.191.0.1 requires money owed to the carrier to be held in trust; partner COIs (auto, cargo, CGL) and CVOR checked before any offer; liability passed through by the Partner Agreement.
 - **Driver of rented vehicles:** Ravi, until employees or a logistics contract.
+
+## Insurance on file (COI dated 2026-11-04)
+
+Lloyd's Underwriters, policy B5000191409, broker Able Insurance Brokers Ltd. (client ID PORT1), 2026-11-05 to 2027-11-05. Operations: common carrier. $2,500 deductible on every line. 30 days' cancellation notice (endeavour only).
+
+| Coverage                              | Limit (CAD)         |
+| ------------------------------------- | ------------------- |
+| CGL each occurrence (occurrence form) | 2,000,000           |
+| CGL general aggregate                 | 2,000,000           |
+| Personal and advertising injury       | 1,000,000           |
+| Tenants legal liability               | 250,000             |
+| Medical payments                      | 15,000              |
+| Motor truck cargo                     | 50,000 per shipment |
+| Target commodities (cargo sub-limit)  | 25,000              |
+| Towing, storage and debris removal    | 10,000              |
+
+Not on the certificate: automobile liability, non-owned or hired automobiles, products-completed operations limit, employer's liability, umbrella/excess. Drivers' vehicles must carry their own auto insurance that allows commercial delivery use.
+
+Rules derived (code: `insurance_policy.py`, `declared_value.shipment_claim_cap_cents`, claims compensation guard):
+
+- Liability to the shipper stays $4.41/kg (O. Reg. 643/05 Sch. 1) or the declared value when cover was bought (max $2,500 per parcel).
+- Total paid for one shipment is never above $50,000, or $25,000 when any item is a target commodity.
+- Claims: ask for notice within 5 business days; legal outer limit is written notice within 60 days of delivery (9 months from shipment for non-delivery).
+- The deductible is PorterChain's cost and is not passed to merchants (pending Ravi confirmation).
+- O. Reg. 643/05 s.3: carry evidence of cargo insurance in each vehicle — give every driver the COI (open item).
