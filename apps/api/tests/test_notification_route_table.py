@@ -40,11 +40,23 @@ def test_booked_email_includes_absolute_track_link() -> None:
     assert "https://porterchain.com/track/TRK-1" in _text
 
 
-def test_order_created_is_in_app_only() -> None:
-    channels = _channels(DomainEventType.ORDER_CREATED)
+def test_order_created_notifies_parties_in_app_and_ops_by_email() -> None:
+    specs = _specs_for_event(DomainEventType.ORDER_CREATED, _payload())
+    channels = {(s["recipient_type"], s["channel"], s["template_key"]) for s in specs}
     assert ("customer", "email", "order_created") not in channels
+    assert ("merchant", "email", "order_created") not in channels
     assert ("customer", "in_app", "order_created") in channels
     assert ("merchant", "in_app", "order_created") in channels
+    assert ("admin", "email", "order_created") in channels
+    ops_mail = [
+        s
+        for s in specs
+        if s["channel"] == "email"
+        and s["template_key"] == "order_created"
+        and s["recipient_type"] == "admin"
+    ]
+    assert len(ops_mail) == 1
+    assert ops_mail[0]["recipient_address"] == "ops@porterchain.com"
 
 
 def test_each_dropoff_contact_gets_a_booked_email() -> None:

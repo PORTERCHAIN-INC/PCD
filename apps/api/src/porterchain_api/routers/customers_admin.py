@@ -13,6 +13,8 @@ from porterchain_api.config import Settings, get_settings
 from porterchain_api.db import get_db
 from porterchain_api.platform.pagination import DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT
 from porterchain_api.schemas_admin import (
+    AdminConvertCustomerToMerchantRequest,
+    AdminConvertCustomerToMerchantResponse,
     AdminCreateCustomerBookingDraftRequest,
     AdminCreateCustomerBookingDraftResponse,
     AdminCreateCustomerRequest,
@@ -177,6 +179,45 @@ def customer_payments(
         return _svc.payments(db, customer_id, limit=limit)
     except LookupError:
         raise HTTPException(status_code=404, detail="customer_not_found") from None
+
+
+
+@router.post(
+    "/{customer_id}/convert-to-merchant",
+    response_model=AdminConvertCustomerToMerchantResponse,
+)
+def convert_customer_to_merchant(
+    customer_id: str,
+    body: AdminConvertCustomerToMerchantRequest,
+    ctx: Ctx,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> AdminConvertCustomerToMerchantResponse:
+    """Convert a retail customer into a merchant. Historical orders stay on the customer."""
+    _guard(ctx, "customers")
+    from porterchain_api.admin_engine.customer_lifecycle import convert_to_merchant
+
+    try:
+        result = convert_to_merchant(
+            db,
+            ctx,
+            settings,
+            customer_id,
+            company_name=body.company_name,
+            auto_activate=body.auto_activate,
+            send_invite=body.send_invite,
+        )
+    except LookupError:
+        raise HTTPException(status_code=404, detail="customer_not_found") from None
+    except ValueError as exc:
+        detail = str(exc)
+        code = 409 if detail in {
+            "merchant_email_exists",
+            "merchant_user_email_exists",
+            "email_seat_taken",
+        } else 400
+        raise HTTPException(status_code=code, detail=detail) from exc
+    return AdminConvertCustomerToMerchantResponse(**result)
 
 
 @router.get("/{customer_id}/care")

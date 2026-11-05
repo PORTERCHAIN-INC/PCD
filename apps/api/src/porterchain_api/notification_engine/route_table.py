@@ -102,11 +102,22 @@ def specs_for_parcel(event_type: str, payload: dict[str, Any], add: Any) -> bool
             )
 
     if event_type == DomainEventType.ORDER_CREATED:
-        # Timeline only. The booked mail is order.booked / merchant.booking_created.
+        # Timeline for parties. Booked mail is order.booked / merchant.booking_created.
+        # Always email the ops mailbox when any order enters the system.
         if customer_id:
             add("order_created", "in_app", "customer", customer_id)
         if merchant_id:
             add("order_created", "in_app", "merchant", merchant_id)
+        ops_addr = "ops@porterchain.com"
+        ops_rid = str(uuid.uuid5(uuid.NAMESPACE_URL, f"ops-watch:{ops_addr}"))
+        add(
+            "order_created",
+            "email",
+            "admin",
+            ops_rid,
+            address=ops_addr,
+            category="orders",
+        )
         return True
 
     if event_type in (DomainEventType.ORDER_BOOKED, "merchant.booking_created"):
