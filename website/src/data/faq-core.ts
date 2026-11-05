@@ -68,7 +68,7 @@ const EN: CoreFaq[] = [
     group: "trust",
     question: "What if something is lost or damaged?",
     answer:
-      "Standard liability is $4.41 per kg (Ontario rules). Optional declared-value cover (1.5% of the value, $3 minimum, up to $2,500 per parcel) will be offered once our cargo insurance is confirmed. Report it with the tracking number and photos; we reply within one business day.",
+      "Standard liability is $4.41 per kg (Ontario rules). We carry motor truck cargo insurance (Lloyd's Underwriters, up to $50,000 per shipment); what we pay on a claim is still set by these liability limits. Optional declared-value cover (1.5% of the value, $3 minimum, up to $2,500 per parcel) can be added at booking where offered. Report it with the tracking number and photos; we reply within one business day.",
     link: { href: "/trust/claims", label: "Claims process" },
   },
   {
@@ -150,7 +150,7 @@ const FR: CoreFaq[] = [
     group: "trust",
     question: "Et si un colis est perdu ou endommagé?",
     answer:
-      "La responsabilité standard est de 4,41 $ par kg (règles de l'Ontario). Une couverture facultative à valeur déclarée (1,5 % de la valeur, minimum 3 $, jusqu'à 2 500 $ par colis) sera offerte dès que notre assurance marchandises sera confirmée. Écrivez-nous avec le numéro de suivi et des photos; réponse en un jour ouvrable.",
+      "La responsabilité standard est de 4,41 $ par kg (règles de l'Ontario). Nous détenons une assurance marchandises (Lloyd's Underwriters, jusqu'à 50 000 $ par envoi); ce que nous payons sur une réclamation reste fixé par ces limites de responsabilité. Une couverture facultative à valeur déclarée (1,5 % de la valeur, minimum 3 $, jusqu'à 2 500 $ par colis) peut être ajoutée à la réservation lorsqu'elle est offerte. Écrivez-nous avec le numéro de suivi et des photos; réponse en un jour ouvrable.",
     link: { href: "/trust/claims", label: "Réclamations" },
   },
   {

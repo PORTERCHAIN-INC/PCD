@@ -621,7 +621,7 @@
       "postalAreas": "Grand Toronto + ~150 km",
       "postalAreasHint": "{count} zones postales, vérifiées instantanément. Zones principales : Vaughan, Concord, Brampton, Mississauga.",
       "areas": "Responsabilité claire : 4,41 $/kg",
-      "areasHint": "Incluse. Besoin de plus? Couverture facultative à valeur déclarée jusqu'à 2 500 $ par colis (1,5 %, min. 3 $) dès que l'assurance marchandises sera confirmée.",
+      "areasHint": "Incluse. Besoin de plus? Couverture facultative à valeur déclarée jusqu'à 2 500 $ par colis (1,5 %, min. 3 $) lorsqu'elle est offerte à la réservation, appuyée par notre assurance marchandises de 50 000 $ par envoi.",
       "vehicles": "{count} tailles de véhicule",
       "vehiclesHint": "Berline / VUS (~80 kg), fourgon (~900 kg), camion cube 16 pi (~3 000 kg)"
     },
@@ -743,7 +743,7 @@
         "coverage": {
           "need": "Couverture en petits caractères",
           "title": "Responsabilité et réclamations claires.",
-          "body": "Couverture facultative à valeur déclarée jusqu'à 2 500 $ par colis (1,5 %, min. 3 $) dès que l'assurance marchandises sera confirmée."
+          "body": "Couverture facultative à valeur déclarée jusqu'à 2 500 $ par colis (1,5 %, min. 3 $) lorsqu'elle est offerte à la réservation, appuyée par notre assurance marchandises de 50 000 $ par envoi."
         },
         "payment": {
           "need": "Carte seulement, ou longs formulaires de crédit",
@@ -807,7 +807,7 @@
     },
     "trustBadges": {
       "ariaLabel": "Inclus dans chaque livraison",
-      "insured": "Responsabilité et réclamations claires",
+      "insured": "Transporteur assuré · réclamations claires",
       "tracked": "Suivi en direct",
       "pod": "Preuve de livraison photo"
     }

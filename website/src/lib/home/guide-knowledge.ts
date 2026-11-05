@@ -35,7 +35,7 @@ const CHARTER_CHUNKS: KnowledgeChunk[] = [
   {
     id: "charter-pricing",
     title: "How pricing works",
-    body: "Pricing is instant and exact: two postal codes and a vehicle give the price in about 10 seconds, HST extra at /delivery-cost-calculator, no sign-up. Never invent dollar amounts; send people to the calculator. Merchants pay by Interac e-Transfer per billing cycle; customers pay by card (Stripe). Volume accounts can have a merchant rate card via /business. Standard liability is $4.41 per kg (Ontario rules). Optional declared-value cover (1.5% of the value, $3 minimum, up to $2,500 per parcel) will be offered once our cargo insurance is confirmed.",
+    body: "Pricing is instant and exact: two postal codes and a vehicle give the price in about 10 seconds, HST extra at /delivery-cost-calculator, no sign-up. Never invent dollar amounts; send people to the calculator. Merchants pay by Interac e-Transfer per billing cycle; customers pay by card (Stripe). Volume accounts can have a merchant rate card via /business. Standard liability is $4.41 per kg (Ontario rules). We carry motor truck cargo insurance (Lloyd's Underwriters, up to $50,000 per shipment); what we pay on a claim is still set by these liability limits. Optional declared-value cover (1.5% of the value, $3 minimum, up to $2,500 per parcel) can be added at booking where offered.",
     tags: ["pricing", "quote", "billing", "cost", "rate", "business account"],
     source: "charter",
   },

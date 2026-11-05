@@ -1009,7 +1009,7 @@ export const ENTITY_FACTS = {
     "Construction materials",
   ],
   protection:
-    "Standard liability is $4.41 per kg (Ontario rules). Optional declared-value cover (1.5% of the value, $3 minimum, up to $2,500 per parcel) will be offered once our cargo insurance is confirmed. Live tracking and photo proof of delivery on every order.",
+    "Standard liability is $4.41 per kg (Ontario rules). We carry motor truck cargo insurance (Lloyd's Underwriters, up to $50,000 per shipment); what we pay on a claim is still set by these liability limits. Optional declared-value cover (1.5% of the value, $3 minimum, up to $2,500 per parcel) can be added at booking where offered. Live tracking and photo proof of delivery on every order.",
   payment: "Merchants pay by Interac e-Transfer per billing cycle; customers pay by card (Stripe).",
   shopify: "PorterChain Shopify app: submitted and in review with Shopify.",
   founder: "Ravi Chauhan, founder.",

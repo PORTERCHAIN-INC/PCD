@@ -115,7 +115,7 @@ const FAQ = [
   },
   {
     q: "Are deliveries covered?",
-    a: "Standard liability is $4.41 per kg (Ontario rules). Optional declared-value cover (1.5% of the value, $3 minimum, up to $2,500 per parcel) will be offered once our cargo insurance is confirmed. Claims must be notified in writing within 5 business days.",
+    a: "Standard liability is $4.41 per kg (Ontario rules). Optional declared-value cover (1.5% of the value, $3 minimum, up to $2,500 per parcel) can be added at booking where offered. We carry motor truck cargo insurance (Lloyd's Underwriters, up to $50,000 per shipment); what we pay on a claim is still set by these liability limits. Please notify claims within 5 business days; written notice is required within 60 days of delivery.",
   },
   { q: "Are taxes included?", a: "All prices in CAD. 13% HST extra." },
   { q: "Is tracking included?", a: "Yes. Live tracking and recipient notices are included." },

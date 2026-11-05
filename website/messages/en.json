@@ -686,7 +686,7 @@
       "postalAreas": "GTA + ~150 km",
       "postalAreasHint": "{count} postal areas, checked instantly. Core areas: Vaughan, Concord, Brampton, Mississauga.",
       "areas": "Clear liability: $4.41/kg",
-      "areasHint": "Included. Need more? Optional declared-value cover up to $2,500 per parcel (1.5%, $3 min) once cargo insurance is confirmed.",
+      "areasHint": "Included. Need more? Optional declared-value cover up to $2,500 per parcel (1.5%, $3 min) where offered at booking, backed by our $50,000-per-shipment cargo insurance.",
       "vehicles": "{count} vehicle sizes",
       "vehiclesHint": "Sedan / SUV (~80 kg), cargo van (~900 kg), 16 ft box truck (~3,000 kg)"
     },
@@ -808,7 +808,7 @@
         "coverage": {
           "need": "Coverage in the fine print",
           "title": "Clear liability and claims.",
-          "body": "Optional declared-value cover up to $2,500 per parcel (1.5%, $3 min) once cargo insurance is confirmed."
+          "body": "Optional declared-value cover up to $2,500 per parcel (1.5%, $3 min) where offered at booking, backed by our $50,000-per-shipment cargo insurance."
         },
         "payment": {
           "need": "Card only, or long credit forms",
@@ -872,7 +872,7 @@
     },
     "trustBadges": {
       "ariaLabel": "Included with every delivery",
-      "insured": "Clear liability and claims",
+      "insured": "Insured carrier · clear claims",
       "tracked": "Live tracking",
       "pod": "Photo proof of delivery"
     }
