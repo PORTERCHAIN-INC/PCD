@@ -75,3 +75,51 @@ export function portalOrigin(
     return null;
   }
 }
+
+/**
+ * Website (pc-website) sign-in: after Keycloak, send the user to the portal their roles allow.
+ */
+export function websitePortalRedirect(clientId: string, roles: readonly string[]): Portal | null {
+  if (clientId !== "pc-website") return null;
+  return portalsForRoles(roles)[0] ?? null;
+}
+
+/** Portal base URL from the website: PC_PORTAL_URL_<NAME>, else <portal>.<site domain>. */
+export function websitePortalOrigin(
+  target: Portal,
+  origin: string,
+  env: Record<string, string | undefined> = process.env
+): string | null {
+  const fromEnv = (env[`PC_PORTAL_URL_${target.toUpperCase()}`] ?? "").trim().replace(/\/+$/, "");
+  if (fromEnv) return fromEnv;
+  try {
+    const u = new URL(origin);
+    const host = u.hostname.replace(/^www\./, "");
+    if (u.port || host.split(".").length < 2) return null;
+    u.hostname = `${target}.${host}`;
+    return u.origin;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The one Sign in entry point is the website (porterchain.com/login -> Keycloak pc-website); portals
+ * send signed-out users there and the website routes them back by role. PC_SITE_SIGN_IN_URL, else
+ * strip the portal label (admin.porterchain.com -> https://porterchain.com/login). Null = stay local.
+ */
+export function websiteSignInUrl(
+  origin: string,
+  env: Record<string, string | undefined> = process.env
+): string | null {
+  const fromEnv = (env.PC_SITE_SIGN_IN_URL ?? "").trim();
+  if (fromEnv) return fromEnv;
+  try {
+    const u = new URL(origin);
+    const [first, ...rest] = u.hostname.split(".");
+    if (!PORTAL_ORDER.includes(first as Portal) || rest.length < 2 || u.port) return null;
+    return `${u.protocol}//${rest.join(".")}/login`;
+  } catch {
+    return null;
+  }
+}
