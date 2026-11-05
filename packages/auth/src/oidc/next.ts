@@ -31,7 +31,13 @@ import {
   type Session,
   type SessionUser,
 } from "./core";
-import { portalForClient, portalOrigin, portalRedirect } from "./portals";
+import {
+  portalForClient,
+  portalOrigin,
+  portalRedirect,
+  websitePortalOrigin,
+  websitePortalRedirect,
+} from "./portals";
 
 /** Refresh token lifetime cap for the cookie (Keycloak SSO max is shorter and wins). */
 const SESSION_MAX_AGE = 60 * 60 * 12;
@@ -118,7 +124,13 @@ async function callback(req: NextRequest, c: OidcConfig) {
     // Shared sign-in page: land the user in the portal their roles allow (Keycloak SSO signs them in there).
     const here = portalForClient(c.clientId);
     const target = portalRedirect(here, s.user.roles);
-    const dest = target && here ? portalOrigin(target, here, origin) : null;
+    const site = here ? null : websitePortalRedirect(c.clientId, s.user.roles);
+    const dest =
+      target && here
+        ? portalOrigin(target, here, origin)
+        : site
+          ? websitePortalOrigin(site, origin)
+          : null;
     if (dest) {
       const res = NextResponse.redirect(
         `${dest}/auth/login?return_to=${encodeURIComponent("/?sso=1")}`

@@ -1,6 +1,7 @@
 import createMiddleware from "next-intl/middleware";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { hasSessionCookie } from "@porterchain/auth";
 import { isKnownInvalidRoute } from "./lib/seo/known-route-guard";
 import { resolveUrlPolicy } from "./lib/seo/url-policy";
 import { routing } from "./i18n/routing";
@@ -40,8 +41,19 @@ function goneResponse(): NextResponse {
   );
 }
 
+/** "/login", "/en/login", "/fr/login" (not /login/continue). */
+const LOGIN_PATH = /^\/(?:(en|fr)\/)?login\/?$/;
+
 function handleRequest(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
+  // Shared Keycloak sign-in: signed-out "Sign in" goes straight to Keycloak (no website pre-page).
+  const login = LOGIN_PATH.exec(pathname);
+  if (login && !req.nextUrl.searchParams.get("auth_error") && !hasSessionCookie(req.cookies)) {
+    const locale = login[1] ?? "en";
+    const url = new URL("/auth/login", req.url);
+    url.searchParams.set("return_to", `/${locale}/login/continue${search}`);
+    return NextResponse.redirect(url, 307);
+  }
   const host = (req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "").toLowerCase();
   const wrongHost = host === `www.${CANONICAL_HOST}`;
 

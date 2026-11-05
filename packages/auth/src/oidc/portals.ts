@@ -75,3 +75,30 @@ export function portalOrigin(
     return null;
   }
 }
+
+/**
+ * Website (pc-website) sign-in: after Keycloak, send the user to the portal their roles allow.
+ */
+export function websitePortalRedirect(clientId: string, roles: readonly string[]): Portal | null {
+  if (clientId !== "pc-website") return null;
+  return portalsForRoles(roles)[0] ?? null;
+}
+
+/** Portal base URL from the website: PC_PORTAL_URL_<NAME>, else <portal>.<site domain>. */
+export function websitePortalOrigin(
+  target: Portal,
+  origin: string,
+  env: Record<string, string | undefined> = process.env
+): string | null {
+  const fromEnv = (env[`PC_PORTAL_URL_${target.toUpperCase()}`] ?? "").trim().replace(/\/+$/, "");
+  if (fromEnv) return fromEnv;
+  try {
+    const u = new URL(origin);
+    const host = u.hostname.replace(/^www\./, "");
+    if (u.port || host.split(".").length < 2) return null;
+    u.hostname = `${target}.${host}`;
+    return u.origin;
+  } catch {
+    return null;
+  }
+}
