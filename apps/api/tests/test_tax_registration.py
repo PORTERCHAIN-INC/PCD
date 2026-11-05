@@ -8,6 +8,7 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, date, datetime, timedelta
 from types import SimpleNamespace
+from zoneinfo import ZoneInfo
 
 import pytest
 from fastapi.testclient import TestClient
@@ -21,6 +22,11 @@ from porterchain_api.main import app
 from porterchain_api.platform import tax_registration as reg
 
 BN = "123456789RT0001"
+
+
+def _today() -> date:
+    """Toronto calendar day, same as tax_registration._day (CI runs in UTC)."""
+    return datetime.now(ZoneInfo("America/Toronto")).date()
 
 
 @pytest.fixture()
@@ -61,7 +67,7 @@ def test_bn_rejects_bad_format(raw) -> None:
 
 def test_legal_name_required(clean) -> None:
     with pytest.raises(ValueError, match="legal_name_required"):
-        reg.record_registration(clean, gst_hst_number=BN, legal_name="", effective_from=date.today(), actor_id=None)
+        reg.record_registration(clean, gst_hst_number=BN, legal_name="", effective_from=_today(), actor_id=None)
 
 
 # ---------------------------------------------------------------- unregistered = zero tax
@@ -100,7 +106,7 @@ def test_status_endpoint_shape(clean) -> None:
 
 
 def test_registered_from_effective_date_only(clean) -> None:
-    today = date.today()
+    today = _today()
     _register(clean, today)
     assert reg.collects_tax(clean, today)
     assert not reg.collects_tax(clean, today - timedelta(days=1))
@@ -121,21 +127,21 @@ def test_boundary_uses_toronto_day(clean) -> None:
 
 
 def test_future_registration_is_upcoming_not_current(clean) -> None:
-    _register(clean, date.today() + timedelta(days=10))
+    _register(clean, _today() + timedelta(days=10))
     st = reg.registration_status(clean)
     assert st["registered"] is False and st["upcoming"]["gst_hst_number"] == "123456789 RT0001"
 
 
 def test_history_append_only_and_ordered(clean) -> None:
-    d = date.today() - timedelta(days=30)
+    d = _today() - timedelta(days=30)
     _register(clean, d)
     with pytest.raises(ValueError, match="before_latest"):
         reg.record_registration(clean, gst_hst_number=None, legal_name=None, effective_from=d - timedelta(days=1), actor_id=None)
     with pytest.raises(ValueError, match="unchanged"):
         reg.record_registration(clean, gst_hst_number=BN, legal_name="PorterChain Inc.", effective_from=d, actor_id=None)
-    _register(clean, date.today(), number=None)  # deregistered from today
+    _register(clean, _today(), number=None)  # deregistered from today
     assert not reg.collects_tax(clean)
-    assert reg.collects_tax(clean, date.today() - timedelta(days=1))
+    assert reg.collects_tax(clean, _today() - timedelta(days=1))
     assert [h["gst_hst_number"] for h in reg.registration_status(clean)["history"]] == [None, "123456789 RT0001"]
 
 
@@ -166,7 +172,7 @@ def test_credit_note_pdf_without_tax_has_no_gst_hst(clean) -> None:
 def test_credit_note_pdf_with_tax_prints_number_of_invoice_date(clean) -> None:
     from porterchain_api.reporting.credit_note_pdf import credit_note_pdf
 
-    _register(clean, date.today() - timedelta(days=5))
+    _register(clean, _today() - timedelta(days=5))
     note = SimpleNamespace(
         status="issued", credit_note_number="CN-T-2", issued_at=datetime.now(UTC), original_invoice_date=datetime.now(UTC),
         original_invoice_number="INV-T", currency="cad", tax_province="ON", merchant_id=None, customer_id="c",
@@ -199,7 +205,7 @@ def test_rate_card_note_has_no_hst_when_unregistered(clean) -> None:
     from porterchain_api.pricing_engine.fsa_rate_card import _taxes_note
 
     assert _taxes_note(clean) == ""
-    _register(clean, date.today())
+    _register(clean, _today())
     assert _taxes_note(clean) == "HST extra"
 
 
@@ -270,7 +276,7 @@ def admin(clean):
 
 
 def _body(**kw):
-    return {"gst_hst_number": BN, "legal_name": "PorterChain Inc.", "effective_from": date.today().isoformat()} | kw
+    return {"gst_hst_number": BN, "legal_name": "PorterChain Inc.", "effective_from": _today().isoformat()} | kw
 
 
 def test_api_requires_step_up(admin, clean) -> None:
