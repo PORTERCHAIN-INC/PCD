@@ -17,7 +17,7 @@
     <#if themeResources?? && themeResources.favicons?has_content>
         <@themeResourceTags.renderFavicons themeResources.favicons url.resourcesPath />
     <#else>
-        <link rel="icon" href="${url.resourcesPath}/img/favicon.ico" />
+        <link rel="icon" type="image/png" href="${url.resourcesPath}/img/favicon.png" />
     </#if>
     <#if themeResources?? && themeResources.stylesCommon?has_content>
         <@themeResourceTags.renderStyles themeResources.stylesCommon url.resourcesCommonPath />
@@ -101,14 +101,11 @@
 <body class="${properties.kcBodyClass!}" data-page-id="login-${pageId}">
 <div class="${properties.kcLoginClass!}">
     <#assign pcCid = (client.clientId)!"">
-    <#assign pcKey = "pcPersonaCustomer">
-    <#if pcCid?contains("admin")><#assign pcKey = "pcPersonaAdmin"><#elseif pcCid?contains("merchant")><#assign pcKey = "pcPersonaMerchant"><#elseif pcCid?contains("driver")><#assign pcKey = "pcPersonaDriver"><#elseif pcCid?contains("website") || pcCid?starts_with("account") || pcCid == "security-admin-console"><#assign pcKey = "pcPersonaWebsite"></#if>
     <div class="pc-atmosphere" aria-hidden="true"></div>
     <div id="kc-header" class="pc-brand">
-        <p class="pc-portal" data-k="${pcKey}">${msg(pcKey + "Label")}</p>
         <span class="pc-wordmark">Porterchain</span>
         <#assign pcPage = (pageId!"")>
-        <#assign pcDriverInvite = pcPage?starts_with("register") && pcKey == "pcPersonaDriver">
+        <#assign pcDriverInvite = pcPage?starts_with("register") && pcCid?contains("driver")>
         <#if pcDriverInvite>
         <h1 class="pc-title">${msg("pcDriverInviteTitle")}</h1>
         <p class="pc-subtitle">${msg("pcDriverInviteSubtitle")}</p>
@@ -135,8 +132,7 @@
         <h1 class="pc-title">${msg("pcResetTitle")}</h1>
         <p class="pc-subtitle">${msg("pcResetSubtitle")}</p>
         <#else>
-        <h1 class="pc-title">${msg(pcKey + "Title")}</h1>
-        <p class="pc-subtitle">${msg(pcKey + "Subtitle")}</p>
+        <h1 class="pc-title" data-k="pcSignInTitle">${msg("pcSignInTitle")}</h1>
         </#if>
     </div>
     <div class="${properties.kcFormCardClass!}">

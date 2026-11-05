@@ -184,6 +184,9 @@ def idps() -> list[dict]:
 def realm() -> dict:
     return {
         "realm": "porterchain", "enabled": True, "displayName": "PorterChain",
+        # Branded login (themes/porterchain): one theme, per-portal persona picked from client_id in template.ftl.
+        "loginTheme": "porterchain", "emailTheme": "porterchain",
+        "internationalizationEnabled": True, "supportedLocales": ["en", "fr"], "defaultLocale": "en",
         "registrationAllowed": True, "registrationEmailAsUsername": True, "loginWithEmailAllowed": True,
         "duplicateEmailsAllowed": False, "resetPasswordAllowed": True, "rememberMe": True,
         "verifyEmail": True,  # L82: API trusts only a verified KC email; verified users see no extra login step

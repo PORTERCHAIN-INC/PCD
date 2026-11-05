@@ -263,6 +263,7 @@ PY2
     run "$n" -e OIDC_PROMPT_LOGIN=$pl -e AUTH_COOKIE_NAME=pc_session_$n -p 0.0.0.0:$port:$inner -e KEYCLOAK_URL="$H:$KC_PORT" -e KEYCLOAK_INTERNAL_URL=http://$P-keycloak:8080 \
       -e KEYCLOAK_REALM=porterchain -e KEYCLOAK_CLIENT_ID="$client" -e NEXT_PUBLIC_KEYCLOAK_CLIENT_ID="$client" \
       -e AUTH_SESSION_SECRET="$AUTH_SESSION_SECRET" -e APP_URL="$H:$port" -e AUTH_COOKIE_SECURE=false \
+      -e PC_PORTAL_URL_ADMIN="$H:$ADM_PORT" -e PC_PORTAL_URL_MERCHANT="$H:$MER_PORT" -e PC_PORTAL_URL_DRIVER="$H:$DRV_PORT" -e PC_PORTAL_URL_CUSTOMER="$H:$CUS_PORT" -e PC_SITE_SIGN_IN_URL="$H:$WEB_PORT/login" \
       -e PORTERCHAIN_API_URL="http://$P-api:8001" -e PORTERCHAIN_API_INTERNAL_URL="http://$P-api:8001" "$img"; }
   web admin pcd-admin:lan $ADM_PORT 3002 pc-admin
   web merchant pcd-merchant-portal:lan $MER_PORT 3001 pc-merchant-portal

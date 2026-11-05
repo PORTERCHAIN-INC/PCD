@@ -438,7 +438,16 @@ def test_notif_order_created_routes_customer_email_inbox() -> None:
     )
     channels = {(s["channel"], s["recipient_type"]) for s in created if s["recipient_id"] == customer_id}
     assert ("in_app", "customer") in channels
-    assert not any(s["channel"] == "email" for s in created)
+    # Customer/merchant get no email on create; ops mailbox does.
+    assert not any(
+        s["channel"] == "email" and s["recipient_type"] in {"customer", "merchant"} for s in created
+    )
+    assert any(
+        s["channel"] == "email"
+        and s["recipient_type"] == "admin"
+        and s.get("recipient_address") == "ops@porterchain.com"
+        for s in created
+    )
     booked = _specs_for_event(
         DomainEventType.ORDER_BOOKED,
         {

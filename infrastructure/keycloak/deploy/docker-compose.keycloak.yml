@@ -1,0 +1,29 @@
+# Production Keycloak (pcd-keycloak) on the droplet: /opt/porterchain/keycloak/docker-compose.keycloak.yml
+# Not touched by the app Deploy workflow. Apply theme/realm changes with infrastructure/keycloak/deploy/apply-theme.sh.
+# Secrets come from ../secrets/keycloak.env (never committed). The themes/ dir is synced from infrastructure/keycloak/themes.
+name: porterchain-keycloak
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.1
+    container_name: pcd-keycloak
+    command: ["start"]
+    restart: unless-stopped
+    mem_limit: 768m
+    env_file: ../secrets/keycloak.env
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://pcd-postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_HOSTNAME: https://auth.porterchain.com
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: xforwarded
+      KC_HEALTH_ENABLED: "true"
+      JAVA_OPTS_KC_HEAP: "-Xms128m -Xmx512m -XX:MaxMetaspaceSize=192m"
+    ports: ["127.0.0.1:58180:8080"]
+    volumes:
+      - ./themes/porterchain:/opt/keycloak/themes/porterchain:ro
+    networks: [edge]
+networks:
+  edge:
+    external: true
+    name: porterchain-prod_edge

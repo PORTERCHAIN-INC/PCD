@@ -18,7 +18,7 @@
     "test:e2e": "playwright test",
     "test:e2e:p0": "playwright test --grep @p0",
     "test:e2e:install": "playwright install chromium",
-    "test:seo": "tsx --test src/lib/home/guide-rules.test.mts src/lib/seo/url-policy.test.mts src/i18n/client-messages.test.mts src/lib/seo/delivery-programmatic.test.mjs src/lib/track-status.test.mjs"
+    "test:seo": "tsx --test src/lib/home/guide-rules.test.mts src/lib/seo/url-policy.test.mts src/i18n/client-messages.test.mts src/lib/seo/delivery-programmatic.test.mjs src/lib/track-status.test.mjs src/lib/express-quote.test.mts"
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.40",

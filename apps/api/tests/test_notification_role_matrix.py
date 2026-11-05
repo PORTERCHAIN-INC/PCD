@@ -191,7 +191,7 @@ def test_no_system_recipient_in_staff_specs() -> None:
         (DomainEventType.PAYMENT_STARTED, {"customer"}),
         (DomainEventType.PAYMENT_SUCCEEDED, {"customer", "merchant"}),
         (DomainEventType.PAYMENT_FAILED, {"customer"}),
-        (DomainEventType.ORDER_CREATED, {"customer", "merchant"}),
+        (DomainEventType.ORDER_CREATED, {"customer", "merchant", "admin"}),
         (DomainEventType.ORDER_BOOKED, {"customer", "merchant"}),
         (DomainEventType.DRIVER_ASSIGNED, {"customer", "driver", "merchant"}),
         (DomainEventType.DRIVER_ACCEPTED, {"driver"}),

@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
   },
   env: driverPublicEnv(),
   async rewrites() {
-    return [{ source: "/favicon.ico", destination: "/icon.svg" }];
+    return [{ source: "/favicon.ico", destination: "/icon.png" }];
   },
 };
 
