@@ -59,6 +59,8 @@ VENDORS: dict[str, tuple[str, set[str]]] = {
             "env/compose.env.example",
             "apps/api/env.example",
             "apps/api/.env.example",
+            # Encrypted inventory may keep retired key *names* (values are ciphertext).
+            "secrets/droplet.enc.yaml",
         },
     ),
     # Doc 60 R2: FEATURE_AI=false; OpenAI-compatible / NVIDIA NIM clients and keys deleted.
