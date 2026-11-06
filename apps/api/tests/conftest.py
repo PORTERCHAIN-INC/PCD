@@ -18,6 +18,9 @@ TEST_SPICEDB_KEY = "porterchain-spicedb-test-key"
 
 os.environ.setdefault("DATABASE_URL", TEST_DATABASE_URL)
 os.environ.setdefault("REDIS_URL", TEST_REDIS_URL)
+# Shared resolver hits Photon/Nominatim; legacy import tests mock the old path.
+# tests/test_geo_resolve.py turns it on with fake providers.
+os.environ.setdefault("GEO_RESOLVE_IMPORT", "0")
 os.environ.setdefault("SPICEDB_ENDPOINT", TEST_SPICEDB_ENDPOINT)
 os.environ.setdefault("SPICEDB_PRESHARED_KEY", TEST_SPICEDB_KEY)
 

@@ -47,6 +47,54 @@ class GeocodeResult:
     source: str | None = None  # csv | nominatim | places
     city: str | None = None
     postal: str | None = None
+    # Shared resolver (geo_resolve): up to 5 ranked GTA candidates for the review popup.
+    candidates: list[dict[str, Any]] | None = None
+    resolve_status: str | None = None  # confident | ambiguous | approximate | failed
+
+
+def smart_resolve_enabled() -> bool:
+    """Kill switch for the shared resolver on import paths (default on)."""
+    flag = (os.environ.get("GEO_RESOLVE_IMPORT", "1") or "").strip().lower()
+    return flag in {"1", "true", "yes", "on"}
+
+
+def _from_resolver(norm: Any, issues: list[str], address: str) -> GeocodeResult | None:
+    """Photon -> Nominatim(5) -> capped Google. None when nothing was found (legacy path runs)."""
+    from porterchain_api.geo_resolve import STATUS_AMBIGUOUS, STATUS_APPROXIMATE, resolve_address
+
+    res = resolve_address(
+        address, unit=norm.unit, city=norm.city, province=norm.province, postal=norm.postal
+    )
+    best = res.best
+    if best is None:
+        return None
+    extra: list[str] = []
+    status = "ok"
+    if res.status == STATUS_AMBIGUOUS:
+        status = "needs_review"
+        extra.append("address.ambiguous")
+        if "postal_disagrees" in res.reasons:
+            extra.append("address.postal_mismatch")
+    elif res.status == STATUS_APPROXIMATE:
+        status = "approximate"
+        extra.append("address.approximate")
+    return GeocodeResult(
+        lat=best.lat,
+        lng=best.lng,
+        formatted=best.formatted or norm.street or address,
+        status=status,
+        confidence=res.confidence,
+        unit=norm.unit,
+        raw=norm.raw,
+        geocode_query=res.query,
+        issues=issues + extra,
+        place_id=best.place_id,
+        source=best.source,
+        city=best.city or norm.city,
+        postal=best.postal or norm.postal,
+        candidates=[c.to_dict() for c in res.candidates],
+        resolve_status=res.status,
+    )
 
 
 def _throttle() -> None:
@@ -156,6 +204,7 @@ def geocode_stop(
     lng: float | None = None,
     place_id: str | None = None,
     source: str | None = None,
+    smart: bool = False,
 ) -> GeocodeResult:
     """``place_id``/``source`` only matter with ``lat``/``lng``: a stop re-resolved with
     coordinates it already had keeps where they came from."""
@@ -179,6 +228,15 @@ def geocode_stop(
             city=norm.city,
             postal=norm.postal,
         )
+
+    if smart and smart_resolve_enabled():
+        try:
+            smart_hit = _from_resolver(norm, issues, address)
+        except Exception:  # noqa: BLE001
+            logger.warning("geo_resolve failed; legacy Nominatim path", exc_info=True)
+            smart_hit = None
+        if smart_hit is not None:
+            return smart_hit
 
     attempts = [
         ("ok", 0.9, norm.geocode_query),

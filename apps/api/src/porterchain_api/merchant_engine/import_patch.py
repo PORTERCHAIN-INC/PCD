@@ -86,6 +86,26 @@ def patch_stop(
         raise LookupError("route_import_stop_not_found")
 
     stop = dict(stops[index])
+    patch = dict(patch)
+    choice = patch.pop("candidate_index", None)
+    if choice is not None:
+        cands = list(stop.get("candidates") or [])
+        if not 0 <= int(choice) < len(cands):
+            raise ValueError("route_import_candidate_not_found")
+        picked = cands[int(choice)]
+        # The merchant chose the place: keep their pick as a supplied pin.
+        patch.update(
+            {
+                "address": picked.get("formatted") or stop.get("address"),
+                "lat": picked.get("lat"),
+                "lng": picked.get("lng"),
+                "postal": picked.get("postal") or stop.get("postal"),
+                "city": picked.get("city") or stop.get("city"),
+            }
+        )
+        stop["place_id"] = picked.get("place_id")
+        stop["geocode_source"] = f"{picked.get('source') or 'resolver'}:user_pick"
+        stop["candidates"] = []
     packages = patch.get("packages")
     new_address = patch.get("address")
     address_changed = new_address is not None and str(new_address).strip() != str(
@@ -123,10 +143,13 @@ def patch_stop(
     stops[index] = stop
     errors = []
     for i, s in enumerate(stops):
+        row = stop_sheet_row(s, i)
+        if s.get("geocode_status") == "needs_review":
+            errors.append(route_row_error(row=row, code="address.ambiguous"))
+            continue
         if s.get("geocode_status") != "failed":
             continue
         codes = s.get("issues") or ["stop.geocode_failed"]
-        row = stop_sheet_row(s, i)
         for code in codes:
             errors.append(route_row_error(row=row, code=str(code)))
     quote, geometry = split_route_quote(
@@ -147,7 +170,9 @@ def patch_stop(
     job.job_config = cfg
     job.preview = stops
     job.errors = errors
-    job.valid_rows = sum(1 for s in stops if s.get("geocode_status") not in {"failed", "pending"})
+    job.valid_rows = sum(
+        1 for s in stops if s.get("geocode_status") not in {"failed", "pending", "needs_review"}
+    )
     job.error_rows = len(errors)
     db.commit()
     db.refresh(job)

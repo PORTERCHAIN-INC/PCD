@@ -91,6 +91,8 @@ def confirm_import(
 
     cfg = dict(job.job_config or {})
     stops = list(cfg.get("stops") or [])
+    if any(s.get("geocode_status") == "needs_review" for s in stops):
+        raise ValueError("route_import_address_ambiguous")
     if any(s.get("geocode_status") in {"failed", "pending"} for s in stops):
         raise ValueError("route_import_geocode_incomplete")
     if cfg.get("optimize_status") == "pending":

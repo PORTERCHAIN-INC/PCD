@@ -20,6 +20,16 @@ _ROUTE_IMPORT_ERRORS = {
     ),
     "stop.geocode_failed": "Could not find this address.",
     "route_import_geocode_incomplete": "Addresses are still being located. Try again in a moment.",
+    "route_import_address_ambiguous": (
+        "Some addresses match more than one place. Pick the right one for each flagged stop."
+    ),
+    "route_import_candidate_not_found": (
+        "That suggestion is no longer available. Edit the address instead."
+    ),
+    "address.ambiguous": (
+        "We can't clearly understand this address — it matches more than one area. "
+        "Pick one of the suggestions or update it."
+    ),
     "route_import_optimize_pending": "Drop order is still updating. Try confirming in a moment.",
     "route_import_quote_missing": "Quote is not ready yet.",
     "stop.out_of_service_area": (

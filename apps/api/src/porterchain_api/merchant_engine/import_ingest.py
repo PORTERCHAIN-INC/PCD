@@ -19,9 +19,28 @@ def _norm_header(h: Any) -> str:
     return str(h or "").strip().lower().replace(" ", "_")
 
 
+def _decode_text(data: bytes) -> str:
+    """UTF-8 (with BOM) first; Excel-on-Windows exports fall back to cp1252."""
+    try:
+        return data.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        try:
+            return data.decode("cp1252")
+        except UnicodeDecodeError:
+            return data.decode("utf-8", errors="replace")
+
+
+def _sniff_dialect(text: str) -> type[csv.Dialect] | csv.Dialect:
+    """Comma, semicolon, tab or pipe — whatever the merchant's export used."""
+    try:
+        return csv.Sniffer().sniff(text[:8192], delimiters=",;\t|")
+    except csv.Error:
+        return csv.excel
+
+
 def parse_csv_bytes(data: bytes) -> TabularSheet:
-    text = data.decode("utf-8-sig", errors="replace")
-    reader = csv.DictReader(io.StringIO(text))
+    text = _decode_text(data)
+    reader = csv.DictReader(io.StringIO(text), dialect=_sniff_dialect(text))
     if not reader.fieldnames:
         return TabularSheet(headers=[], rows=[])
     headers = [_norm_header(h) for h in reader.fieldnames]
