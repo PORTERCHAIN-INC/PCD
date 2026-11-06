@@ -12,6 +12,11 @@ from porterchain_api.config import Settings
 from porterchain_api.platform.health import readiness
 from porterchain_api.platform.health_status import normalize_check_status
 
+def _google_usage() -> dict[str, Any]:
+    from porterchain_api import geo_google
+
+    return geo_google.usage_today()
+
 
 def build_integration_health(
     db: Session,
@@ -43,9 +48,11 @@ def build_integration_health(
             "configured",
             role="maplibre_tiles_and_photon_search",
             note=(
-                "MapLibre + self-hosted PMTiles, Photon search (Nominatim fallback), "
-                "Valhalla/OSRM routing. No third-party map or places API."
+                "MapLibre + self-hosted PMTiles, Photon/Nominatim search, "
+                "Valhalla/OSRM routing. Google Places (New) is a capped server-side "
+                "backup used only when Photon has no confident address."
             ),
+            places_fallback=_google_usage(),
         ),
         "firebase": _entry(
             "configured" if platform.firebase_project_id else "unconfigured",

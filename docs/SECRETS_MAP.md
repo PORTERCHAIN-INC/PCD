@@ -78,24 +78,24 @@ Never forward DOPPLER_TOKEN through appleboy SSH env (truncation / auth failures
 
 ### Doppler (`pcd` / `prd`) — prod runtime
 
-| Secret                                                                         | Notes                                                                           |
-| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
-| `POSTGRES_PASSWORD`                                                            | DB password                                                                     |
-| `CLERK_{CUSTOMER,MERCHANT,ADMIN,DRIVER}_{SECRET_KEY,PUBLISHABLE_KEY,JWKS_URL}` | Portal slot aliases (same Platform triad after sync)                            |
-| `CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` / `CLERK_JWKS_URL`                | Platform triad (canonical)                                                      |
-| `STRIPE_SECRET`                                                                | `sk_live_…`                                                                     |
-| `STRIPE_WEBHOOK_SECRET`                                                        | `whsec_…`                                                                       |
-| `JWT_SECRET`                                                                   | `openssl rand -hex 32` — driver sessions + SSO                                  |
-| `PUBLIC_INGEST_API_KEY`                                                        | Website inquiries → API CRM leads (`X-Ingest-Key`)                              |
-| `GOOGLE_MAPS_SERVER_API_KEY`                                                   | Server geocoding                                                                |
-| `FIREBASE_PROJECT_ID`                                                          | e.g. `porterchain-55313`                                                        |
-| `FIREBASE_CREDENTIALS_JSON`                                                    | Extracted to file on sync                                                       |
-| `FIREBASE_WEB_VAPID_KEY`                                                       | Web push                                                                        |
-| `SENTRY_DSN`                                                                   | API errors (optional)                                                           |
-| `PORTERCHAIN_PUSH_ENABLED`                                                     | `true`                                                                          |
-| `PORTERCHAIN_PUSH_SEND`                                                        | `true`                                                                          |
-| `API_REPLICAS`                                                                 | `1` (4GB droplet)                                                               |
-| `CLERK_WEBHOOK_SIGNING_SECRET`                                                 | Clerk Svix webhook (`POST /webhooks/clerk`) — add when unified webhooks enabled |
+| Secret                                                                         | Notes                                                                                     |
+| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `POSTGRES_PASSWORD`                                                            | DB password                                                                               |
+| `CLERK_{CUSTOMER,MERCHANT,ADMIN,DRIVER}_{SECRET_KEY,PUBLISHABLE_KEY,JWKS_URL}` | Portal slot aliases (same Platform triad after sync)                                      |
+| `CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` / `CLERK_JWKS_URL`                | Platform triad (canonical)                                                                |
+| `STRIPE_SECRET`                                                                | `sk_live_…`                                                                               |
+| `STRIPE_WEBHOOK_SECRET`                                                        | `whsec_…`                                                                                 |
+| `JWT_SECRET`                                                                   | `openssl rand -hex 32` — driver sessions + SSO                                            |
+| `PUBLIC_INGEST_API_KEY`                                                        | Website inquiries → API CRM leads (`X-Ingest-Key`)                                        |
+| `GOOGLE_MAPS_SERVER_API_KEY`                                                   | Server Places (New) backup for `/v1/geo` when Photon is not confident (free tier, capped) |
+| `FIREBASE_PROJECT_ID`                                                          | e.g. `porterchain-55313`                                                                  |
+| `FIREBASE_CREDENTIALS_JSON`                                                    | Extracted to file on sync                                                                 |
+| `FIREBASE_WEB_VAPID_KEY`                                                       | Web push                                                                                  |
+| `SENTRY_DSN`                                                                   | API errors (optional)                                                                     |
+| `PORTERCHAIN_PUSH_ENABLED`                                                     | `true`                                                                                    |
+| `PORTERCHAIN_PUSH_SEND`                                                        | `true`                                                                                    |
+| `API_REPLICAS`                                                                 | `1` (4GB droplet)                                                                         |
+| `CLERK_WEBHOOK_SIGNING_SECRET`                                                 | Clerk Svix webhook (`POST /webhooks/clerk`) — add when unified webhooks enabled           |
 
 **Retired:** divergent 4-app enterprise keys as a supported mode. Slot names remain for dual-read / compose.
 

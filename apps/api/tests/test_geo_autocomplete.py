@@ -1,4 +1,4 @@
-"""/v1/geo: free address search (Nominatim), no Google."""
+"""/v1/geo Nominatim path: free OSM search when Photon URL is empty (no Google URL)."""
 
 from __future__ import annotations
 
