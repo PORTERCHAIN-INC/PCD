@@ -12,7 +12,7 @@ import {
   type BookingCopyKey,
   type VehicleId,
 } from "@porterchain/types/booking";
-import { AddressAutocompleteInput } from "@porterchain/maps";
+import { AddressAutocompleteInput, useAddressIQ } from "@porterchain/maps";
 import {
   normalizeDeliveryOptions,
   type DeliveryOptions,
@@ -87,6 +87,9 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const loaded = useRef(false);
+  // Address IQ: texts picked from suggestions / the review modal are pinned and skip geo_resolve.
+  const pinned = useRef<Set<string>>(new Set());
+  const iq = useAddressIQ();
 
   useEffect(() => {
     setPhone(auth.phone || localStorage.getItem(PHONE_KEY) || "");
@@ -158,8 +161,44 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
     e.preventDefault();
     if (amount === null || (!input && !resumed)) return setError(tx("needTrip"));
     if (!isPhone(phone)) return setError("Add a phone number so the driver can reach you.");
-    setBusy(true);
     setError(null);
+    if (!resumed) {
+      // Same rule as merchant booking: a typed, unpicked address is resolved first;
+      // unclear ones open the review popup instead of being silently guessed.
+      const fields = [
+        { key: "pickup", label: tx("pickup"), text: pickup },
+        ...drops.map((d, i) => ({
+          key: `drop-${i}`,
+          label: drops.length > 1 ? tx("dropN", { n: i + 1 }) : tx("drop"),
+          text: d,
+        })),
+      ].filter((f) => f.text.trim() && !pinned.current.has(f.text));
+      if (fields.length) {
+        const res = await iq.check(
+          fields.map((f) => ({ key: f.key, label: f.label, address: { formatted: f.text } }))
+        );
+        if (!res) return setError("Confirm the address to continue.");
+        let changed = false;
+        const nextDrops = [...drops];
+        let nextPickup = pickup;
+        for (const f of fields) {
+          const a = res[f.key];
+          if (!a) continue;
+          if (typeof a.lat === "number") pinned.current.add(a.formatted);
+          if (a.formatted === f.text) continue;
+          changed = true;
+          if (f.key === "pickup") nextPickup = a.formatted;
+          else nextDrops[Number(f.key.slice(5))] = a.formatted;
+        }
+        if (changed) {
+          // Address text changed -> let the price refresh before paying.
+          setPickup(nextPickup);
+          setDrops(nextDrops);
+          return setError("Address updated — check the price, then tap pay again.");
+        }
+      }
+    }
+    setBusy(true);
     try {
       const token = await auth.getToken();
       if (!token) throw new Error("Sign in again to continue.");
@@ -228,6 +267,7 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
       className="mx-auto w-full max-w-xl pb-44 md:pb-10"
       aria-labelledby="send-title"
     >
+      {iq.modal}
       <p className="text-[13px] font-semibold uppercase tracking-[0.18em] text-primary/65">Send</p>
       <h1 id="send-title" className="mt-2 text-4xl font-extrabold tracking-tight text-primary">
         Where to?
@@ -240,7 +280,10 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
             id="send-pickup"
             value={pickup}
             onChange={setPickup}
-            onPlaceSelect={(a) => setPickup(a.formatted)}
+            onPlaceSelect={(a) => {
+              pinned.current.add(a.formatted);
+              setPickup(a.formatted);
+            }}
             placeholder={tx("placeholder")}
             className={field}
             fallbackClassName={field}
@@ -262,9 +305,10 @@ function SendBody({ auth }: { auth: PortalAuthValue }) {
                   id={`send-drop-${i}`}
                   value={d}
                   onChange={(v) => setDrops((x) => x.map((y, j) => (j === i ? v : y)))}
-                  onPlaceSelect={(a) =>
-                    setDrops((x) => x.map((y, j) => (j === i ? a.formatted : y)))
-                  }
+                  onPlaceSelect={(a) => {
+                    pinned.current.add(a.formatted);
+                    setDrops((x) => x.map((y, j) => (j === i ? a.formatted : y)));
+                  }}
                   placeholder={tx("placeholder")}
                   className={field}
                   fallbackClassName={field}

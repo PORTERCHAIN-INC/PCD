@@ -41,6 +41,7 @@ import {
   AddressAutocompleteInput,
   AddressDisambiguationModal,
   resolveGeoAddress,
+  useAddressIQ,
   type AddressCandidate,
   type BookingAddress,
 } from "@porterchain/maps";
@@ -602,6 +603,8 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
     candidates: AddressCandidate[];
   } | null>(null);
   const [addrBusy, setAddrBusy] = useState(false);
+  // Multi-parcel dropoffs use the shared hook (same resolve -> pin or popup rule).
+  const parcelIQ = useAddressIQ();
   const setWhich = (which: "pickup" | "dropoff", a: BookingAddress) =>
     which === "pickup" ? setPickup(a) : setDropoff(a);
 
@@ -642,6 +645,25 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
       }
     } finally {
       setAddrBusy(false);
+    }
+    if (mode === "multi") {
+      const typed = parcels
+        .map((p, i) => ({ p, i }))
+        .filter(({ p }) => p.formatted?.trim() && typeof p.lat !== "number");
+      if (typed.length) {
+        const res = await parcelIQ.check(
+          typed.map(({ p, i }) => ({
+            key: String(i),
+            label: `Parcel ${i + 1} dropoff`,
+            address: p,
+          }))
+        );
+        if (!res) {
+          setError("Confirm the unclear parcel address to continue.");
+          return;
+        }
+        setParcels((prev) => prev.map((x, j) => res[String(j)] ?? x));
+      }
     }
     setError(null);
     setStep("review");
@@ -1479,10 +1501,15 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
             )}
             <div className="mt-6 flex flex-wrap gap-2">
               {step === "details" && (
-                <Button type="button" onClick={() => void goReview()} disabled={addrBusy}>
-                  {addrBusy ? "Checking address…" : "Review booking"}
+                <Button
+                  type="button"
+                  onClick={() => void goReview()}
+                  disabled={addrBusy || parcelIQ.checking}
+                >
+                  {addrBusy || parcelIQ.checking ? "Checking address…" : "Review booking"}
                 </Button>
               )}
+              {parcelIQ.modal}
               <AddressDisambiguationModal
                 open={addrReview !== null}
                 originalAddress={addrReview?.original ?? ""}

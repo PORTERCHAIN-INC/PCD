@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AddressAutocompleteInput } from "@porterchain/maps";
+import { AddressAutocompleteInput, useAddressIQ } from "@porterchain/maps";
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { adminFetch } from "@/lib/api";
@@ -114,6 +114,7 @@ export function OrderBuilderModal({
   const { getApiToken } = useAdminAuth();
   const [kind, setKind] = useState<OrderKind>("single");
   const [stops, setStops] = useState<StopDraft[]>(() => seedStops("single"));
+  const iq = useAddressIQ();
   const [merchantId, setMerchantId] = useState("");
   const [merchantList, setMerchantList] = useState<MerchantRow[]>([]);
   const [vehicleClass, setVehicleClass] = useState("cargo_van");
@@ -204,7 +205,7 @@ export function OrderBuilderModal({
           weight_lb: num(parcel.lb),
         };
   }
-  function draftBody() {
+  function draftBody(stopList: StopDraft[] = stops) {
     return {
       merchant_id: merchantId,
       order_kind: kind,
@@ -214,7 +215,7 @@ export function OrderBuilderModal({
       schedule_mode: kind === "scheduled_pickup" ? "later" : "now",
       special_instructions: instructions || null,
       delivery_options: normalizeDeliveryOptions(deliveryOptions) ?? null,
-      stops: stops.map((s, i) => ({
+      stops: stopList.map((s, i) => ({
         type: s.type,
         sequence: i,
         formatted: s.formatted.trim(),
@@ -275,11 +276,40 @@ export function OrderBuilderModal({
   }, [priceKey, open, readyToPrice]);
 
   async function submit() {
-    setBusy(true);
     setError(null);
+    // Address IQ (same as merchant/customer): typed stops without a pin go through
+    // geo_resolve; unclear ones open the review popup instead of a silent guess.
+    const typed = stops.filter((s) => s.formatted.trim() && !s.lat.trim());
+    let finalStops = stops;
+    if (typed.length) {
+      const res = await iq.check(
+        typed.map((s) => ({
+          key: s.key,
+          label: `${s.type === "pickup" ? "Pickup" : "Dropoff"} stop ${stops.indexOf(s) + 1}`,
+          address: { formatted: s.formatted.trim(), postal: s.postal || undefined },
+        }))
+      );
+      if (!res) {
+        setError("Confirm the unclear address to create the order.");
+        return;
+      }
+      finalStops = stops.map((s) => {
+        const a = res[s.key];
+        if (!a) return s;
+        return {
+          ...s,
+          formatted: a.formatted,
+          lat: typeof a.lat === "number" ? String(a.lat) : s.lat,
+          lng: typeof a.lng === "number" ? String(a.lng) : s.lng,
+          postal: a.postal ?? s.postal,
+        };
+      });
+      setStops(finalStops);
+    }
+    setBusy(true);
     try {
       const token = await getApiToken();
-      const body = draftBody();
+      const body = draftBody(finalStops);
       const result = await adminFetch<{ order_id: string; tracking_number: string }>(
         "/v1/admin/orders",
         token,
@@ -307,10 +337,11 @@ export function OrderBuilderModal({
           </Button>
           <Button
             onClick={() => void submit()}
-            disabled={busy || !merchantId || Boolean(price?.custom_quote)}
+            disabled={busy || iq.checking || !merchantId || Boolean(price?.custom_quote)}
           >
-            {busy ? "Creating…" : "Create & dispatch-ready"}
+            {iq.checking ? "Checking address…" : busy ? "Creating…" : "Create & dispatch-ready"}
           </Button>
+          {iq.modal}
         </>
       }
     >
@@ -589,7 +620,10 @@ export function OrderBuilderModal({
                   <AddressAutocompleteInput
                     id={`admin-order-stop-${s.key}`}
                     value={s.formatted}
-                    onChange={(formatted) => updateStop(s.key, { formatted, postal: "" })}
+                    onChange={(formatted) =>
+                      // Typed text drops the old pin so Address IQ re-checks it on create.
+                      updateStop(s.key, { formatted, postal: "", lat: "", lng: "" })
+                    }
                     onPlaceSelect={(p) =>
                       updateStop(s.key, {
                         formatted: p.formatted,
