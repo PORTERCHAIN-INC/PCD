@@ -193,7 +193,7 @@ def convert_customer_to_merchant(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> AdminConvertCustomerToMerchantResponse:
-    """Convert a retail customer into a merchant. Historical orders stay on the customer."""
+    """Convert a retail customer into a merchant. Historical orders remap to the merchant."""
     _guard(ctx, "customers")
     from porterchain_api.admin_engine.merchant_lifecycle import convert_from_customer
     from porterchain_api.admin_engine.merchant_service import AdminMerchantService

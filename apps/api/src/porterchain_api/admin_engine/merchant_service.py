@@ -244,6 +244,7 @@ class AdminMerchantService:
                 "customer_id": result["customer_id"],
                 "merchant_id": result["merchant_id"],
                 "status": result["status"],
+                "orders_remapped": int(result.get("orders_remapped") or 0),
             }
         db.commit()
         db.refresh(result["merchant"])
@@ -254,6 +255,7 @@ class AdminMerchantService:
             "merchant_id": result["merchant_id"],
             "status": result["status"],
             "ar_written_off_cents": result["ar_written_off_cents"],
+            "orders_remapped": int(result.get("orders_remapped") or 0),
         }
 
     def update_team_member(

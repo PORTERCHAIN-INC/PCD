@@ -305,10 +305,20 @@ def convert_to_customer(
     merchant = svc._get_or_raise(db, merchant_id)
     existing = (merchant.profile or {}).get("converted_customer_id")
     if merchant.status == MerchantStatus.CLOSED.value and existing:
+        from porterchain_api.merchant_engine.convert_remap import (
+            remap_orders_merchant_to_customer,
+        )
+
+        remapped = remap_orders_merchant_to_customer(
+            db, merchant_id=merchant.id, customer_id=str(existing)
+        )
+        if remapped:
+            db.commit()
         return {
             "customer_id": existing,
             "merchant_id": merchant.id,
             "status": merchant.status,
+            "orders_remapped": remapped,
             "merchant": merchant,
             "customer": None,
             "skip_commit": True,
@@ -321,12 +331,23 @@ def convert_to_customer(
         raise ValueError("close_blocked_outstanding_ar")
     email = (owner_email_value or "").strip() or owner_email(db, merchant)
     customer = ensure_retail_customer(db, email=email, phone=merchant.phone)
+    from porterchain_api.merchant_engine.convert_remap import (
+        remap_orders_merchant_to_customer,
+    )
+
+    remapped = remap_orders_merchant_to_customer(
+        db, merchant_id=merchant.id, customer_id=customer.id
+    )
     apply_closed(
         db,
         ctx,
         merchant,
         reason="converted_to_customer",
-        extra={"customer_id": customer.id, "ar_written_off_cents": written_off},
+        extra={
+            "customer_id": customer.id,
+            "ar_written_off_cents": written_off,
+            "orders_remapped": remapped,
+        },
     )
     profile = dict(merchant.profile or {})
     profile["converted_customer_id"] = customer.id
@@ -341,6 +362,7 @@ def convert_to_customer(
             "customer_id": customer.id,
             "owner_email": email,
             "ar_written_off_cents": written_off,
+            "orders_remapped": remapped,
         },
     )
     emit_event(
@@ -366,6 +388,7 @@ def convert_to_customer(
         "merchant_id": merchant.id,
         "status": merchant.status,
         "ar_written_off_cents": written_off,
+        "orders_remapped": remapped,
         "merchant": merchant,
         "customer": customer,
         "skip_commit": False,
@@ -515,7 +538,7 @@ def convert_from_customer(
     auto_activate: bool = True,
     send_invite: bool = False,
 ) -> dict[str, Any]:
-    """Promote a retail customer into a merchant. Orders stay on the customer id."""
+    """Promote a retail customer into a merchant. Past orders get merchant_id set."""
     from porterchain_api.merchant_engine.convert_customer import (
         convert_from_customer as convert_compose,
     )

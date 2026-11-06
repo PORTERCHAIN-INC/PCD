@@ -133,7 +133,7 @@ export default function CustomerDetailClient({ id }: { id: string }) {
   async function convertToMerchant() {
     if (
       !window.confirm(
-        "Convert this retail customer into a merchant? Past orders stay on this customer record. The customer portal login becomes a merchant portal login."
+        "Convert this retail customer into a merchant? Past orders will appear on the merchant account. The customer portal login becomes a merchant portal login."
       )
     ) {
       return;

@@ -502,8 +502,7 @@ export function DangerZone({ m, onSaved }: { m: MerchantDetail; onSaved: () => v
       <div className="space-y-3 p-5 text-sm">
         <p className="text-muted">
           Closing turns off the merchant portal. Orders and invoices stay on this company file.
-          Convert opens a retail customer record for the owner email without moving shipment
-          history.
+          Convert opens a retail customer record for the owner email and remaps shipment history.
         </p>
         {owed > 0 && (
           <p className="rounded-lg bg-amber-50 px-3 py-2 text-amber-900">
@@ -533,7 +532,7 @@ export function DangerZone({ m, onSaved }: { m: MerchantDetail; onSaved: () => v
             onClick={() => {
               if (
                 !window.confirm(
-                  "Convert this merchant to a retail customer? Portal seats will be revoked. Historical orders stay on this merchant."
+                  "Convert this merchant to a retail customer? Portal seats will be revoked. Historical orders will appear on the retail customer."
                 )
               ) {
                 return;

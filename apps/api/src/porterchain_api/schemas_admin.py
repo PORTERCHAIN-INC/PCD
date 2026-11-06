@@ -1276,7 +1276,7 @@ class AdminCreateCustomerResponse(BaseModel):
 
 
 class AdminConvertCustomerToMerchantRequest(BaseModel):
-    """Promote a retail customer into a merchant org (orders stay on the customer)."""
+    """Promote a retail customer into a merchant org (order history remaps to merchant)."""
 
     company_name: str | None = Field(default=None, max_length=255)
     auto_activate: bool = True
