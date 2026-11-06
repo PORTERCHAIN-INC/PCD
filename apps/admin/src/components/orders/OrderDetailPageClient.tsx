@@ -229,6 +229,28 @@ export default function OrderDetailPageClient({ id }: { id: string }) {
         }
         openBuilderFromDetail("Rebook order");
       },
+      onRepeatOrder: () => {
+        const dollars = ((detail?.amount_cents ?? 0) / 100).toFixed(2);
+        if (
+          !window.confirm(
+            `Repeat this order for today at the same price ($${dollars})? A new order number will be created.`
+          )
+        ) {
+          return;
+        }
+        void (async () => {
+          try {
+            const token = await getApiToken();
+            const res = await ordersApi.repeatOrder(token, id);
+            flashNotice(
+              `Repeated as ${res.tracking_number} (same price $${(res.amount_cents / 100).toFixed(2)}).`
+            );
+            router.push(`/orders/${res.order_id}`);
+          } catch (err) {
+            flashError(err instanceof Error ? err.message : "Repeat order failed");
+          }
+        })();
+      },
       onCreateReturn: () => {
         // L105: book the return pickup (customer -> merchant), not just open Claims.
         if (!window.confirm("Book a return pickup from the customer back to the merchant?")) return;

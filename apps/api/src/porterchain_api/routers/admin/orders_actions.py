@@ -37,3 +37,20 @@ def create_order_return(
         ctx, "orders_write", _orders.create_return_committed, db, settings, order_id,
         actor_id=getattr(ctx.user, "id", None),
     )
+
+
+@router.post("/orders/{order_id}/repeat")
+def repeat_order(
+    order_id: str, ctx: Ctx, db: Session = Depends(get_db), settings: Settings = Depends(get_settings)
+) -> dict:
+    """Clone an order for today at the same locked price (admin Repeat order)."""
+    return _invoke(
+        ctx,
+        "orders_write",
+        _orders.create_repeat_committed,
+        db,
+        settings,
+        order_id,
+        actor_id=getattr(ctx.user, "id", None),
+    )
+

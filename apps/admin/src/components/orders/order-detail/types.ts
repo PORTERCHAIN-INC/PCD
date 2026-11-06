@@ -9,6 +9,7 @@ export type Order360Actions = {
   onDuplicate: () => void;
   onRebook: () => void;
   onCreateReturn: () => void;
+  onRepeatOrder: () => void;
   onGenerateInvoice: () => void;
   onResendReceipt: () => void;
   onRefund: () => void;
