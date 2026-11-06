@@ -53,7 +53,7 @@ export const WEBSITE_NEWSLETTER_LEAD_SOURCE = "website_newsletter";
 
 /**
  * Admin primary nav (doc 75 §2, D-75-1): Today · Orders · Dispatch · Network ·
- * Customers & Orgs · Billing · Support · Insights · Settings.
+ * Customers & Orgs · CRM · Billing · Support · Insights · Settings.
  * Top-level (ops) pages must appear here; detail/redirect routes do not.
  */
 export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
@@ -184,6 +184,18 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         icon: Users,
       },
       {
+        href: "/merchants/duplicates",
+        label: "Duplicates",
+        description: "Find and merge duplicate accounts",
+        icon: Building2,
+      },
+    ],
+  },
+  {
+    id: "crm",
+    label: "CRM",
+    items: [
+      {
         href: "/leads",
         label: "Leads",
         description: "Every lead, answered in under 5 minutes",
@@ -216,10 +228,10 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         icon: Bot,
       },
       {
-        href: "/merchants/duplicates",
-        label: "Duplicates",
-        description: "Find and merge duplicate accounts",
-        icon: Building2,
+        href: "/leads/attribution",
+        label: "Attribution",
+        description: "UTM and campaign sources",
+        icon: BarChart3,
       },
     ],
   },
@@ -305,12 +317,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         href: "/finance/analytics",
         label: "Analytics",
         description: "Trends and unit economics",
-        icon: BarChart3,
-      },
-      {
-        href: "/leads/attribution",
-        label: "Attribution",
-        description: "UTM and campaign sources",
         icon: BarChart3,
       },
     ],
@@ -444,13 +450,14 @@ export function isNavActive(pathname: string, href: string, search = ""): boolea
     return false;
   }
 
-  // Dedicated calendar/pipeline items — don't also highlight Inbox.
+  // Dedicated CRM subpages — don't also highlight Leads inbox.
   if (
     path === "/leads" &&
     (pathname.startsWith("/leads/calendar") ||
       pathname.startsWith("/leads/pipeline") ||
       pathname.startsWith("/leads/today") ||
-      pathname.startsWith("/leads/agent"))
+      pathname.startsWith("/leads/agent") ||
+      pathname.startsWith("/leads/attribution"))
   ) {
     return false;
   }
@@ -478,13 +485,13 @@ const ROLE_GROUPS: Record<string, string[] | "all"> = {
   operations_manager: "all",
   read_only: "all",
   auditor: "all",
-  dispatcher: ["today", "orders", "dispatch", "network", "customers", "support"],
+  dispatcher: ["today", "orders", "dispatch", "network", "customers", "crm", "support"],
   fleet_manager: ["today", "orders", "dispatch", "network", "support"],
-  sales: ["today", "customers", "support", "insights"],
-  merchant_success: ["today", "customers", "support"],
-  support: ["today", "orders", "customers", "support"],
-  customer_support: ["today", "orders", "customers", "support"],
-  finance: ["today", "customers", "billing", "insights"],
+  sales: ["today", "customers", "crm", "support", "insights"],
+  merchant_success: ["today", "customers", "crm", "support"],
+  support: ["today", "orders", "customers", "crm", "support"],
+  customer_support: ["today", "orders", "customers", "crm", "support"],
+  finance: ["today", "customers", "crm", "billing", "insights"],
   developer: ["today", "settings"],
 };
 const SUPER_ONLY = new Set(["/system"]);
