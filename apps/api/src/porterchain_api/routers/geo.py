@@ -1,7 +1,9 @@
-"""Free address search: Nominatim autocomplete (Photon later), Nominatim / FSA fallback.
+"""Free address search: Photon first, capped Google Places (New) backup, Nominatim / FSA.
 
-No Google APIs. Results are biased to Toronto and limited to the GTA ±150 km
-service area. Public, per-IP rate limited.
+Photon (self-hosted) always runs first. When Photon is not confident and
+GEO_GOOGLE_FALLBACK is on, the API queries Google Places (New) server-side with
+GOOGLE_MAPS_SERVER_API_KEY under a daily Redis cap. Otherwise Nominatim / FSA.
+Results stay inside the GTA ±150 km service area. Public, per-IP rate limited.
 """
 
 from __future__ import annotations
@@ -205,6 +207,7 @@ def _format(p: dict[str, Any]) -> tuple[str, str]:
     return main, secondary
 
 
+from porterchain_api import geo_google
 from porterchain_api.geo_photon import (
     _postal_fallback,
     photon_search,  # noqa: F401
@@ -219,8 +222,31 @@ def _postal_complete(postal: str | None) -> bool:
     return bool(postal) and len((postal or "").replace(" ", "")) == 6
 
 
-def _legacy_place(data: dict[str, Any], token: str) -> dict[str, Any]:
-    """Pre-Phase-0 third-party place token: re-geocode its text with our own stack."""
+def _google_suggest(q: str, limit: int) -> list[dict[str, Any]]:
+    try:
+        rows = geo_google.suggest(q, limit, BBOX)
+    except httpx.HTTPError as exc:
+        logger.warning("google places fallback failed: %s", exc)
+        return []
+    return [
+        {
+            "id": _encode({"g": r["g"], "formatted": r["formatted"]}),
+            "main": r["main"],
+            "secondary": r["secondary"],
+            "formatted": r["formatted"],
+        }
+        for r in rows
+    ]
+
+
+def _google_place(data: dict[str, Any], token: str) -> dict[str, Any]:
+    try:
+        hit = geo_google.details(str(data["g"])[:300])
+    except httpx.HTTPError as exc:
+        logger.warning("google place details failed: %s", exc)
+        hit = None
+    if hit and _km(hit["lat"], hit["lng"]) <= MAX_KM:
+        return {**hit, "placeId": token}
     from porterchain_api.merchant_engine.import_geocode import geocode_stop
 
     geo = geocode_stop(address=str(data.get("formatted") or ""), province="ON")
@@ -248,7 +274,15 @@ def autocomplete(
     q = q.strip()
     if photon_url():
         try:
-            results, _confident = photon_search_scored(q, limit)
+            results, confident = photon_search_scored(q, limit)
+            if not confident and geo_google.enabled():
+                google = _google_suggest(q, limit)
+                if google:
+                    keep = [r for r in results if r not in google]
+                    return {
+                        "results": (google + keep)[:limit],
+                        "source": "photon+google",
+                    }
             if results or not normalize_postal(q):
                 return {"results": results, "source": "photon"}
             fsa = _postal_fallback(q)
@@ -276,7 +310,7 @@ def place(
     if id:
         data = _decode(id)
         if data.get("g"):
-            return _legacy_place(data, id)
+            return _google_place(data, id)
         lat, lng = data.get("lat"), data.get("lng")
         if not isinstance(lat, (int, float)) or not isinstance(lng, (int, float)):
             raise HTTPException(status_code=400, detail="invalid_place_id")

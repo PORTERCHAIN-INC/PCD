@@ -87,7 +87,7 @@ Never forward DOPPLER_TOKEN through appleboy SSH env (truncation / auth failures
 | `STRIPE_WEBHOOK_SECRET`                                                        | `whsec_…`                                                                       |
 | `JWT_SECRET`                                                                   | `openssl rand -hex 32` — driver sessions + SSO                                  |
 | `PUBLIC_INGEST_API_KEY`                                                        | Website inquiries → API CRM leads (`X-Ingest-Key`)                              |
-| `GOOGLE_MAPS_SERVER_API_KEY`                                                   | Server geocoding                                                                |
+| `GOOGLE_MAPS_SERVER_API_KEY`                                                   | Server Places (New) backup for `/v1/geo` when Photon is not confident (free tier, capped) |
 | `FIREBASE_PROJECT_ID`                                                          | e.g. `porterchain-55313`                                                        |
 | `FIREBASE_CREDENTIALS_JSON`                                                    | Extracted to file on sync                                                       |
 | `FIREBASE_WEB_VAPID_KEY`                                                       | Web push                                                                        |
