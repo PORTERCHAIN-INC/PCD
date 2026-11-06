@@ -185,7 +185,7 @@ jobs:
       # Preflight only on website-only deploys. Full/parallel builds skip it so
       # pnpm install + Docker do not OOM the same runner (seen as a dead job
       # with missing logs on Build website).
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6
         if: matrix.flavor == 'website' && needs.plan.outputs.scope == 'website'
         with:
           version: 12.18.0
