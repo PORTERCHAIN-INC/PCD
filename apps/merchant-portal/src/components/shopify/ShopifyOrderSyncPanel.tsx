@@ -5,7 +5,13 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMerchantAuth } from "@/hooks/useMerchantAuth";
 import {
+  AddressDisambiguationModal,
+  type AddressCandidate,
+  type BookingAddress,
+} from "@porterchain/maps";
+import {
   bookShopifyOrderSync,
+  getShopifySyncAddressCandidates,
   listShopifyOrderSyncs,
   refreshShopifyOrderSyncs,
   type ShopifyOrderSyncRow,
@@ -38,6 +44,12 @@ export function ShopifyOrderSyncPanel({
   const qc = useQueryClient();
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [review, setReview] = useState<{
+    row: ShopifyOrderSyncRow;
+    original: string;
+    candidates: AddressCandidate[];
+    error: string | null;
+  } | null>(null);
   const enabled = Boolean(isLoaded && isSignedIn && orgId);
   const key = ["merchant-shopify-syncs", orgId ?? null, search ?? ""];
   const query = useQuery({
@@ -46,6 +58,7 @@ export function ShopifyOrderSyncPanel({
     queryFn: async () => listShopifyOrderSyncs(await getApiToken(), orgId, search),
   });
   const rows = query.data ?? [];
+  const heldCount = rows.filter((r) => r.needs_address_review).length;
   if (hideWhenEmpty && !search && !query.isLoading && rows.length === 0) return null;
 
   async function syncNow() {
@@ -63,11 +76,47 @@ export function ShopifyOrderSyncPanel({
     }
   }
 
-  async function book(row: ShopifyOrderSyncRow) {
+  async function openReview(row: ShopifyOrderSyncRow) {
     setBusy(row.id);
     setNote(null);
     try {
-      const r = await bookShopifyOrderSync(await getApiToken(), row.id, orgId);
+      const r = await getShopifySyncAddressCandidates(await getApiToken(), row.id, orgId);
+      setReview({ row, original: r.original_address, candidates: r.candidates ?? [], error: null });
+    } catch (e) {
+      setNote(e instanceof Error ? e.message : "Could not load address suggestions.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function bookReviewed(lat: number, lng: number) {
+    if (!review) return;
+    const row = review.row;
+    const ok = await book(row, { lat, lng });
+    if (ok) setReview(null);
+  }
+
+  function pickUpdated(_address: string, place: BookingAddress | null) {
+    if (!review) return;
+    if (place?.lat == null || place?.lng == null) {
+      setReview({ ...review, error: "Pick a suggestion from the list so we can pin the address." });
+      return;
+    }
+    void bookReviewed(place.lat, place.lng);
+  }
+
+  async function book(
+    row: ShopifyOrderSyncRow,
+    point?: { lat: number; lng: number }
+  ): Promise<boolean> {
+    if (row.needs_address_review && !point) {
+      await openReview(row);
+      return false;
+    }
+    setBusy(row.id);
+    setNote(null);
+    try {
+      const r = await bookShopifyOrderSync(await getApiToken(), row.id, orgId, point);
       setNote(
         r.order_id
           ? `${row.order_name ?? "Order"} booked${r.tracking_number ? ` (${r.tracking_number})` : ""}.`
@@ -75,8 +124,12 @@ export function ShopifyOrderSyncPanel({
       );
       await qc.invalidateQueries({ queryKey: ["merchant-shopify-syncs"] });
       await qc.invalidateQueries({ queryKey: ["merchant-orders"] });
+      return Boolean(r.order_id);
     } catch (e) {
-      setNote(e instanceof Error ? e.message : "Could not book this order.");
+      const msg = e instanceof Error ? e.message : "Could not book this order.";
+      if (point && review) setReview({ ...review, error: msg });
+      else setNote(msg);
+      return false;
     } finally {
       setBusy(null);
     }
@@ -106,6 +159,16 @@ export function ShopifyOrderSyncPanel({
           {busy === "sync" ? "Syncing…" : "Sync now"}
         </button>
       </div>
+      {heldCount > 0 ? (
+        <p
+          role="alert"
+          className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+        >
+          {heldCount} Shopify order{heldCount === 1 ? "" : "s"} on hold: we couldn&apos;t
+          confidently place the delivery address. Use &ldquo;Fix address&rdquo; to pick the right
+          one and book.
+        </p>
+      ) : null}
       {note ? (
         <p role="status" className="mt-3 rounded-xl bg-gray-bg px-3 py-2 text-sm">
           {note}
@@ -185,7 +248,11 @@ export function ShopifyOrderSyncPanel({
                         disabled={busy !== null}
                         className="rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
                       >
-                        {busy === row.id ? "Booking…" : "Book with PorterChain"}
+                        {busy === row.id
+                          ? "Working…"
+                          : row.needs_address_review
+                            ? "Fix address"
+                            : "Book with PorterChain"}
                       </button>
                     ) : null}
                   </td>
@@ -195,6 +262,19 @@ export function ShopifyOrderSyncPanel({
           </table>
         </div>
       )}
+      <AddressDisambiguationModal
+        open={review !== null}
+        originalAddress={review?.original ?? ""}
+        candidates={review?.candidates ?? []}
+        contextLabel={
+          review ? `Shopify ${review.row.order_name ?? review.row.shopify_order_id}` : undefined
+        }
+        busy={review !== null && busy === review.row.id}
+        error={review?.error ?? null}
+        onPickCandidate={(_i, c) => void bookReviewed(c.lat, c.lng)}
+        onUpdateAddress={pickUpdated}
+        onClose={() => setReview(null)}
+      />
     </section>
   );
 }

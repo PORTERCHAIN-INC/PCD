@@ -279,6 +279,22 @@ def autocomplete(
         return {"results": [], "source": "unavailable"}
 
 
+@router.get("/resolve")
+def resolve(
+    request: Request,
+    response: Response,
+    q: str = Query(..., min_length=3, max_length=300),
+) -> dict[str, Any]:
+    """geo_resolve for a typed address: status + up to 5 GTA candidates (Google off here).
+
+    Non-``confident`` -> portal opens AddressDisambiguationModal instead of guessing.
+    """
+    _limit(request, response)
+    from porterchain_api.geo_resolve import resolve_address
+
+    return resolve_address(q.strip(), province="ON", allow_google=False).to_dict()
+
+
 @router.get("/place")
 def place(
     request: Request,

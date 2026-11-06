@@ -37,7 +37,13 @@ import { serializeParcelsForLegacyAPI, withVolumetricWeight } from "@/lib/route-
 import { itemKeys, packagePayload } from "@/lib/route-module/toRouteImport";
 import ContractStops from "@/components/pricing/ContractStops";
 import { formatDate } from "@/lib/utils";
-import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
+import {
+  AddressAutocompleteInput,
+  AddressDisambiguationModal,
+  resolveGeoAddress,
+  type AddressCandidate,
+  type BookingAddress,
+} from "@porterchain/maps";
 import { DateTimePickerSeparateField } from "@porterchain/ui/datetime-picker-separate";
 import Link from "next/link";
 import { downloadMerchantFile, ordersApi } from "@/lib/orders";
@@ -588,17 +594,66 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
   // stop here with a clear message instead of failing later on the Review step.
   const unresolved = (a: BookingAddress) =>
     Boolean(a.formatted?.trim()) && typeof a.lat !== "number" && !a.postal;
-  const goReview = () => {
-    if (unresolved(pickup)) {
-      setError("Pick the pickup address from the suggestions so we can find it on the map.");
-      return;
-    }
-    if (unresolved(dropoff)) {
-      setError("Pick the dropoff address from the suggestions so we can find it on the map.");
-      return;
+  // Shared address brain: a typed address goes through geo_resolve. Confident -> pin it;
+  // 2+ areas / weak / not found -> AddressDisambiguationModal (never a silent guess).
+  const [addrReview, setAddrReview] = useState<{
+    which: "pickup" | "dropoff";
+    original: string;
+    candidates: AddressCandidate[];
+  } | null>(null);
+  const [addrBusy, setAddrBusy] = useState(false);
+  const setWhich = (which: "pickup" | "dropoff", a: BookingAddress) =>
+    which === "pickup" ? setPickup(a) : setDropoff(a);
+
+  const goReview = async (over?: { pickup?: BookingAddress; dropoff?: BookingAddress }) => {
+    const current = { pickup: over?.pickup ?? pickup, dropoff: over?.dropoff ?? dropoff };
+    const targets: ("pickup" | "dropoff")[] =
+      mode === "single" ? ["pickup", "dropoff"] : ["pickup"];
+    setAddrBusy(true);
+    try {
+      for (const which of targets) {
+        const a = current[which];
+        if (!a.formatted?.trim() || typeof a.lat === "number") continue;
+        const r = await resolveGeoAddress(a.formatted).catch(() => null);
+        if (!r) {
+          if (unresolved(a)) {
+            setError(
+              `Pick the ${which} address from the suggestions so we can find it on the map.`
+            );
+            return;
+          }
+          continue; // resolver offline: keep the old postal-based path
+        }
+        const best = r.candidates[0];
+        if (r.status === "confident" && best) {
+          const pinned: BookingAddress = {
+            formatted: a.formatted,
+            lat: best.lat,
+            lng: best.lng,
+            postal: a.postal ?? best.postal ?? undefined,
+          };
+          current[which] = pinned;
+          setWhich(which, pinned);
+          continue;
+        }
+        setError(null);
+        setAddrReview({ which, original: a.formatted, candidates: r.candidates ?? [] });
+        return;
+      }
+    } finally {
+      setAddrBusy(false);
     }
     setError(null);
     setStep("review");
+  };
+
+  const applyReviewed = (addr: BookingAddress) => {
+    if (!addrReview) return;
+    const which = addrReview.which;
+    setWhich(which, addr);
+    setAddrReview(null);
+    // A picked point books as-is; an edited text runs through the resolver again.
+    void goReview({ [which]: addr });
   };
 
   // L88: print the 4x6 label straight from the confirmation card.
@@ -1424,10 +1479,30 @@ export default function BookDeliveryClient({ embedded = false }: { embedded?: bo
             )}
             <div className="mt-6 flex flex-wrap gap-2">
               {step === "details" && (
-                <Button type="button" onClick={goReview}>
-                  Review booking
+                <Button type="button" onClick={() => void goReview()} disabled={addrBusy}>
+                  {addrBusy ? "Checking address…" : "Review booking"}
                 </Button>
               )}
+              <AddressDisambiguationModal
+                open={addrReview !== null}
+                originalAddress={addrReview?.original ?? ""}
+                candidates={addrReview?.candidates ?? []}
+                contextLabel={addrReview?.which === "pickup" ? "Pickup address" : "Dropoff address"}
+                onPickCandidate={(_i, c) =>
+                  applyReviewed({
+                    formatted: c.formatted,
+                    lat: c.lat,
+                    lng: c.lng,
+                    postal: c.postal ?? undefined,
+                  })
+                }
+                onUpdateAddress={(text, place) =>
+                  place && typeof place.lat === "number"
+                    ? applyReviewed(place)
+                    : text.trim() && applyReviewed({ formatted: text.trim() })
+                }
+                onClose={() => setAddrReview(null)}
+              />
               {step === "review" && (
                 <>
                   <Button type="button" variant="secondary" onClick={() => setStep("details")}>

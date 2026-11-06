@@ -42,6 +42,7 @@ REASON_TEXT = {
     "merchant_not_active": "Your PorterChain account is not active yet.",
     "shipping_address_required": "Order has no shipping address.",
     "cancelled": "Order was cancelled in Shopify.",
+    "address_needs_review": "We can't confidently place this delivery address. Pick the right address to book it.",
     "shopify_billing_cap_reached": "Your monthly PorterChain limit in Shopify is used up. Raise it in Apps > PorterChain to book.",
 }
 
@@ -168,6 +169,7 @@ def serialize(row: ShopifyOrderSync) -> dict[str, Any]:
         "porterchain_order_id": row.porterchain_order_id,
         "tracking_number": None,
         "source": row.source,
+        "needs_address_review": row.status == "not_booked" and row.reason_code == "address_needs_review",
         "can_book": row.status in {"not_booked", "error"} and row.reason_code not in {"cancelled", "ingress_paused"},
         "shopify_created_at": row.shopify_created_at.isoformat() if row.shopify_created_at else None,
         "updated_at": row.updated_at.isoformat() if row.updated_at else None,
@@ -339,10 +341,8 @@ def reconcile_all(db: Session, settings: Settings) -> dict[str, int]:
     return total
 
 
-def book_now(db: Session, settings: Settings, merchant_id: str, sync_id: str) -> dict[str, Any]:
-    """Merchant clicked "Book with PorterChain" on an order that used another rate."""
+def _fetch_payload(db: Session, settings: Settings, merchant_id: str, sync_id: str) -> tuple[ShopifyOrderSync, ShopifyShop, dict[str, Any]]:
     from porterchain_api.merchant_engine.shopify_tokens import access_token_for
-    from porterchain_api.merchant_engine.shopify_webhooks import process_order_payload
 
     row = db.query(ShopifyOrderSync).filter_by(id=sync_id, merchant_id=merchant_id).first()
     if row is None:
@@ -357,7 +357,39 @@ def book_now(db: Session, settings: Settings, merchant_id: str, sync_id: str) ->
     node = data.get("order")
     if not node:
         raise LookupError("shopify_order_not_found")
-    payload = rest_shape(node)
+    return row, shop, rest_shape(node)
+
+
+def address_candidates(db: Session, settings: Settings, merchant_id: str, sync_id: str) -> dict[str, Any]:
+    """Resolver candidates for a held order (AddressDisambiguationModal feed)."""
+    from porterchain_api.merchant_engine.shopify_address_review import resolve_shipping
+
+    row, _shop, payload = _fetch_payload(db, settings, merchant_id, sync_id)
+    addr = shipping_address(payload) or {}
+    if not addr:
+        raise LookupError("shipping_address_required")
+    return {"sync_id": row.id, "original_address": format_shopify_address(addr), **resolve_shipping(addr)}
+
+
+def book_now(
+    db: Session,
+    settings: Settings,
+    merchant_id: str,
+    sync_id: str,
+    *,
+    lat: float | None = None,
+    lng: float | None = None,
+) -> dict[str, Any]:
+    """Merchant clicked "Book with PorterChain" (other rate, or a held address they fixed).
+
+    ``lat``/``lng`` = the point the merchant picked in the address review popup.
+    """
+    from porterchain_api.merchant_engine.shopify_address_review import apply_choice
+    from porterchain_api.merchant_engine.shopify_webhooks import process_order_payload
+
+    row, shop, payload = _fetch_payload(db, settings, merchant_id, sync_id)
+    if lat is not None and lng is not None:
+        payload = apply_choice(payload, lat=lat, lng=lng)
     payload["_force_book"] = True
     return process_order_payload(db, settings, shop_domain=shop.shop_domain, action="shopify_orders_create", body=payload, source=row.source)
 
