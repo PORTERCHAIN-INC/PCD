@@ -6,19 +6,22 @@ import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
 import * as WebBrowser from "expo-web-browser";
 import {
+  AUTH_TOKEN_STORE_KEY,
   authorizeUrl,
   base64UrlFromBase64,
+  endSessionUrl,
   exchangeCode,
   exchangeIdpToken,
   googleNativeConfig,
   type IdpHint,
   type KeycloakConfig,
+  nativeExchangeFallsBack,
   parseRedirect,
   REDIRECT_URI,
   type Tokens,
 } from "./keycloak";
 
-const STORE_KEY = "pc_keycloak_tokens";
+const STORE_KEY = AUTH_TOKEN_STORE_KEY;
 
 function randomString(bytes = 32): string {
   const raw = Crypto.getRandomBytes(bytes);
@@ -36,7 +39,7 @@ async function challengeFor(verifier: string): Promise<string> {
 
 export async function signInWithKeycloak(
   kc: KeycloakConfig,
-  opts: { idpHint?: IdpHint; register?: boolean } = {}
+  opts: { idpHint?: IdpHint; register?: boolean; fresh?: boolean } = {}
 ): Promise<Tokens> {
   const codeVerifier = randomString(48);
   const state = randomString(16);
@@ -108,7 +111,8 @@ async function googleIdToken(): Promise<string | null> {
 
 /**
  * Native Sign in with Apple (iOS) / Google, exchanged for Keycloak tokens. Returns null when the
- * native path is unavailable so the caller falls back to the Keycloak browser flow.
+ * native path is unavailable or the token endpoint rejects the exchange, so the caller opens the
+ * authorization-code + PKCE browser flow instead. Cancel does not fall through.
  */
 export async function nativeSignIn(kc: KeycloakConfig, hint: IdpHint): Promise<Tokens | null> {
   let idToken: string | null;
@@ -122,5 +126,25 @@ export async function nativeSignIn(kc: KeycloakConfig, hint: IdpHint): Promise<T
     return null;
   }
   if (!idToken) return null;
-  return exchangeIdpToken(fetch as never, kc, { subjectToken: idToken, subjectIssuer: hint });
+  try {
+    return await exchangeIdpToken(fetch as never, kc, {
+      subjectToken: idToken,
+      subjectIssuer: hint,
+    });
+  } catch (err) {
+    const code = err instanceof Error ? err.message : "";
+    if (!nativeExchangeFallsBack(code)) throw err;
+    return null;
+  }
+}
+
+/**
+ * Open Keycloak logout in the same (non-ephemeral) system browser session sign-in uses,
+ * so a stuck cookie is cleared. Local jobs and proof photos are not touched here.
+ */
+export async function endBrowserSession(kc: KeycloakConfig, idToken: string | null): Promise<void> {
+  const url = endSessionUrl(kc, REDIRECT_URI, idToken);
+  await WebBrowser.openAuthSessionAsync(url, REDIRECT_URI, {
+    preferEphemeralSession: false,
+  }).catch(() => undefined);
 }

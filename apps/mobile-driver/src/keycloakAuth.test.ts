@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  AUTH_TOKEN_STORE_KEY,
+  authErrorCopy,
+  authResetDeletes,
   authorizeUrl,
+  endSessionUrl,
   endpoints,
   exchangeCode,
   exchangeIdpToken,
@@ -8,8 +12,10 @@ import {
   identityFromToken,
   idpEnabled,
   keycloakConfig,
+  nativeExchangeFallsBack,
   needsRefresh,
   parseRedirect,
+  PRESERVED_ON_AUTH_RESET,
   REDIRECT_URI,
   refreshTokens,
 } from "./auth/keycloak";
@@ -56,6 +62,52 @@ describe("L36 Keycloak mobile auth", () => {
       })
     );
     expect(reg.searchParams.get("prompt")).toBe("create");
+    const fresh = new URL(
+      authorizeUrl(kc, {
+        redirectUri: REDIRECT_URI,
+        codeChallenge: "c",
+        state: "s",
+        nonce: "n",
+        fresh: true,
+      })
+    );
+    expect(fresh.searchParams.get("prompt")).toBe("login");
+    expect(fresh.searchParams.get("response_type")).toBe("code");
+    const inviteFresh = new URL(
+      authorizeUrl(kc, {
+        redirectUri: REDIRECT_URI,
+        codeChallenge: "c",
+        state: "s",
+        nonce: "n",
+        fresh: true,
+        register: true,
+      })
+    );
+    expect(inviteFresh.searchParams.get("prompt")).toBe("create");
+  });
+
+  it("reset logout URL is the public client end-session, and reset does not name business data", () => {
+    const logout = new URL(endSessionUrl(kc, REDIRECT_URI));
+    expect(logout.pathname).toBe("/realms/porterchain/protocol/openid-connect/logout");
+    expect(logout.searchParams.get("client_id")).toBe("pc-driver-app");
+    expect(logout.searchParams.get("post_logout_redirect_uri")).toBe(REDIRECT_URI);
+    expect(logout.searchParams.has("id_token_hint")).toBe(false);
+    expect(logout.searchParams.has("client_secret")).toBe(false);
+    const hinted = new URL(endSessionUrl(kc, REDIRECT_URI, "fixture-id-token"));
+    expect(hinted.searchParams.get("id_token_hint")).toBe("fixture-id-token");
+    expect(authResetDeletes(AUTH_TOKEN_STORE_KEY)).toBe(true);
+    for (const key of PRESERVED_ON_AUTH_RESET) {
+      expect(authResetDeletes(key)).toBe(false);
+    }
+    expect(PRESERVED_ON_AUTH_RESET).toEqual(
+      expect.arrayContaining([
+        "porterchain_driver_offline_queue",
+        "porterchain_driver_offline_rejected",
+        "porterchain_driver_gps_buffer",
+        "porterchain_driver_pod_key",
+        "pcd.driver.rq.v1",
+      ])
+    );
   });
 
   it("redirect parsing checks state", () => {
@@ -83,6 +135,28 @@ describe("L36 Keycloak mobile auth", () => {
     expect(body.get("grant_type")).toBe("authorization_code");
     expect(body.get("code_verifier")).toBe("v");
     expect(f.mock.calls[0][0]).toBe(endpoints(kc).token);
+  });
+
+  it("standard token exchange rejection is invalid_request and falls back to the browser", async () => {
+    const bad = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({
+        error: "invalid_request",
+        error_description:
+          "Parameter 'subject_issuer' is not supported for standard token exchange",
+      }),
+    });
+    await expect(
+      exchangeIdpToken(bad, kc, { subjectToken: "not-a-real-token", subjectIssuer: "apple" })
+    ).rejects.toThrow("invalid_request");
+    expect(nativeExchangeFallsBack("invalid_request")).toBe(true);
+    expect(nativeExchangeFallsBack("unsupported_grant_type")).toBe(true);
+    expect(nativeExchangeFallsBack("cancel")).toBe(false);
+    expect(nativeExchangeFallsBack("dismiss")).toBe(false);
+    expect(nativeExchangeFallsBack("access_denied")).toBe(false);
+    expect(authErrorCopy("invalid_request")).not.toMatch(/connection/i);
+    expect(authErrorCopy("cancel")).toMatch(/cancelled/i);
   });
 
   it("native Apple/Google id token is exchanged for Keycloak tokens", async () => {

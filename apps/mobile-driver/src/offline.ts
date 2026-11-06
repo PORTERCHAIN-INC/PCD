@@ -9,6 +9,12 @@ import type { OfflineSyncResult } from "./types";
 const LOCAL_QUEUE_KEY = "porterchain_driver_offline_queue";
 const REJECTED_KEY = "porterchain_driver_offline_rejected";
 const GPS_BUFFER_KEY = "porterchain_driver_gps_buffer";
+/** Sign-in reset must not delete these. The same names are in auth/keycloak.ts PRESERVED_ON_AUTH_RESET. */
+export const DRIVER_BUSINESS_STORAGE_KEYS = [
+  LOCAL_QUEUE_KEY,
+  REJECTED_KEY,
+  GPS_BUFFER_KEY,
+] as const;
 
 /** Payload fields that are personal data. They are encrypted to disk, never kept in AsyncStorage. */
 const SENSITIVE_KEYS = ["file_url", "photo_url", "signature_data", "otp"] as const;

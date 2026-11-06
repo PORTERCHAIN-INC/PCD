@@ -16,7 +16,9 @@ const api = vi.hoisted(() => ({
 }));
 vi.mock("../api", () => api);
 
+import { PRESERVED_ON_AUTH_RESET, authResetDeletes } from "../auth/keycloak";
 import {
+  DRIVER_BUSINESS_STORAGE_KEYS,
   enqueueOfflineAction,
   flushOfflineQueues,
   newClientId,
@@ -77,6 +79,15 @@ describe("runOnlineOrQueue", () => {
       "camera_upload",
       "deliver_stop",
     ]);
+  });
+});
+
+describe("sign-in reset leaves the offline queue alone", () => {
+  it("does not treat queue, rejected actions, or GPS points as auth material", () => {
+    for (const key of DRIVER_BUSINESS_STORAGE_KEYS) {
+      expect(PRESERVED_ON_AUTH_RESET).toContain(key);
+      expect(authResetDeletes(key)).toBe(false);
+    }
   });
 });
 
