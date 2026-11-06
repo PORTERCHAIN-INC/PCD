@@ -15,6 +15,7 @@ import { setSessionSnapshot } from "../session";
 import { Body, Muted, Screen } from "../ui/kit";
 import { color } from "../ui/theme";
 import {
+  browserSignInFresh,
   endpoints,
   type IdpHint,
   type KeycloakConfig,
@@ -24,7 +25,13 @@ import {
   revoke,
   type Tokens,
 } from "./keycloak";
-import { loadTokens, nativeSignIn, saveTokens, signInWithKeycloak } from "./keycloakNative";
+import {
+  endBrowserSession,
+  loadTokens,
+  nativeSignIn,
+  saveTokens,
+  signInWithKeycloak,
+} from "./keycloakNative";
 
 export type SignInOptions = { idpHint?: IdpHint; register?: boolean; native?: boolean };
 
@@ -34,6 +41,11 @@ type SessionView = {
   bootError: string | null;
   /** Keycloak sign-in (null in dev builds without Keycloak). */
   signIn: ((opts?: SignInOptions) => Promise<void>) | null;
+  /**
+   * Clears Keycloak tokens and the system-browser sign-in cookie.
+   * Does not wipe jobs, proof photos, or the offline queue. Null when there is no Keycloak.
+   */
+  resetSignIn: (() => Promise<void>) | null;
   accountUrl: string | null;
 };
 
@@ -42,6 +54,7 @@ const SessionContext = createContext<SessionView>({
   signedIn: allowDevAuth(),
   bootError: null,
   signIn: null,
+  resetSignIn: null,
   accountUrl: null,
 });
 
@@ -68,6 +81,8 @@ function KeycloakBridge({ kc, children }: { kc: KeycloakConfig; children: ReactN
   const [bootError, setBootError] = useState<string | null>(null);
   const tokensRef = useRef<Tokens | null>(null);
   const refreshing = useRef<Promise<Tokens | null> | null>(null);
+  /** Next browser sign-in asks for credentials again (prompt=login) after a failure or reset. */
+  const forceFresh = useRef(false);
 
   const store = useCallback(async (next: Tokens | null) => {
     tokensRef.current = next;
@@ -115,8 +130,22 @@ function KeycloakBridge({ kc, children }: { kc: KeycloakConfig; children: ReactN
   const signIn = useCallback(
     async (opts: SignInOptions = {}) => {
       setBootError(null);
-      const native = opts.native && opts.idpHint ? await nativeSignIn(kc, opts.idpHint) : null;
-      await store(native ?? (await signInWithKeycloak(kc, opts)));
+      try {
+        const nativeAttempted = Boolean(opts.native && opts.idpHint);
+        const native = nativeAttempted ? await nativeSignIn(kc, opts.idpHint as IdpHint) : null;
+        if (native) {
+          forceFresh.current = false;
+          await store(native);
+          return;
+        }
+        const fresh = browserSignInFresh(nativeAttempted, forceFresh.current);
+        await store(await signInWithKeycloak(kc, { ...opts, fresh }));
+        forceFresh.current = false;
+      } catch (err) {
+        const code = err instanceof Error ? err.message : "";
+        if (code !== "cancel" && code !== "dismiss") forceFresh.current = true;
+        throw err;
+      }
     },
     [kc, store]
   );
@@ -127,15 +156,26 @@ function KeycloakBridge({ kc, children }: { kc: KeycloakConfig; children: ReactN
     if (current) await revoke(fetch as never, kc, current);
   }, [kc, store]);
 
+  const resetSignIn = useCallback(async () => {
+    // Auth material only. Do not call clearSession: that wipes the offline queue and proof photos.
+    setBootError(null);
+    const current = tokensRef.current;
+    forceFresh.current = true;
+    if (current) await revoke(fetch as never, kc, current).catch(() => undefined);
+    await store(null);
+    await endBrowserSession(kc, current?.idToken ?? null);
+  }, [kc, store]);
+
   const view = useMemo(
     () => ({
       ready: loaded,
       signedIn: Boolean(tokens),
       bootError,
       signIn,
+      resetSignIn,
       accountUrl: endpoints(kc).account,
     }),
-    [bootError, kc, loaded, signIn, tokens]
+    [bootError, kc, loaded, resetSignIn, signIn, tokens]
   );
 
   useLayoutEffect(() => {
@@ -158,6 +198,7 @@ function DevBridge({ children }: { children: ReactNode }) {
       signedIn: allowDevAuth(),
       bootError: null as string | null,
       signIn: null,
+      resetSignIn: null,
       accountUrl: null,
     }),
     []

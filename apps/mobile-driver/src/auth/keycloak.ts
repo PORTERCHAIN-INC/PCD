@@ -31,6 +31,19 @@ export function googleNativeConfig(
 
 export const DEFAULT_CLIENT_ID = "pc-driver-app";
 export const REDIRECT_URI = "porterchain-driver://auth";
+/** SecureStore key for Keycloak tokens. A sign-in reset deletes this and nothing else. */
+export const AUTH_TOKEN_STORE_KEY = "pc_keycloak_tokens";
+/**
+ * Phone storage a sign-in reset must leave alone. Sign-out (`clearSession`) wipes these;
+ * reset does not. Names match the offline queue, GPS buffer, proof-photo key, and query cache.
+ */
+export const PRESERVED_ON_AUTH_RESET = [
+  "porterchain_driver_offline_queue",
+  "porterchain_driver_offline_rejected",
+  "porterchain_driver_gps_buffer",
+  "porterchain_driver_pod_key",
+  "pcd.driver.rq.v1",
+] as const;
 const PROD_KEYCLOAK = "https://auth.porterchain.com";
 
 export type KeycloakConfig = { url: string; realm: string; clientId: string };
@@ -85,6 +98,8 @@ export function authorizeUrl(
     idpHint?: IdpHint;
     register?: boolean;
     loginHint?: string;
+    /** prompt=login: show the form again even if the system browser still has a Keycloak cookie. */
+    fresh?: boolean;
   }
 ): string {
   const q = new URLSearchParams({
@@ -99,8 +114,50 @@ export function authorizeUrl(
   });
   if (p.idpHint) q.set("kc_idp_hint", p.idpHint);
   if (p.register) q.set("prompt", "create");
+  else if (p.fresh) q.set("prompt", "login");
   if (p.loginHint) q.set("login_hint", p.loginHint);
   return `${endpoints(kc).authorize}?${q}`;
+}
+
+/**
+ * RP-initiated logout in the same system-browser session that sign-in uses.
+ * Clears the Keycloak cookie. Does not delete phone data. id_token_hint is optional.
+ */
+export function endSessionUrl(
+  kc: KeycloakConfig,
+  redirectUri: string,
+  idToken?: string | null
+): string {
+  const q = new URLSearchParams({
+    client_id: kc.clientId,
+    post_logout_redirect_uri: redirectUri,
+  });
+  if (idToken) q.set("id_token_hint", idToken);
+  return `${endpoints(kc).logout}?${q}`;
+}
+
+/** True only for the Keycloak token record. Never the offline queue, proof photos, or job cache. */
+export function authResetDeletes(storageKey: string): boolean {
+  return storageKey === AUTH_TOKEN_STORE_KEY;
+}
+
+/**
+ * Native Apple/Google token exchange is optional. Production Keycloak standard token exchange
+ * rejects `subject_issuer` (`invalid_request`). That failure must open the browser PKCE flow
+ * (authorization code), not stop on the sign-in screen. User cancel stays a cancel.
+ */
+export function nativeExchangeFallsBack(code: string): boolean {
+  const c = code.trim();
+  if (c === "cancel" || c === "dismiss" || c === "access_denied") return false;
+  return true;
+}
+
+/**
+ * Apple/Google already failed or were skipped, so the browser step must not reuse a Keycloak
+ * cookie from the system session. A later retry after any other failure does the same.
+ */
+export function browserSignInFresh(nativeAttempted: boolean, forceFresh: boolean): boolean {
+  return nativeAttempted || forceFresh;
 }
 
 export type RedirectResult = { code: string } | { error: string };
@@ -250,5 +307,7 @@ export function authErrorCopy(code: string): string {
     return "Sign-in was cancelled.";
   if (code === "state_mismatch") return "Sign-in expired. Try again.";
   if (code === "invalid_grant") return "Your sign-in expired. Sign in again.";
+  if (code === "invalid_request" || code === "unsupported_grant_type")
+    return "Porterchain could not use that sign-in button. Tap Reset sign-in on this phone, then Sign in with your email and password.";
   return "Couldn’t sign in. Check your connection and try again.";
 }

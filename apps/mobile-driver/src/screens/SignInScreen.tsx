@@ -35,6 +35,23 @@ export function SignInScreen({ error, probing, inviteToken, onContinue, onSignOu
   const autoTried = useRef(false);
   const [hint, setHint] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [resetting, setResetting] = useState(false);
+
+  const resetSignIn = async () => {
+    if (!session.resetSignIn) return;
+    setResetting(true);
+    setLocalError(null);
+    try {
+      await session.resetSignIn();
+      setHint(
+        "Sign-in on this phone was reset. If a Porterchain page opened, confirm sign-out. Then tap Sign in and use your email and password. Jobs and proof photos on this phone were kept."
+      );
+    } catch {
+      setLocalError("Could not finish reset. Tap Sign in and use your email and password.");
+    } finally {
+      setResetting(false);
+    }
+  };
 
   useEffect(() => {
     if (!session.signedIn) autoTried.current = false;
@@ -94,6 +111,17 @@ export function SignInScreen({ error, probing, inviteToken, onContinue, onSignOu
               onDone={onContinue}
               onError={(message) => setLocalError(message)}
             />
+            {session.resetSignIn ? (
+              <Button
+                tone="quiet"
+                testID="reset-sign-in"
+                label="Reset sign-in on this phone"
+                hint="Clears the Porterchain sign-in on this phone. Jobs and proof photos saved here stay here."
+                busy={resetting}
+                disabled={resetting}
+                onPress={() => void resetSignIn()}
+              />
+            ) : null}
           </>
         ) : (
           <Button
@@ -121,6 +149,12 @@ export function SignInScreen({ error, probing, inviteToken, onContinue, onSignOu
         <Banner tone="danger" title="Sign-in is unavailable on this build. Call dispatch." />
       ) : null}
       {shownError ? <Banner tone="danger" title={shownError} /> : null}
+      {shownError && session.resetSignIn ? (
+        <Muted>
+          Reset sign-in clears the saved sign-in on this phone only. Jobs and proof photos saved
+          here stay here.
+        </Muted>
+      ) : null}
       {switchAccount ? (
         <Muted>
           You're signed in, but this account has no driver profile. Sign out, then use the email
