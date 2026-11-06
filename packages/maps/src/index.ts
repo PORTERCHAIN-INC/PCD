@@ -27,3 +27,5 @@ export type {
   AddressCandidate,
   AddressDisambiguationModalProps,
 } from "./AddressDisambiguationModal";
+export { useAddressIQ } from "./useAddressIQ";
+export type { AddressIQField } from "./useAddressIQ";
