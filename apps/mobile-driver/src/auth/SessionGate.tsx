@@ -15,6 +15,7 @@ import { setSessionSnapshot } from "../session";
 import { Body, Muted, Screen } from "../ui/kit";
 import { color } from "../ui/theme";
 import {
+  browserSignInFresh,
   endpoints,
   type IdpHint,
   type KeycloakConfig,
@@ -130,13 +131,14 @@ function KeycloakBridge({ kc, children }: { kc: KeycloakConfig; children: ReactN
     async (opts: SignInOptions = {}) => {
       setBootError(null);
       try {
-        const native = opts.native && opts.idpHint ? await nativeSignIn(kc, opts.idpHint) : null;
+        const nativeAttempted = Boolean(opts.native && opts.idpHint);
+        const native = nativeAttempted ? await nativeSignIn(kc, opts.idpHint as IdpHint) : null;
         if (native) {
           forceFresh.current = false;
           await store(native);
           return;
         }
-        const fresh = forceFresh.current;
+        const fresh = browserSignInFresh(nativeAttempted, forceFresh.current);
         await store(await signInWithKeycloak(kc, { ...opts, fresh }));
         forceFresh.current = false;
       } catch (err) {

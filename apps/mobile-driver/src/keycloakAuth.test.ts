@@ -12,6 +12,7 @@ import {
   identityFromToken,
   idpEnabled,
   keycloakConfig,
+  browserSignInFresh,
   nativeExchangeFallsBack,
   needsRefresh,
   parseRedirect,
@@ -155,6 +156,9 @@ describe("L36 Keycloak mobile auth", () => {
     expect(nativeExchangeFallsBack("cancel")).toBe(false);
     expect(nativeExchangeFallsBack("dismiss")).toBe(false);
     expect(nativeExchangeFallsBack("access_denied")).toBe(false);
+    expect(browserSignInFresh(true, false)).toBe(true);
+    expect(browserSignInFresh(false, true)).toBe(true);
+    expect(browserSignInFresh(false, false)).toBe(false);
     expect(authErrorCopy("invalid_request")).not.toMatch(/connection/i);
     expect(authErrorCopy("cancel")).toMatch(/cancelled/i);
   });

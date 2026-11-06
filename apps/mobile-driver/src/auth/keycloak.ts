@@ -152,6 +152,14 @@ export function nativeExchangeFallsBack(code: string): boolean {
   return true;
 }
 
+/**
+ * Apple/Google already failed or were skipped, so the browser step must not reuse a Keycloak
+ * cookie from the system session. A later retry after any other failure does the same.
+ */
+export function browserSignInFresh(nativeAttempted: boolean, forceFresh: boolean): boolean {
+  return nativeAttempted || forceFresh;
+}
+
 export type RedirectResult = { code: string } | { error: string };
 
 export function parseRedirect(url: string, expectedState: string): RedirectResult {
