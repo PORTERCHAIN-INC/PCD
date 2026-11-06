@@ -3,11 +3,14 @@ import {
   AlertTriangle,
   Banknote,
   Bell,
+  Bot,
   Building2,
   Calculator,
+  Calendar,
   ClipboardList,
   Headphones,
   HeartPulse,
+  LayoutList,
   Newspaper,
   Package,
   Phone,
@@ -89,6 +92,12 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     id: "dispatch",
     label: "Dispatch",
     items: [
+      {
+        href: "/dispatch/today",
+        label: "Pickup queue",
+        description: "Classic unassigned / pickup queue",
+        icon: LayoutList,
+      },
       {
         href: "/dispatch/plan",
         label: "Plan",
@@ -193,6 +202,18 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         description: "Who to phone today",
         icon: Phone,
         badgeKey: "calls",
+      },
+      {
+        href: "/leads/calendar",
+        label: "Sales calendar",
+        description: "Meetings and follow-ups",
+        icon: Calendar,
+      },
+      {
+        href: "/leads/agent",
+        label: "Lead agent",
+        description: "AI auto-reply activity",
+        icon: Bot,
       },
       {
         href: "/merchants/duplicates",
@@ -492,23 +513,6 @@ export const ADMIN_PALETTE_EXTRA: {
   group: string;
   keywords?: string;
 }[] = [
-  {
-    href: "/dispatch/today",
-    label: "Pickup queue",
-    group: "Dispatch",
-    keywords: "classic queue unassigned board",
-  },
-  {
-    href: "/leads/agent",
-    label: "Lead agent",
-    group: "Customers & Orgs",
-    keywords: "ai auto reply",
-  },
-  {
-    href: "/leads/calendar",
-    label: "Sales calendar",
-    group: "Customers & Orgs",
-    keywords: "meetings",
-  },
+  // Legacy redirect to Notifications — keep findable in palette only.
   { href: "/inbox", label: "Inbox (messages)", group: "Support" },
 ];
