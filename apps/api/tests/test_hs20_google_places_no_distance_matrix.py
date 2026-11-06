@@ -1,4 +1,8 @@
-"""HS-20 — free address autocomplete (/v1/geo, no Google Places); no Distance Matrix for pricing."""
+"""HS-20 — book UI uses /v1/geo only (no browser Places); no Distance Matrix for pricing.
+
+Server-side capped Google Places backup (geo_google.py) is out of scope here — see
+test_geo_google_fallback.py and docs/GEO_ADDRESS_SEARCH.md.
+"""
 
 from __future__ import annotations
 

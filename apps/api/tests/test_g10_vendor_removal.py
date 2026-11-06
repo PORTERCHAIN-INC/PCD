@@ -37,16 +37,31 @@ VENDORS: dict[str, tuple[str, set[str]]] = {
     ),
     # Doc 60 R7: Twilio → push + email (+ Keycloak TOTP for staff).
     "twilio": (r"twilio", {"apps/api/tests/test_g10_vendor_removal.py"}),
-    # Doc 60 R4: MapLibre + self-hosted PMTiles + Photon; no Google/Mapbox map or places API.
+    # Doc 60 R4: MapLibre + self-hosted PMTiles + Photon. Narrow carve-out for the capped
+    # server-side Google Places (New) Photon backup only (geo_google.py + wiring/env).
+    # Distance Matrix, Maps JS, browser Places widgets, and Mapbox stay banned elsewhere.
     "google-maps": (
         r"maps\.googleapis|places\.googleapis|@googlemaps|react-google-maps|react-native-maps"
         r"|geo_google|GOOGLE_MAPS_|PROVIDER_GOOGLE|Google Maps Platform|mapbox",
         {
             "apps/api/tests/test_g10_vendor_removal.py",
-            # Shared resolver: optional hook into the capped Places backup (#182); dark
-            # until that module ships and GEO_GOOGLE_FALLBACK is on.
-            "apps/api/src/porterchain_api/geo_resolve.py",
+            # #183 shared resolver hooks into the capped Places backup from #182.
+            "apps/api/src/porterchain_api/geo_google.py",
+            "apps/api/src/porterchain_api/geo_resolve.py",  # capped backup wiring (#182)
             "apps/api/tests/test_geo_resolve.py",
+            "apps/api/src/porterchain_api/routers/geo.py",
+            "apps/api/src/porterchain_api/admin_engine/integration_health.py",
+            "apps/api/tests/test_geo_photon_coverage.py",
+            "apps/api/tests/test_geo_google_fallback.py",
+            "apps/api/tests/test_hs20_google_places_no_distance_matrix.py",
+            "infrastructure/deploy/docker-compose.prod.yml",
+            "env/api.env.example",
+            "env/production.env.example",
+            "env/compose.env.example",
+            "apps/api/env.example",
+            "apps/api/.env.example",
+            # Encrypted inventory may keep retired key *names* (values are ciphertext).
+            "secrets/droplet.enc.yaml",
         },
     ),
     # Doc 60 R2: FEATURE_AI=false; OpenAI-compatible / NVIDIA NIM clients and keys deleted.
@@ -170,3 +185,30 @@ def test_capacity_guide_is_rule_based() -> None:
     assert not (REPO / "website/src/lib/home/guide-llm.ts").exists()
     pkg = (REPO / "website/package.json").read_text()
     assert "@ai-sdk/" + "groq" not in pkg
+
+
+
+def test_g10_google_maps_abuse_still_banned() -> None:
+    """Server Places backup is carved out; Distance Matrix / browser Maps SDK stay forbidden."""
+    pattern, exempt = VENDORS["google-maps"]
+    abuse = (
+        "https://maps.googleapis.com/maps/api/distancematrix/json",
+        "https://places.googleapis.com/v1/places:autocomplete",
+        "import { useLoadScript } from '@react-google-maps/api'",
+        "PROVIDER_GOOGLE",
+        "GOOGLE_MAPS_BROWSER_KEY=x",
+        "from porterchain_api import geo_google",
+    )
+    rx = re.compile(pattern, re.I)
+    for sample in abuse:
+        assert rx.search(sample), sample
+    # Non-exempt product/code paths must not grow Google Maps client/Distance Matrix usage.
+    for rel, p in _files():
+        if str(rel) in exempt:
+            continue
+        body = p.read_text(errors="ignore")
+        low = body.lower()
+        assert "maps.googleapis.com/maps/api/distancematrix" not in low, rel
+        assert "@react-google-maps" not in body, rel
+        assert "react-native-maps" not in body, rel
+        assert "PROVIDER_GOOGLE" not in body, rel
