@@ -45,6 +45,7 @@ VENDORS: dict[str, tuple[str, set[str]]] = {
         r"|geo_google|GOOGLE_MAPS_|PROVIDER_GOOGLE|Google Maps Platform|mapbox",
         {
             "apps/api/tests/test_g10_vendor_removal.py",
+            # #183 shared resolver hooks into the capped Places backup from #182.
             "apps/api/src/porterchain_api/geo_google.py",
             "apps/api/src/porterchain_api/geo_resolve.py",  # capped backup wiring (#182)
             "apps/api/tests/test_geo_resolve.py",

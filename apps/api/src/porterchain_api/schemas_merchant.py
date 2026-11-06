@@ -447,6 +447,8 @@ class RouteImportStopPatch(BaseModel):
     postal: str | None = None
     lat: float | None = None
     lng: float | None = None
+    # Pick one of the resolver's suggestions (stop.candidates[i]) for an ambiguous stop.
+    candidate_index: int | None = None
     stop_type: str | None = None
     notes: str | None = None
     contact_name: str | None = None

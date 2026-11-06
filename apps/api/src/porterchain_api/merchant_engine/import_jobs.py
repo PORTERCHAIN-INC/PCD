@@ -66,7 +66,9 @@ def apply_geocode_job(db: Session, job_id: str) -> None:
     job.job_config = cfg
     job.preview = resolved
     job.errors = normalize_route_errors(errors)
-    job.valid_rows = sum(1 for s in resolved if s.get("geocode_status") not in {"failed", "pending"})
+    job.valid_rows = sum(
+        1 for s in resolved if s.get("geocode_status") not in {"failed", "pending", "needs_review"}
+    )
     job.error_rows = len(errors)
     db.commit()
 
@@ -81,7 +83,7 @@ def apply_optimize_job(db: Session, job_id: str) -> None:
         return
     cfg = dict(job.job_config or {})
     stops = list(cfg.get("stops") or job.preview or [])
-    if any(s.get("geocode_status") in {"failed", "pending"} for s in stops):
+    if any(s.get("geocode_status") in {"failed", "pending", "needs_review"} for s in stops):
         cfg["optimize_status"] = "error"
         cfg["route_explanation"] = explain_stops(stops) + " Drop order skipped — geocode incomplete."
         job.job_config = cfg

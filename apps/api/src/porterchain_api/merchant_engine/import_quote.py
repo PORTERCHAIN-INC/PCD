@@ -21,6 +21,9 @@ from porterchain_services.maps.service import MapsService
 
 logger = logging.getLogger(__name__)
 
+# A stop in any of these states blocks quote + confirm (needs_review = ambiguous address).
+BLOCKING_GEOCODE_STATUSES = frozenset({"failed", "pending", "needs_review"})
+
 
 def split_route_quote(quote: dict[str, Any] | None) -> tuple[dict[str, Any] | None, Any]:
     """Keep the line-item picture off the Valhalla geometry blob."""
@@ -48,7 +51,7 @@ def split_stops(
 def explain_stops(stops: list[dict[str, Any]]) -> str:
     n_pick = sum(1 for s in stops if s.get("stop_type") == "pickup")
     n_drop = sum(1 for s in stops if s.get("stop_type") == "drop")
-    return f"{n_pick} pickup, {n_drop} drops ordered by sequence; geocoded via Nominatim; distance via Valhalla/OSRM."
+    return f"{n_pick} pickup, {n_drop} drops ordered by sequence; geocoded via Photon/Nominatim (shared resolver); distance via Valhalla/OSRM."
 
 
 def geo_fields(geo: Any, *, sequence: Any, stop_type: Any) -> dict[str, Any]:
@@ -69,6 +72,9 @@ def geo_fields(geo: Any, *, sequence: Any, stop_type: Any) -> dict[str, Any]:
         "issues": list(geo.issues),
         "city": geo.city,
         "postal": geo.postal,
+        # Shared resolver output: ranked GTA candidates for the disambiguation popup.
+        "candidates": list(getattr(geo, "candidates", None) or []),
+        "resolve_status": getattr(geo, "resolve_status", None),
     }
 
 
@@ -105,6 +111,7 @@ def resolve_stops(
                 lng=s.get("lng"),
                 place_id=s.get("place_id"),
                 source=s.get("geocode_source"),
+                smart=not has_coords,
             )
         else:
             geo = GeocodeResult(
@@ -142,6 +149,9 @@ def resolve_stops(
             codes = stop.get("issues") or ["stop.geocode_failed"]
             for code in codes:
                 errors.append(route_row_error(row=row, code=str(code)))
+        elif geo.status == "needs_review":
+            # 2+ plausible areas (or postal vs street disagree): never book a guess.
+            errors.append(route_row_error(row=row, code="address.ambiguous"))
         elif geo.status != "pending":
             area = assert_ontario_stop(
                 label=f"stop {i + 1}",
@@ -163,7 +173,7 @@ def quote_if_ready(
     requires_liftgate: bool = False,
 ) -> dict[str, Any] | None:
     if not stops or any(
-        s.get("geocode_status") in {"failed", "pending"} or s.get("lat") is None or s.get("lng") is None
+        s.get("geocode_status") in BLOCKING_GEOCODE_STATUSES or s.get("lat") is None or s.get("lng") is None
         for s in stops
     ):
         return None

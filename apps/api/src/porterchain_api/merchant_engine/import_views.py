@@ -140,6 +140,8 @@ def job_payload(job: BulkImportJob, order: Any | None = None) -> dict[str, Any]:
         "geocode": (
             "pending"
             if any(isinstance(s, dict) and s.get("geocode_status") == "pending" for s in stops)
+            else "needs_review"
+            if any(isinstance(s, dict) and s.get("geocode_status") == "needs_review" for s in stops)
             else "ready"
         ),
     }
