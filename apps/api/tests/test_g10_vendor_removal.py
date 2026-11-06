@@ -46,10 +46,13 @@ VENDORS: dict[str, tuple[str, set[str]]] = {
         {
             "apps/api/tests/test_g10_vendor_removal.py",
             "apps/api/src/porterchain_api/geo_google.py",
+            "apps/api/src/porterchain_api/geo_resolve.py",  # capped backup wiring (#182)
+            "apps/api/tests/test_geo_resolve.py",
             "apps/api/src/porterchain_api/routers/geo.py",
             "apps/api/src/porterchain_api/admin_engine/integration_health.py",
             "apps/api/tests/test_geo_photon_coverage.py",
             "apps/api/tests/test_geo_google_fallback.py",
+            "apps/api/tests/test_hs20_google_places_no_distance_matrix.py",
             "infrastructure/deploy/docker-compose.prod.yml",
             "env/api.env.example",
             "env/production.env.example",

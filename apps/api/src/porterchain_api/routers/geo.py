@@ -1,9 +1,7 @@
-"""Free address search: Photon first, capped Google Places (New) backup, Nominatim / FSA.
+"""Free address search: Photon → capped Google Places backup → Nominatim / FSA.
 
-Photon (self-hosted) always runs first. When Photon is not confident and
-GEO_GOOGLE_FALLBACK is on, the API queries Google Places (New) server-side with
-GOOGLE_MAPS_SERVER_API_KEY under a daily Redis cap. Otherwise Nominatim / FSA.
-Results stay inside the GTA ±150 km service area. Public, per-IP rate limited.
+Photon first; GEO_GOOGLE_FALLBACK + GOOGLE_MAPS_SERVER_API_KEY (daily Redis cap)
+when Photon is not confident. GTA ±150 km. Public, per-IP rate limited.
 """
 
 from __future__ import annotations
@@ -223,30 +221,13 @@ def _postal_complete(postal: str | None) -> bool:
 
 
 def _google_suggest(q: str, limit: int) -> list[dict[str, Any]]:
-    try:
-        rows = geo_google.suggest(q, limit, BBOX)
-    except httpx.HTTPError as exc:
-        logger.warning("google places fallback failed: %s", exc)
-        return []
-    return [
-        {
-            "id": _encode({"g": r["g"], "formatted": r["formatted"]}),
-            "main": r["main"],
-            "secondary": r["secondary"],
-            "formatted": r["formatted"],
-        }
-        for r in rows
-    ]
+    return geo_google.suggest_for_api(q, limit, BBOX, encode=_encode)
 
 
 def _google_place(data: dict[str, Any], token: str) -> dict[str, Any]:
-    try:
-        hit = geo_google.details(str(data["g"])[:300])
-    except httpx.HTTPError as exc:
-        logger.warning("google place details failed: %s", exc)
-        hit = None
-    if hit and _km(hit["lat"], hit["lng"]) <= MAX_KM:
-        return {**hit, "placeId": token}
+    hit = geo_google.resolve_g_for_api(data, token, km=_km, max_km=MAX_KM)
+    if hit:
+        return hit
     from porterchain_api.merchant_engine.import_geocode import geocode_stop
 
     geo = geocode_stop(address=str(data.get("formatted") or ""), province="ON")

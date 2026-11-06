@@ -153,3 +153,40 @@ def details(place_id: str) -> dict[str, Any] | None:
         else comps.get("administrative_area_level_1"),
         "source": "google",
     }
+
+
+def suggest_for_api(q: str, limit: int, bbox: str, *, encode) -> list[dict[str, Any]]:
+    """Autocomplete rows with place tokens for /v1/geo; empty on HTTP failure."""
+    try:
+        rows = suggest(q, limit, bbox)
+    except httpx.HTTPError as exc:
+        logger.warning("google places fallback failed: %s", exc)
+        return []
+    return [
+        {
+            "id": encode({"g": r["g"], "formatted": r["formatted"]}),
+            "main": r["main"],
+            "secondary": r["secondary"],
+            "formatted": r["formatted"],
+        }
+        for r in rows
+    ]
+
+
+def resolve_g_for_api(
+    data: dict[str, Any],
+    token: str,
+    *,
+    km,
+    max_km: float,
+) -> dict[str, Any] | None:
+    """Resolve a Google place token; None when details miss or are out of area."""
+    try:
+        hit = details(str(data["g"])[:300])
+    except httpx.HTTPError as exc:
+        logger.warning("google place details failed: %s", exc)
+        hit = None
+    if hit and km(hit["lat"], hit["lng"]) <= max_km:
+        return {**hit, "placeId": token}
+    return None
+
