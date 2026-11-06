@@ -279,6 +279,24 @@ def autocomplete(
         return {"results": [], "source": "unavailable"}
 
 
+@router.get("/resolve")
+def resolve(
+    request: Request,
+    response: Response,
+    q: str = Query(..., min_length=3, max_length=300),
+) -> dict[str, Any]:
+    """Shared geo_resolve for a typed (not picked) address: status + up to 5 GTA candidates.
+
+    ``confident`` -> use candidates[0]; ``ambiguous``/``approximate``/``failed`` -> the
+    portal opens AddressDisambiguationModal instead of booking on a guess.
+    Google stays off here (autocomplete-scale traffic must not burn the capped quota).
+    """
+    _limit(request, response)
+    from porterchain_api.geo_resolve import resolve_address
+
+    return resolve_address(q.strip(), province="ON", allow_google=False).to_dict()
+
+
 @router.get("/place")
 def place(
     request: Request,

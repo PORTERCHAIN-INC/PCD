@@ -3,6 +3,7 @@
 from typing import Annotated
 
 from fastapi import Depends, HTTPException
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from porterchain_api.merchant_engine import shopify_service as shopify
@@ -181,20 +182,48 @@ def shopify_order_syncs_refresh(
     return {"ok": True, **total}
 
 
+class ShopifySyncBookIn(BaseModel):
+    """Optional point picked in the address review popup (held orders)."""
+
+    lat: float | None = Field(default=None, ge=-90, le=90)
+    lng: float | None = Field(default=None, ge=-180, le=180)
+
+
+@router.get("/shopify/syncs/{sync_id}/address-candidates")
+def shopify_order_sync_address_candidates(
+    sync_id: str,
+    ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """Ranked geo_resolve candidates for an order held as ``address_needs_review``."""
+    require_module(ctx, "orders")
+    from porterchain_api.merchant_engine.shopify_order_sync import address_candidates
+
+    try:
+        return address_candidates(db, settings, ctx.merchant.id, sync_id)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from None
+
+
 @router.post("/shopify/syncs/{sync_id}/book")
 def shopify_order_sync_book(
     sync_id: str,
     ctx: Annotated[MerchantContext, Depends(get_merchant_context)],
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
+    body: ShopifySyncBookIn | None = None,
 ):
-    """"Book with PorterChain" for an order that used another shipping rate."""
+    """"Book with PorterChain": other shipping rate, or a held address with the picked point."""
     require_module(ctx, "orders")
     from porterchain_api.merchant_engine.booking_validation import BookingValidationError
     from porterchain_api.merchant_engine.shopify_order_sync import book_now
 
     try:
-        return book_now(db, settings, ctx.merchant.id, sync_id)
+        return book_now(
+            db, settings, ctx.merchant.id, sync_id,
+            lat=body.lat if body else None, lng=body.lng if body else None,
+        )
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from None
     except BookingValidationError as exc:

@@ -1,3 +1,4 @@
+import type { AddressCandidate } from "@porterchain/maps";
 import type { DeliveryOptions } from "@porterchain/types/delivery-options";
 import { publicEnv } from "@/lib/env";
 
@@ -722,8 +723,29 @@ export type ShopifyOrderSyncRow = {
   total_cents: number | null;
   porterchain_order_id: string | null;
   can_book: boolean;
+  /** Held: shipping address is ambiguous/unresolvable — pick it before booking. */
+  needs_address_review?: boolean;
   shopify_created_at: string | null;
 };
+
+export type ShopifyAddressCandidates = {
+  sync_id: string;
+  original_address: string;
+  status: string;
+  candidates: AddressCandidate[];
+};
+
+export async function getShopifySyncAddressCandidates(
+  token: string,
+  syncId: string,
+  orgId?: string
+) {
+  return merchantFetch<ShopifyAddressCandidates>(
+    `/v1/merchant/shopify/syncs/${encodeURIComponent(syncId)}/address-candidates`,
+    token,
+    { orgId }
+  );
+}
 
 export async function listShopifyOrderSyncs(token: string, orgId?: string, q?: string) {
   const qs = q?.trim() ? `?q=${encodeURIComponent(q.trim())}` : "";
@@ -743,7 +765,12 @@ export async function refreshShopifyOrderSyncs(token: string, orgId?: string) {
   );
 }
 
-export async function bookShopifyOrderSync(token: string, syncId: string, orgId?: string) {
+export async function bookShopifyOrderSync(
+  token: string,
+  syncId: string,
+  orgId?: string,
+  point?: { lat: number; lng: number }
+) {
   return merchantFetch<{
     ok: boolean;
     order_id?: string;
@@ -752,5 +779,6 @@ export async function bookShopifyOrderSync(token: string, syncId: string, orgId?
   }>(`/v1/merchant/shopify/syncs/${encodeURIComponent(syncId)}/book`, token, {
     method: "POST",
     orgId,
+    ...(point ? { body: JSON.stringify(point) } : {}),
   });
 }

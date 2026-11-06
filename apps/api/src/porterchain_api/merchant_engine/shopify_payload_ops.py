@@ -137,6 +137,12 @@ def _book_from_shopify_payload(
     country = address.get("country") or address.get("country_code") or address.get("countryCode")
     if not is_canada_country(country):
         return {"ok": True, "skipped": "out_of_service_area"}
+    from porterchain_api.merchant_engine.shopify_address_review import HOLD_REASON, needs_review
+
+    review = needs_review(address)
+    if review is not None:
+        # Ambiguous / unresolvable address: hold for merchant review, never a silent guess.
+        return {"ok": True, "skipped": HOLD_REASON, "address_review": review}
 
     pickup_row = shopify.default_pickup_address(db, shop.merchant_id, shop=shop)
     if not pickup_row:

@@ -79,3 +79,34 @@ export async function resolveGeoPlace(
     postal: typeof d.postal === "string" && d.postal ? d.postal : undefined,
   };
 }
+
+/** Shared geo_resolve result for a typed address (matches ResolveResult.to_dict()). */
+export type GeoResolveResult = {
+  status: "confident" | "ambiguous" | "approximate" | "failed";
+  candidates: {
+    formatted: string;
+    lat: number;
+    lng: number;
+    city?: string | null;
+    postal?: string | null;
+    province?: string | null;
+    fsa?: string | null;
+    score?: number;
+    source?: string;
+    place_id?: string | null;
+  }[];
+  confidence: number;
+};
+
+export async function resolveGeoAddress(
+  q: string,
+  opts: { apiBase?: string; signal?: AbortSignal } = {}
+): Promise<GeoResolveResult | null> {
+  const base = resolveGeoApiBase(opts.apiBase);
+  const res = await fetch(`${base}/v1/geo/resolve?q=${encodeURIComponent(q)}`, {
+    signal: opts.signal,
+    headers: { Accept: "application/json" },
+  });
+  if (!res.ok) return null;
+  return (await res.json()) as GeoResolveResult;
+}

@@ -8,9 +8,10 @@ export {
   isMapsConfigured,
   resolveGeoApiBase,
   resolveGeoPlace,
+  resolveGeoAddress,
   resolveTilesBase,
 } from "./maps-core";
-export type { GeoSuggestion } from "./maps-core";
+export type { GeoSuggestion, GeoResolveResult } from "./maps-core";
 export type { LibreMapProps, MapCircle, MapLine, MapMarker, MapMarkerKind } from "./LibreMap";
 export { decodePolyline, resolveRoutePolylineEncoding } from "./polyline";
 export { default as TrackRouteMap } from "./TrackRouteMap";
