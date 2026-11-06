@@ -1,4 +1,4 @@
-"""Admin convert retail customer → merchant (orders stay on customer)."""
+"""Admin convert retail customer → merchant (order history remaps to merchant)."""
 
 from __future__ import annotations
 
@@ -72,7 +72,8 @@ def test_convert_to_merchant_keeps_orders_and_soft_deletes_customer(
 
     db.refresh(order)
     assert order.customer_id == customer.id
-    assert order.merchant_id is None
+    assert order.merchant_id == merchant.id
+    assert first.get("orders_remapped") == 1
 
     seat = (
         db.query(MerchantUser)
@@ -106,3 +107,44 @@ def test_convert_to_merchant_blocks_privacy_hold(db, admin_ctx, settings) -> Non
     db.commit()
     with pytest.raises(ValueError, match="customer_privacy_hold"):
         _convert(db, admin_ctx, settings, customer.id, send_invite=False)
+
+
+def test_idempotent_convert_remaps_null_merchant_orders(db, admin_ctx, settings) -> None:
+    """Already-converted customer (Kung Fu-like): re-hit remaps orphaned orders."""
+    customer = Customer(
+        auth_subject="converted:kft-remap-customer:kft-remap-merchant",
+        email="kft.remap@example.com",
+        full_name="KFT Remap Co",
+        deleted_at=datetime.now(UTC),
+        delete_reason="converted_to_merchant",
+    )
+    db.add(customer)
+    db.flush()
+    merchant = Merchant(
+        email="kft.remap@example.com",
+        company_name="KFT Remap Co",
+        status=MerchantStatus.ACTIVE.value,
+        profile={"converted_from_customer_id": customer.id},
+    )
+    db.add(merchant)
+    db.flush()
+    order = Order(
+        order_number=generate_order_number(),
+        tracking_number=generate_tracking_number(),
+        state=OrderState.DELIVERED.value,
+        customer_id=customer.id,
+        merchant_id=None,
+        amount_cents=1800,
+        pickup={"formatted": "A"},
+        dropoff={"formatted": "B"},
+        scheduled_at=datetime.now(UTC),
+    )
+    db.add(order)
+    db.commit()
+
+    result = _convert(db, admin_ctx, settings, customer.id, send_invite=False)
+    assert result["idempotent"] is True
+    assert result["merchant_id"] == merchant.id
+    assert result.get("orders_remapped") == 1
+    db.refresh(order)
+    assert order.merchant_id == merchant.id

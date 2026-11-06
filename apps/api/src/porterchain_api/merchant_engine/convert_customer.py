@@ -1,4 +1,4 @@
-"""Admin convert retail customer → merchant (orders stay on the customer)."""
+"""Admin convert retail customer → merchant (order history remaps to merchant)."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ def convert_from_customer(
     auto_activate: bool = True,
     send_invite: bool = False,
 ) -> dict[str, Any]:
-    """Promote a retail customer into a merchant. Orders stay on the customer id."""
+    """Promote a retail customer into a merchant. Past orders get merchant_id set."""
     from porterchain_api.auth.identity_directory import directory_for_kind, is_directory_configured
     from porterchain_api.booking_models import Customer
     from porterchain_api.domain.merchant_states import MerchantRole
@@ -49,12 +49,22 @@ def convert_from_customer(
 
     existing = _find_converted_merchant(customer_id)
     if existing:
+        from porterchain_api.merchant_engine.convert_remap import (
+            remap_orders_customer_to_merchant,
+        )
+
+        remapped = remap_orders_customer_to_merchant(
+            db, customer_id=customer_id, merchant_id=existing.id
+        )
+        if remapped:
+            db.commit()
         return {
             "customer_id": customer_id,
             "merchant_id": existing.id,
             "status": existing.status,
             "company_name": existing.company_name,
             "idempotent": True,
+            "orders_remapped": remapped,
             "merchant": existing,
             "customer": customer,
             "skip_commit": True,
@@ -89,6 +99,14 @@ def convert_from_customer(
             "converted_at": datetime.now(UTC).isoformat(),
             "converted_by": ctx.user.id,
         },
+    )
+
+    from porterchain_api.merchant_engine.convert_remap import (
+        remap_orders_customer_to_merchant,
+    )
+
+    remapped = remap_orders_customer_to_merchant(
+        db, customer_id=customer.id, merchant_id=merchant.id
     )
 
     if _identity_linked(old_subject):
@@ -130,6 +148,7 @@ def convert_from_customer(
             "identity_linked": _identity_linked(old_subject),
             "auto_activate": auto_activate,
             "send_invite": send_invite,
+            "orders_remapped": remapped,
         },
     )
     db.commit()
@@ -142,6 +161,7 @@ def convert_from_customer(
         "status": merchant.status,
         "company_name": merchant.company_name,
         "idempotent": False,
+        "orders_remapped": remapped,
         "merchant": merchant,
         "customer": customer,
         "skip_commit": True,

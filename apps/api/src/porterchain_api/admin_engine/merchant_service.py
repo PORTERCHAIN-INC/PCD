@@ -240,10 +240,16 @@ class AdminMerchantService:
             self, db, ctx, merchant_id, owner_email_value=owner_email, write_off_ar=write_off_ar
         )
         if result.get("skip_commit"):
+            remapped = int(result.get("orders_remapped") or 0)
+            if remapped:
+                # Lifecycle stays free of merchant_models writers (§3.2.2);
+                # commit idempotent remaps here instead.
+                db.commit()
             return {
                 "customer_id": result["customer_id"],
                 "merchant_id": result["merchant_id"],
                 "status": result["status"],
+                "orders_remapped": remapped,
             }
         db.commit()
         db.refresh(result["merchant"])
@@ -254,6 +260,7 @@ class AdminMerchantService:
             "merchant_id": result["merchant_id"],
             "status": result["status"],
             "ar_written_off_cents": result["ar_written_off_cents"],
+            "orders_remapped": int(result.get("orders_remapped") or 0),
         }
 
     def update_team_member(

@@ -98,7 +98,7 @@ def test_close_and_kick_out(db, admin_ctx, merchant_ctx) -> None:
     assert portal_access_denied(closed) == "merchant_closed"
 
 
-def test_convert_creates_customer_without_moving_orders(db, admin_ctx, merchant_ctx) -> None:
+def test_convert_creates_customer_and_remaps_orders(db, admin_ctx, merchant_ctx) -> None:
     merchant_ctx.user.role = MerchantRole.OWNER.value
     merchant_ctx.user.email = merchant_ctx.merchant.email
     order = Order(
@@ -122,7 +122,8 @@ def test_convert_creates_customer_without_moving_orders(db, admin_ctx, merchant_
     assert not str(customer.auth_subject).startswith("user_")
     db.refresh(order)
     assert order.merchant_id == merchant_ctx.merchant.id
-    assert order.customer_id is None
+    assert order.customer_id == result["customer_id"]
+    assert result.get("orders_remapped") == 1
     db.refresh(merchant_ctx.merchant)
     assert merchant_ctx.merchant.status == MerchantStatus.CLOSED.value
 
