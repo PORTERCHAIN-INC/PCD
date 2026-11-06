@@ -9,17 +9,24 @@
 #                             60 s resend cooldown, max 5 codes / 15 min
 #   => code only on a browser without a valid trust cookie; never on every login.
 #   realm emailTheme=porterchain (branded EN/FR code email) + SMTP:
-#     KC_MAIL_PROVIDER=mailpit (default, local)  |  zeptomail (prod: smtp.zeptomail.ca:587 STARTTLS,
-#     user "emailapikey", password = ZeptoMail send-mail token from KC_SMTP_PASSWORD; never printed)
+#     KC_MAIL_PROVIDER=mailpit (default, local)
+#       | zeptomail (smtp.zeptomail.ca:587 — NOT for DigitalOcean Droplets)
+#       | zeptomail_https (prod DO: pcd-kc-mail-relay:1025 → ZeptoMail HTTPS; see
+#         docs/runbooks/KEYCLOAK_MAIL_HTTPS.md)
 # Usage: KC_CONTAINER=pcd-ls-keycloak bash scripts/keycloak-email-otp-setup.sh
 set -euo pipefail
 C=${KC_CONTAINER:-pcd-ls-keycloak}; REALM=${KC_REALM:-porterchain}; LS_DIR=${LS_DIR:-/home/pcd/.pcd-local-stack}
 set -a; . "$LS_DIR/stack.env"; set +a
 case "${KC_MAIL_PROVIDER:-mailpit}" in
   mailpit)   SH=${KC_SMTP_HOST:-pcd-ls-mailpit}; SP=${KC_SMTP_PORT:-1025}; SU=""; SPW=""; TLS=false ;;
+  # Direct ZeptoMail SMTP — works only where outbound 587 is open (NOT DigitalOcean Droplets).
   zeptomail) SH=${KC_SMTP_HOST:-smtp.zeptomail.ca}; SP=${KC_SMTP_PORT:-587}; SU=${KC_SMTP_USER:-emailapikey}
              SPW=${KC_SMTP_PASSWORD:?KC_SMTP_PASSWORD (ZeptoMail token) required}; TLS=true ;;
-  *) echo "KC_MAIL_PROVIDER must be mailpit or zeptomail" >&2; exit 2 ;;
+  # Prod on DigitalOcean: Keycloak → pcd-kc-mail-relay:1025 → ZeptoMail HTTPS :443.
+  # Token lives in the relay env file, not in Keycloak SMTP password.
+  zeptomail_https|https_relay)
+             SH=${KC_SMTP_HOST:-pcd-kc-mail-relay}; SP=${KC_SMTP_PORT:-1025}; SU=""; SPW=""; TLS=false ;;
+  *) echo "KC_MAIL_PROVIDER must be mailpit, zeptomail, or zeptomail_https" >&2; exit 2 ;;
 esac
 SF=${KC_SMTP_FROM:-no-reply@porterchain.com}
 docker exec "$C" sh -c 'ls /opt/keycloak/providers/email-otp-authenticator-*.jar' >/dev/null 2>&1 || { echo "email-otp-authenticator jar missing in $C (run: bash scripts/local-stack.sh kc-ext)" >&2; exit 1; }

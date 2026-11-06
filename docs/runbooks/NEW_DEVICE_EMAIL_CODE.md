@@ -34,22 +34,25 @@ or localhost, so **on http://192.168.2.103 a real browser will ask for a code ev
 Chromium's `--unsafely-treat-insecure-origin-as-secure` for the Keycloak origin. Prod (https) is unaffected.
 Fresh `up` mounts the jar and runs the setup script automatically.
 
-## Prod (ZeptoMail)
+## Prod (ZeptoMail HTTPS relay on DigitalOcean)
 
-Keycloak only sends via SMTP. Run once per environment, token from SOPS/Doppler (never on the command line history):
+Keycloak only speaks SMTP; DigitalOcean Droplets block outbound 25/465/587. **Do not** point
+Keycloak at `smtp.zeptomail.ca` on the droplet.
+
+**Permanent path:** `pcd-kc-mail-relay` (SMTP on the Docker network → ZeptoMail HTTPS :443).
+Full steps: `docs/runbooks/KEYCLOAK_MAIL_HTTPS.md`.
 
 ```bash
-KC_MAIL_PROVIDER=zeptomail KC_SMTP_PASSWORD="$ZEPTOMAIL_SMTP_TOKEN" KC_SMTP_FROM=no-reply@porterchain.com \
-  KC_CONTAINER=<prod keycloak container> bash scripts/keycloak-email-otp-setup.sh
+# After the relay container is up (see KEYCLOAK_MAIL_HTTPS.md):
+KC_MAIL_PROVIDER=zeptomail_https KC_SMTP_FROM=no-reply@porterchain.com \
+  KC_CONTAINER=pcd-keycloak bash scripts/keycloak-email-otp-setup.sh
 ```
 
-→ `smtp.zeptomail.ca:587` STARTTLS, user `emailapikey`.
-**Reachability (2026-10-30, from the Ubuntu dev machine 192.168.2.103, TCP connect only):** `smtp.zeptomail.ca` 587 and 465 both OPEN. This says nothing about the DO droplet.
-**Check first:** `docs/CONNECTIONS.md` says the DigitalOcean droplet blocks SMTP (the API uses ZeptoMail HTTPS for
-that reason). If ports 587/465 are blocked for Keycloak too, codes will not send: ask DO to lift the SMTP block,
-or run Keycloak where SMTP is allowed, or add an SMTP→HTTPS relay. Test with one login before switching it on.
-The prod Keycloak image must also include the jar (`ADD` it to `/opt/keycloak/providers/`, then `kc.sh build`) and the
-`porterchain` theme (login + email).
+→ Keycloak `smtpServer.host=pcd-kc-mail-relay` port `1025`, no STARTTLS; token stays in
+`/opt/porterchain/secrets/keycloak-mail-relay.env` (never in the realm SMTP password).
+
+On non-DO hosts where 587 is open you may still use `KC_MAIL_PROVIDER=zeptomail` (direct
+SMTP). The prod Keycloak image must also include the email-otp jar and the `porterchain` theme.
 
 ## Turn off
 

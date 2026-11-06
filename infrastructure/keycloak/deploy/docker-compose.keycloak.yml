@@ -1,6 +1,10 @@
 # Production Keycloak (pcd-keycloak) on the droplet: /opt/porterchain/keycloak/docker-compose.keycloak.yml
 # Not touched by the app Deploy workflow. Apply theme/realm changes with infrastructure/keycloak/deploy/apply-theme.sh.
-# Secrets come from ../secrets/keycloak.env (never committed). The themes/ dir is synced from infrastructure/keycloak/themes.
+# Secrets come from ../secrets/keycloak.env and ../secrets/keycloak-mail-relay.env (never committed).
+# themes/ dir is synced from infrastructure/keycloak/themes.
+#
+# Mail: Keycloak SMTP → pcd-kc-mail-relay:1025 (Docker network only) → ZeptoMail HTTPS :443.
+# DigitalOcean blocks outbound SMTP 25/465/587; do not point Keycloak at smtp.zeptomail.ca.
 name: porterchain-keycloak
 services:
   keycloak:
@@ -22,6 +26,19 @@ services:
     ports: ["127.0.0.1:58180:8080"]
     volumes:
       - ./themes/porterchain:/opt/keycloak/themes/porterchain:ro
+    depends_on:
+      - mail-relay
+    networks: [edge]
+  mail-relay:
+    build:
+      context: ../mail-relay
+      dockerfile: Dockerfile
+    image: porterchain/kc-zeptomail-relay:local
+    container_name: pcd-kc-mail-relay
+    restart: unless-stopped
+    mem_limit: 128m
+    env_file: ../secrets/keycloak-mail-relay.env
+    # No host ports — only reachable from the Docker edge network (Keycloak).
     networks: [edge]
 networks:
   edge:
