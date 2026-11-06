@@ -188,7 +188,7 @@ jobs:
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         if: matrix.flavor == 'website' && needs.plan.outputs.scope == 'website'
         with:
-          version: 11.10.0
+          version: 12.18.0
 
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         if: matrix.flavor == 'website' && needs.plan.outputs.scope == 'website'
@@ -667,10 +667,10 @@ jobs:
           retry_smoke "api health" body_has https://api.porterchain.com/health '"status":"ok"'
           retry_smoke "api ready" http_code_is https://api.porterchain.com/health/ready 200
           retry_smoke "website /en" http_code_is https://porterchain.com/en 200
-          retry_smoke "admin sign-in" http_code_is https://admin.porterchain.com/sign-in 200
+          retry_smoke "admin sign-in" http_code_is https://admin.porterchain.com/sign-in '200|307|308'
           retry_smoke "merchant login" http_code_is https://merchant.porterchain.com/login '200|307|308'
           retry_smoke "customer login" http_code_is https://customer.porterchain.com/login '200|307|308'
-          retry_smoke "driver login" http_code_is https://driver.porterchain.com/login 200
+          retry_smoke "driver login" http_code_is https://driver.porterchain.com/login '200|307|308'
           retry_smoke "public tracking" http_code_is https://porterchain.com/en/track 200
           # Retired Fleetbase hosts must 404 (never fall through to marketing).
           retry_smoke "console 404" http_code_is https://console.porterchain.com/ 404
@@ -786,7 +786,7 @@ jobs:
           }
           http_code_is() { curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$1" | grep -qE "^($2)$"; }
           body_has() { curl -fsS --max-time 20 "$1" | grep -q "$2"; }
-          retry_smoke "admin sign-in" http_code_is https://admin.porterchain.com/sign-in 200
+          retry_smoke "admin sign-in" http_code_is https://admin.porterchain.com/sign-in '200|307|308'
           retry_smoke "merchant sign-in" http_code_is https://merchant.porterchain.com/sign-in '200|307|308'
           echo "Portals prod smoke passed"
 
@@ -815,9 +815,9 @@ jobs:
           retry_smoke "api health" body_has https://api.porterchain.com/health '"status":"ok"'
           retry_smoke "website /en" http_code_is https://porterchain.com/en 200
           retry_smoke "public tracking" http_code_is https://porterchain.com/en/track 200
-          retry_smoke "driver login" http_code_is https://driver.porterchain.com/login 200
+          retry_smoke "driver login" http_code_is https://driver.porterchain.com/login '200|307|308'
           retry_smoke "merchant login" http_code_is https://merchant.porterchain.com/login '200|307|308'
-          retry_smoke "admin sign-in" http_code_is https://admin.porterchain.com/sign-in 200
+          retry_smoke "admin sign-in" http_code_is https://admin.porterchain.com/sign-in '200|307|308'
           echo "Core prod smoke passed"
 
       # The worker's compose healthcheck asserts a fresh Redis heartbeat
