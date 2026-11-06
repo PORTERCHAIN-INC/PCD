@@ -17,9 +17,34 @@ describe("role-aware admin nav", () => {
   it("hides groups a role cannot use", () => {
     expect(hrefs("sales")).not.toContain("/finance/cash");
     expect(hrefs("sales")).toContain("/leads");
+    expect(hrefs("sales")).toContain("/leads/attribution");
+    expect(hrefs("merchant_success")).toContain("/leads");
+    expect(hrefs("finance")).toContain("/leads/attribution");
     expect(hrefs("finance")).not.toContain("/dispatch/plan");
+    expect(hrefs("dispatcher")).toContain("/leads");
     expect(hrefs("dispatcher")).not.toContain("/settings");
     expect(hrefs("read_only")).not.toContain("/settings");
+  });
+
+  it("keeps accounts in Customers & Orgs and lead pages in CRM", () => {
+    const customers = ADMIN_NAV_GROUPS.find((g) => g.id === "customers")!;
+    const crm = ADMIN_NAV_GROUPS.find((g) => g.id === "crm")!;
+    const insights = ADMIN_NAV_GROUPS.find((g) => g.id === "insights")!;
+    expect(customers.items.map((i) => i.href)).toEqual([
+      "/merchants",
+      "/orgs",
+      "/customers",
+      "/merchants/duplicates",
+    ]);
+    expect(crm.items.map((i) => i.href)).toEqual([
+      "/leads",
+      "/leads/pipeline",
+      "/leads/today",
+      "/leads/calendar",
+      "/leads/agent",
+      "/leads/attribution",
+    ]);
+    expect(insights.items.map((i) => i.href)).not.toContain("/leads/attribution");
   });
   it("has no duplicate hrefs and every top-level route is in nav or palette", () => {
     const nav = ADMIN_NAV_GROUPS.flatMap((g) => g.items.map((i) => i.href));
@@ -34,6 +59,7 @@ describe("role-aware admin nav", () => {
       "Dispatch",
       "Network",
       "Customers & Orgs",
+      "CRM",
       "Billing",
       "Support",
       "Insights",
