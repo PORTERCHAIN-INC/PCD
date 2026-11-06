@@ -312,8 +312,6 @@ def convert_to_customer(
         remapped = remap_orders_merchant_to_customer(
             db, merchant_id=merchant.id, customer_id=str(existing)
         )
-        if remapped:
-            db.commit()
         return {
             "customer_id": existing,
             "merchant_id": merchant.id,
