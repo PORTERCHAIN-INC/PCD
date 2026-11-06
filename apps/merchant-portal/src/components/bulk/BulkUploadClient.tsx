@@ -21,8 +21,13 @@ import {
   type RouteImportJob,
   type RouteImportMappingProfile,
 } from "@/lib/api";
+import { routeImportReviewIndexes, type RouteImportStopView } from "@/lib/routeImportReview";
 import { VEHICLE_OPTIONS, vehicleLabel } from "@/lib/catalog";
-import { AddressAutocompleteInput, type BookingAddress } from "@porterchain/maps";
+import {
+  AddressAutocompleteInput,
+  AddressDisambiguationModal,
+  type BookingAddress,
+} from "@porterchain/maps";
 import { DateTimePickerSeparateField } from "@porterchain/ui/datetime-picker-separate";
 import { Download } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -92,6 +97,11 @@ export default function BulkPage() {
   const [editAddress, setEditAddress] = useState("");
   /** Set when the merchant picks a Places suggestion — same shape as Book Delivery. */
   const [editPlace, setEditPlace] = useState<BookingAddress | null>(null);
+  /** Stop index open in the ambiguity popup (geo_resolve needs_review). */
+  const [reviewIndex, setReviewIndex] = useState<number | null>(null);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+  /** Stops the merchant closed with "Later" — don't auto-reopen until confirm. */
+  const [reviewSnoozed, setReviewSnoozed] = useState<Set<number>>(() => new Set());
   const [draftMapping, setDraftMapping] = useState<MappingRow[]>([]);
   const [profiles, setProfiles] = useState<RouteImportMappingProfile[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState("");
@@ -110,6 +120,23 @@ export default function BulkPage() {
       }))
     );
   }, [routeJob?.job_id, routeJob?.mapping]);
+
+  const reviewStops = routeImportReviewIndexes(routeJob);
+
+  // Upload / poll / patch result has an ambiguous stop → open the popup automatically.
+  useEffect(() => {
+    if (reviewIndex != null || confirmed) return;
+    const next = reviewStops.find((i) => !reviewSnoozed.has(i));
+    if (next != null) {
+      setReviewError(null);
+      setReviewIndex(next);
+    }
+  }, [reviewStops.join(","), reviewIndex, reviewSnoozed, confirmed]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    setReviewSnoozed(new Set());
+    setReviewIndex(null);
+  }, [routeJob?.job_id]);
 
   const loadProfiles = useCallback(async () => {
     if (!isSignedIn || !orgId) return;
@@ -256,6 +283,14 @@ export default function BulkPage() {
 
   async function onRouteConfirm() {
     if (!routeJob || !isSignedIn) return;
+    const pending = routeImportReviewIndexes(routeJob);
+    if (pending.length > 0) {
+      // Never book a silent guess: make the merchant resolve ambiguous stops first.
+      setReviewSnoozed(new Set());
+      setReviewError(null);
+      setReviewIndex(pending[0]);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -368,6 +403,45 @@ export default function BulkPage() {
     return <PageSkeleton rows={4} />;
   }
 
+  async function patchReviewedStop(index: number, patch: Record<string, unknown>) {
+    if (!routeJob || !isSignedIn) return;
+    setLoading(true);
+    setReviewError(null);
+    try {
+      const token = await getApiToken();
+      const job = await patchRouteImportStop(token, routeJob.job_id, index, patch, orgId);
+      setRouteJob(job);
+      setReviewIndex(null);
+    } catch (err) {
+      setReviewError(err instanceof Error ? err.message : "Address update failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function onPickCandidate(index: number) {
+    if (reviewIndex == null) return;
+    void patchReviewedStop(reviewIndex, { candidate_index: index });
+  }
+
+  function onReviewUpdate(address: string, place: BookingAddress | null) {
+    if (reviewIndex == null) return;
+    const patch: Record<string, unknown> = { address: (place?.formatted || address).trim() };
+    if (place?.lat != null && place?.lng != null) {
+      patch.lat = place.lat;
+      patch.lng = place.lng;
+      patch.geocode_source = "places";
+      if (place.placeId) patch.place_id = place.placeId;
+      if (place.postal) patch.postal = place.postal;
+    }
+    void patchReviewedStop(reviewIndex, patch);
+  }
+
+  const reviewStop =
+    reviewIndex != null
+      ? (routeJob?.stops?.[reviewIndex] as RouteImportStopView | undefined)
+      : undefined;
+
   const quoteReady = Boolean(routeJob?.quote?.amount_cents != null);
   const optimizePending = routeJob?.optimize_status === "pending";
   const quotedPreviewRow = preview?.preview.find((row) => row.pricing_breakdown);
@@ -375,6 +449,7 @@ export default function BulkPage() {
     quoteReady &&
     !optimizePending &&
     (routeJob?.errors?.length ?? 0) === 0 &&
+    reviewStops.length === 0 &&
     (routeJob?.stops?.length ?? 0) >= 2;
   const needsMappingReview =
     Boolean(
@@ -676,7 +751,8 @@ export default function BulkPage() {
                   <tbody>
                     {routeJob.stops.map((stop, idx) => {
                       const geo = String(stop.geocode_status ?? "");
-                      const needsFix = geo === "failed" || geo === "pending";
+                      const needsFix =
+                        geo === "failed" || geo === "pending" || geo === "needs_review";
                       return (
                         <tr
                           key={idx}
@@ -723,6 +799,11 @@ export default function BulkPage() {
                               type="button"
                               className="text-primary underline"
                               onClick={() => {
+                                if (String(stop.geocode_status ?? "") === "needs_review") {
+                                  setReviewError(null);
+                                  setReviewIndex(idx);
+                                  return;
+                                }
                                 setEditingIndex(idx);
                                 setEditPlace(null);
                                 setEditAddress(
@@ -779,6 +860,25 @@ export default function BulkPage() {
                   </Button>
                 </div>
               )}
+
+              <AddressDisambiguationModal
+                open={reviewIndex != null && !!reviewStop}
+                contextLabel={reviewIndex != null ? `Stop ${reviewIndex + 1}` : undefined}
+                originalAddress={String(
+                  reviewStop?.raw_address || reviewStop?.address || reviewStop?.formatted || ""
+                )}
+                candidates={reviewStop?.candidates ?? []}
+                busy={loading}
+                error={reviewError}
+                onPickCandidate={onPickCandidate}
+                onUpdateAddress={onReviewUpdate}
+                onClose={() => {
+                  if (reviewIndex != null) {
+                    setReviewSnoozed((prev) => new Set(prev).add(reviewIndex));
+                  }
+                  setReviewIndex(null);
+                }}
+              />
 
               {routeJob.route_geometry?.polyline && (
                 <p className="text-xs text-muted">

@@ -17,3 +17,12 @@ export { default as TrackRouteMap } from "./TrackRouteMap";
 export type { TrackRouteMapProps } from "./TrackRouteMap";
 export { TrackEtaPanel, formatEta, etaSourceLabel } from "./TrackEtaPanel";
 export type { TrackEtaPanelProps, TrackingEta } from "./TrackEtaPanel";
+export {
+  default as AddressDisambiguationModal,
+  ADDRESS_DISAMBIGUATION_TITLE,
+  candidateFsa,
+} from "./AddressDisambiguationModal";
+export type {
+  AddressCandidate,
+  AddressDisambiguationModalProps,
+} from "./AddressDisambiguationModal";
