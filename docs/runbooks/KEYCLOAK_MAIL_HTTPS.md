@@ -12,12 +12,12 @@ SMTP unblock ticket required. App mail is unchanged.
 
 ## Pieces
 
-| Piece | Path |
-| --- | --- |
-| Relay | `infrastructure/keycloak/mail-relay/` (Python + aiosmtpd) |
-| Compose | `infrastructure/keycloak/deploy/docker-compose.keycloak.yml` (service `mail-relay`) |
-| Secrets (droplet only) | `/opt/porterchain/secrets/keycloak-mail-relay.env` — never commit |
-| Realm SMTP apply | `KC_MAIL_PROVIDER=zeptomail_https bash scripts/keycloak-email-otp-setup.sh` |
+| Piece                  | Path                                                                                |
+| ---------------------- | ----------------------------------------------------------------------------------- |
+| Relay                  | `infrastructure/keycloak/mail-relay/` (Python + aiosmtpd)                           |
+| Compose                | `infrastructure/keycloak/deploy/docker-compose.keycloak.yml` (service `mail-relay`) |
+| Secrets (droplet only) | `/opt/porterchain/secrets/keycloak-mail-relay.env` — never commit                   |
+| Realm SMTP apply       | `KC_MAIL_PROVIDER=zeptomail_https bash scripts/keycloak-email-otp-setup.sh`         |
 
 ## Droplet hand-deploy (no KC_WIPE)
 
