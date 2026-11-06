@@ -1,12 +1,15 @@
 """Merchant lifecycle admin per BUSINESS_WORKFLOW.md §2."""
 
+import logging
 from typing import Any
 
+import httpx
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.rbac import AdminContext
 from porterchain_api.admin_models import AdminAuditLog
 from porterchain_api.auth.identity_directory import directory_for_kind, is_directory_configured
+from porterchain_api.auth.keycloak_admin import KeycloakAdminUnavailable
 from porterchain_api.config import Settings
 from porterchain_api.domain.merchant_states import MerchantRole, MerchantStatus
 from porterchain_api.merchant_engine.lifecycle import merge_profile, set_status
@@ -28,6 +31,8 @@ from porterchain_api.merchant_engine.team_service import (
     ensure_merchant_seat,
     update_seat,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class AdminMerchantService:
@@ -63,13 +68,23 @@ class AdminMerchantService:
         if existing_user:
             raise ValueError("merchant_user_email_exists")
 
-        if send_invite and is_directory_configured(settings, "merchant"):
+        # Link a person who already signed in. send_invite only covers someone
+        # with no Keycloak user yet; it must not skip an existing directory account.
+        keycloak = None
+        existing_idp = None
+        if is_directory_configured(settings, "merchant"):
             keycloak = directory_for_kind(settings, "merchant")
-            existing_idp = keycloak.find_user_by_email(normalized)
+            try:
+                existing_idp = keycloak.find_user_by_email(normalized)
+            except (httpx.HTTPError, KeycloakAdminUnavailable):
+                if send_invite:
+                    raise
+                logger.warning("merchant_directory_lookup_skipped", exc_info=True)
+                keycloak = None
+                existing_idp = None
             if existing_idp:
                 subject_ref = str(existing_idp["id"])
-                linked = get_seat_by_idp(db, subject_ref)
-                if linked:
+                if get_seat_by_idp(db, subject_ref):
                     raise ValueError("merchant_user_email_exists")
 
         merchant = create_onboarding_merchant(
@@ -82,61 +97,37 @@ class AdminMerchantService:
             pricing_config=dict(pricing_config or {}),
         )
 
-        if send_invite and is_directory_configured(settings, "merchant"):
-            keycloak = directory_for_kind(settings, "merchant")
-            existing_idp = keycloak.find_user_by_email(normalized)
-            if existing_idp:
-                subject_ref = str(existing_idp["id"])
-                add_linked_seat(
-                    db,
-                    merchant_id=merchant.id,
-                    email=normalized,
-                    auth_subject=subject_ref,
-                    role=MerchantRole.OWNER.value,
-                    is_active=True,
-                )
-                set_status(merchant, MerchantStatus.ONBOARDING.value)
-                merge_profile(merchant, {"source": "admin_register_portal_user"})
-                keycloak.update_user_metadata(
-                    subject_ref,
-                    {
-                        "role": MerchantRole.OWNER.value,
-                        "porterchain_role": MerchantRole.OWNER.value,
-                        "user_type": "merchant",
-                        "merchant_id": merchant.id,
-                    },
-                )
-                self._audit(
-                    db,
-                    ctx,
-                    "merchant.created",
-                    "merchant",
-                    merchant.id,
-                    {"email": normalized, "identity_linked": True, "via": "portal_idp_user"},
-                )
-                db.commit()
-                db.refresh(merchant)
-            else:
-                ensure_merchant_seat(
-                    db,
-                    merchant_id=merchant.id,
-                    email=normalized,
-                    role=MerchantRole.OWNER.value,
-                    actor_user_id=ctx.user.id,
-                    audit_action="merchant.owner_seat_added",
-                    commit=False,
-                )
-                set_status(merchant, MerchantStatus.ONBOARDING.value)
-                self._audit(
-                    db,
-                    ctx,
-                    "merchant.created",
-                    "merchant",
-                    merchant.id,
-                    {"email": normalized, "identity_linked": False, "via": "owner_seat"},
-                )
-                db.commit()
-                db.refresh(merchant)
+        if existing_idp and keycloak is not None:
+            subject_ref = str(existing_idp["id"])
+            add_linked_seat(
+                db,
+                merchant_id=merchant.id,
+                email=normalized,
+                auth_subject=subject_ref,
+                role=MerchantRole.OWNER.value,
+                is_active=True,
+            )
+            set_status(merchant, MerchantStatus.ONBOARDING.value)
+            merge_profile(merchant, {"source": "admin_register_portal_user"})
+            keycloak.update_user_metadata(
+                subject_ref,
+                {
+                    "role": MerchantRole.OWNER.value,
+                    "porterchain_role": MerchantRole.OWNER.value,
+                    "user_type": "merchant",
+                    "merchant_id": merchant.id,
+                },
+            )
+            self._audit(
+                db,
+                ctx,
+                "merchant.created",
+                "merchant",
+                merchant.id,
+                {"email": normalized, "identity_linked": True, "via": "portal_idp_user"},
+            )
+            db.commit()
+            db.refresh(merchant)
         else:
             ensure_merchant_seat(
                 db,
@@ -147,6 +138,8 @@ class AdminMerchantService:
                 audit_action="merchant.owner_seat_added",
                 commit=False,
             )
+            if send_invite and keycloak is not None:
+                set_status(merchant, MerchantStatus.ONBOARDING.value)
             self._audit(
                 db,
                 ctx,

@@ -56,7 +56,7 @@ class Settings(BaseSettings):
     # L36: Keycloak is the only auth provider (no Keycloak / dual mode).
     auth_provider: Literal["keycloak"] = "keycloak"
     keycloak_url: str = ""  # public base, e.g. https://auth.porterchain.com
-    keycloak_internal_url: str = ""  # optional in-cluster base used for JWKS fetch
+    keycloak_internal_url: str = ""  # in-cluster base for JWKS and the Admin REST client
     keycloak_realm: str = "porterchain"
     keycloak_issuer: str = ""  # overrides {keycloak_url}/realms/{realm}
     keycloak_audience: str = "pc-api"

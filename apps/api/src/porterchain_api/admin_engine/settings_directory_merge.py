@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime
 from typing import Any
+from urllib.parse import urlencode
 
 from porterchain_api.admin_engine.identity_directory_service import fetch_directory_snapshots
 from porterchain_api.auth.identity_directory import DirectoryUserSnapshot
@@ -153,7 +154,15 @@ def _merge_idp_directory(
                     idp_password_set=snap.password_set,
                     idp_last_sign_in_at=snap.last_sign_in_at,
                     detail_href=(
-                        "/merchants"
+                        "/merchants?"
+                        + urlencode(
+                            {
+                                "mode": "table",
+                                "register": "1",
+                                "email": email,
+                                "company": name,
+                            }
+                        )
                         if user_type == "merchant"
                         else ("/drivers" if user_type == "driver" else None)
                     ),

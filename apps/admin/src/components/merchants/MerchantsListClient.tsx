@@ -94,7 +94,15 @@ const VIEWS_KEY = "pc.merchants.views";
 
 type SavedView = { name: string; visibility: VisibilityState };
 
-export default function MerchantsListClient() {
+export default function MerchantsListClient({
+  initialRegister = false,
+  initialEmail = "",
+  initialCompany = "",
+}: {
+  initialRegister?: boolean;
+  initialEmail?: string;
+  initialCompany?: string;
+}) {
   const router = useRouter();
   const { getApiToken } = useAdminAuth();
   const [version, setVersion] = useState(0);
@@ -126,13 +134,12 @@ export default function MerchantsListClient() {
     }
   );
 
-  // Board's "Add merchant" lands here with ?register=1.
-  const [registerOpen, setRegisterOpen] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      new URLSearchParams(window.location.search).get("register") === "1"
-  );
-  const [registerForm, setRegisterForm] = useState({ email: "", company_name: "" });
+  // Board "Add merchant" and Users "Register on Merchants" land here with ?register=1.
+  const [registerOpen, setRegisterOpen] = useState(initialRegister);
+  const [registerForm, setRegisterForm] = useState({
+    email: initialEmail,
+    company_name: initialCompany,
+  });
   const [registerPricing, setRegisterPricing] = useState<MerchantPricing>(DEFAULT_MERCHANT_PRICING);
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [registering, setRegistering] = useState(false);
@@ -1074,7 +1081,7 @@ export default function MerchantsListClient() {
         open={registerOpen}
         onClose={() => setRegisterOpen(false)}
         title="Register merchant"
-        panelClassName="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col"
+        panelClassName="max-w-3xl"
         footer={
           <>
             <Button variant="outline" onClick={() => setRegisterOpen(false)}>
@@ -1091,7 +1098,7 @@ export default function MerchantsListClient() {
           </>
         }
       >
-        <div className="max-h-[70vh] space-y-6 overflow-y-auto pr-1">
+        <div className="space-y-6">
           <p className="text-sm text-muted">
             Creates the merchant organization and reserves an owner seat. Set how they are priced
             now — you can change it later on the merchant Pricing tab.

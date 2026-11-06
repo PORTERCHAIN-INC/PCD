@@ -7,9 +7,9 @@ import { adminServerFetch } from "@/lib/server-api";
 export default async function MerchantsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mode?: string }>;
+  searchParams: Promise<{ mode?: string; register?: string; email?: string; company?: string }>;
 }) {
-  const { mode } = await searchParams;
+  const { mode, register, email, company } = await searchParams;
   if (mode !== "table") return <MerchantBoardClient />;
 
   const client = new QueryClient();
@@ -22,7 +22,11 @@ export default async function MerchantsPage({
 
   return (
     <HydrationBoundary state={dehydrate(client)}>
-      <MerchantsListClient />
+      <MerchantsListClient
+        initialRegister={register === "1"}
+        initialEmail={email ?? ""}
+        initialCompany={company ?? ""}
+      />
     </HydrationBoundary>
   );
 }

@@ -255,7 +255,11 @@ def test_merchant_keeps_unlinked_seats_and_injects_unprovisioned() -> None:
     assert by_email["reserved@example.com"].identity_status == "invite_pending"
     assert by_email["reserved@example.com"].identity_linked is False
     assert by_email["orphan@example.com"].provisioned is False
-    assert by_email["orphan@example.com"].detail_href == "/merchants"
+    href = by_email["orphan@example.com"].detail_href or ""
+    assert "mode=table" in href
+    assert "register=1" in href
+    assert "email=orphan%40example.com" in href
+    assert "company=Orphan" in href
 
 
 def test_merchant_keep_unlinked_when_idp_errors() -> None:
