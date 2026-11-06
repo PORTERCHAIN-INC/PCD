@@ -27,9 +27,10 @@ describe("legacy Control Tower links", () => {
 describe("Dispatch nav (doc 75)", () => {
   const dispatchGroup = ADMIN_NAV_GROUPS.find((g) => g.id === "dispatch")!;
 
-  it("is Plan, Live map, Exceptions, Fleet & vehicles, Bulk batches (D-75 update, Ravi)", () => {
+  it("is Pickup queue, Plan, Live map, Exceptions, Fleet & vehicles, Bulk batches", () => {
     expect(dispatchGroup.label).toBe("Dispatch");
     expect(dispatchGroup.items.map((i) => i.label)).toEqual([
+      "Pickup queue",
       "Plan",
       "Live map",
       "Exceptions",
