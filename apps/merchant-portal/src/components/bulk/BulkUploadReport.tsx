@@ -13,6 +13,8 @@ const ERROR_LABELS: Record<string, string> = {
   recipient_not_found: "Recipient ID not found in your account",
   invalid_scheduled_at: "Scheduled time is missing or invalid (use ISO format)",
   missing_columns: "Required columns missing from file",
+  "address.ambiguous":
+    "We can't confidently understand this address — it matches more than one place. Pick or update it.",
 };
 
 function formatBulkError(err: BulkError): string {
