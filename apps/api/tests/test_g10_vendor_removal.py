@@ -41,7 +41,11 @@ VENDORS: dict[str, tuple[str, set[str]]] = {
     "google-maps": (
         r"maps\.googleapis|places\.googleapis|@googlemaps|react-google-maps|react-native-maps"
         r"|geo_google|GOOGLE_MAPS_|PROVIDER_GOOGLE|Google Maps Platform|mapbox",
-        {"apps/api/tests/test_g10_vendor_removal.py"},
+        {
+            "apps/api/tests/test_g10_vendor_removal.py",
+            # Encrypted inventory may keep retired key *names* (values are ciphertext).
+            "secrets/droplet.enc.yaml",
+        },
     ),
     # Doc 60 R2: FEATURE_AI=false; OpenAI-compatible / NVIDIA NIM clients and keys deleted.
     "openai-nvidia": (
