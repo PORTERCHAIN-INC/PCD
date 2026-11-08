@@ -85,12 +85,14 @@ export function authorizeUrl(
     idpHint?: IdpHint;
     register?: boolean;
     loginHint?: string;
+    /** prompt=login so a stuck Keycloak cookie cannot skip the form. */
+    fresh?: boolean;
   }
 ): string {
   const q = new URLSearchParams({
     client_id: kc.clientId,
     response_type: "code",
-    scope: "openid email profile offline_access",
+    scope: "openid profile email",
     redirect_uri: p.redirectUri,
     code_challenge: p.codeChallenge,
     code_challenge_method: "S256",
@@ -99,8 +101,17 @@ export function authorizeUrl(
   });
   if (p.idpHint) q.set("kc_idp_hint", p.idpHint);
   if (p.register) q.set("prompt", "create");
+  else if (p.fresh) q.set("prompt", "login");
   if (p.loginHint) q.set("login_hint", p.loginHint);
   return `${endpoints(kc).authorize}?${q}`;
+}
+
+/**
+ * The sign-in the app starts. Same grant as the website: authorization code + PKCE.
+ * Not a legacy broker, and not native token exchange. No Apple hint: the live page has no Apple provider.
+ */
+export function hostedSignIn(register = false): { register?: true; fresh: true } {
+  return register ? { register: true, fresh: true } : { fresh: true };
 }
 
 export type RedirectResult = { code: string } | { error: string };
@@ -161,29 +172,6 @@ export async function exchangeCode(
     code: p.code,
     code_verifier: p.codeVerifier,
     redirect_uri: p.redirectUri,
-  });
-  return toTokens(body, now);
-}
-
-/**
- * Native Sign in with Apple / Google → Keycloak tokens via OAuth token exchange (external →
- * internal, RFC 8693). Keycloak validates the provider ID token against the broker config for
- * `subjectIssuer` (alias "apple" / "google") and links or creates the user like a browser login.
- */
-export async function exchangeIdpToken(
-  fetchFn: Fetch,
-  kc: KeycloakConfig,
-  p: { subjectToken: string; subjectIssuer: IdpHint | string },
-  now = Date.now()
-): Promise<Tokens> {
-  const body = await postForm(fetchFn, endpoints(kc).token, {
-    grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
-    client_id: kc.clientId,
-    subject_token: p.subjectToken,
-    subject_token_type: "urn:ietf:params:oauth:token-type:id_token",
-    subject_issuer: p.subjectIssuer,
-    requested_token_type: "urn:ietf:params:oauth:token-type:refresh_token",
-    scope: "openid email profile offline_access",
   });
   return toTokens(body, now);
 }
@@ -250,5 +238,9 @@ export function authErrorCopy(code: string): string {
     return "Sign-in was cancelled.";
   if (code === "state_mismatch") return "Sign-in expired. Try again.";
   if (code === "invalid_grant") return "Your sign-in expired. Sign in again.";
+  if (code === "invalid_request" || code === "unsupported_grant_type")
+    return "Porterchain could not use that sign-in. On the Porterchain page, use your email and password or Google. Skip existing PorterChain sign-in.";
+  if (code === "not_allowed")
+    return "Sign-in reached Porterchain, then Porterchain refused the session (not_allowed). Tap Sign in and use your email and password.";
   return "Couldn’t sign in. Check your connection and try again.";
 }

@@ -31,12 +31,18 @@
         "expo-updates",
         "expo-system-ui",
         "expo-auth-session",
-        "expo-constants"
+        "expo-constants",
+        "@react-native-google-signin/google-signin"
       ]
     },
     "apps/mobile-driver": {
       "ignore": ["vendor/**"],
-      "ignoreDependencies": ["expo-updates", "expo-system-ui", "expo-auth-session"],
+      "ignoreDependencies": [
+        "expo-updates",
+        "expo-system-ui",
+        "expo-auth-session",
+        "@react-native-google-signin/google-signin"
+      ],
       "ignoreBinaries": ["maestro"]
     },
     "packages/config": {

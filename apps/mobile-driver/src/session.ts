@@ -62,6 +62,9 @@ export async function waitForSignedSession(timeoutMs = 5_000): Promise<boolean> 
  * Sign-out. Tries one last sync (bounded), then wipes every piece of driver data on the phone:
  * queued actions, refused actions, encrypted POD files + key, GPS buffer, background location,
  * location consent (the next driver on a shared phone must agree for themselves), push registration. Wipe runs even if the sync or the Keycloak sign-out fails.
+ *
+ * A stuck sign-in screen uses SessionGate resetSignIn instead. That drops Keycloak tokens and
+ * the browser cookie only. It must not call clearSession.
  */
 export async function clearSession(): Promise<void> {
   // Dynamic imports avoid the session ↔ api ↔ offline/push cycle.

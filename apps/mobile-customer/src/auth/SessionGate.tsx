@@ -16,8 +16,8 @@ import { setSessionSnapshot } from "../session";
 import { Screen } from "../ui/Screen";
 import {
   endpoints,
+  hostedSignIn,
   identityFromToken,
-  type IdpHint,
   type KeycloakConfig,
   keycloakConfig,
   needsRefresh,
@@ -25,9 +25,9 @@ import {
   revoke,
   type Tokens,
 } from "./keycloak";
-import { loadTokens, nativeSignIn, saveTokens, signInWithKeycloak } from "./keycloakNative";
+import { loadTokens, saveTokens, signInWithKeycloak } from "./keycloakNative";
 
-export type SignInOptions = { idpHint?: IdpHint; register?: boolean; native?: boolean };
+export type SignInOptions = { register?: boolean };
 
 type SessionView = {
   ready: boolean;
@@ -113,8 +113,8 @@ function KeycloakBridge({ kc, children }: { kc: KeycloakConfig; children: ReactN
   const signIn = useCallback(
     async (opts: SignInOptions = {}) => {
       setBootError(null);
-      const native = opts.native && opts.idpHint ? await nativeSignIn(kc, opts.idpHint) : null;
-      await store(native ?? (await signInWithKeycloak(kc, opts)));
+      const plan = hostedSignIn(Boolean(opts.register));
+      await store(await signInWithKeycloak(kc, plan));
     },
     [kc, store]
   );

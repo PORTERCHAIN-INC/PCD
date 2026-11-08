@@ -1,15 +1,22 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import {
+  AUTH_TOKEN_STORE_KEY,
+  authErrorCopy,
+  authResetDeletes,
   authorizeUrl,
+  endSessionUrl,
   endpoints,
   exchangeCode,
-  exchangeIdpToken,
   googleNativeConfig,
+  hostedSignIn,
   identityFromToken,
   idpEnabled,
   keycloakConfig,
+  browserSignInFresh,
   needsRefresh,
   parseRedirect,
+  PRESERVED_ON_AUTH_RESET,
   REDIRECT_URI,
   refreshTokens,
 } from "./auth/keycloak";
@@ -56,6 +63,52 @@ describe("L36 Keycloak mobile auth", () => {
       })
     );
     expect(reg.searchParams.get("prompt")).toBe("create");
+    const fresh = new URL(
+      authorizeUrl(kc, {
+        redirectUri: REDIRECT_URI,
+        codeChallenge: "c",
+        state: "s",
+        nonce: "n",
+        fresh: true,
+      })
+    );
+    expect(fresh.searchParams.get("prompt")).toBe("login");
+    expect(fresh.searchParams.get("response_type")).toBe("code");
+    const inviteFresh = new URL(
+      authorizeUrl(kc, {
+        redirectUri: REDIRECT_URI,
+        codeChallenge: "c",
+        state: "s",
+        nonce: "n",
+        fresh: true,
+        register: true,
+      })
+    );
+    expect(inviteFresh.searchParams.get("prompt")).toBe("create");
+  });
+
+  it("reset logout URL is the public client end-session, and reset does not name business data", () => {
+    const logout = new URL(endSessionUrl(kc, REDIRECT_URI));
+    expect(logout.pathname).toBe("/realms/porterchain/protocol/openid-connect/logout");
+    expect(logout.searchParams.get("client_id")).toBe("pc-driver-app");
+    expect(logout.searchParams.get("post_logout_redirect_uri")).toBe(REDIRECT_URI);
+    expect(logout.searchParams.has("id_token_hint")).toBe(false);
+    expect(logout.searchParams.has("client_secret")).toBe(false);
+    const hinted = new URL(endSessionUrl(kc, REDIRECT_URI, "fixture-id-token"));
+    expect(hinted.searchParams.get("id_token_hint")).toBe("fixture-id-token");
+    expect(authResetDeletes(AUTH_TOKEN_STORE_KEY)).toBe(true);
+    for (const key of PRESERVED_ON_AUTH_RESET) {
+      expect(authResetDeletes(key)).toBe(false);
+    }
+    expect(PRESERVED_ON_AUTH_RESET).toEqual(
+      expect.arrayContaining([
+        "porterchain_driver_offline_queue",
+        "porterchain_driver_offline_rejected",
+        "porterchain_driver_gps_buffer",
+        "porterchain_driver_pod_key",
+        "pcd.driver.rq.v1",
+      ])
+    );
   });
 
   it("redirect parsing checks state", () => {
@@ -85,13 +138,46 @@ describe("L36 Keycloak mobile auth", () => {
     expect(f.mock.calls[0][0]).toBe(endpoints(kc).token);
   });
 
-  it("native Apple/Google id token is exchanged for Keycloak tokens", async () => {
-    const f = ok({ access_token: "a", refresh_token: "r", expires_in: 60 });
-    await exchangeIdpToken(f, kc, { subjectToken: "apple.jwt", subjectIssuer: "apple" });
-    const body = new URLSearchParams(f.mock.calls[0][1].body);
-    expect(body.get("grant_type")).toBe("urn:ietf:params:oauth:grant-type:token-exchange");
-    expect(body.get("subject_issuer")).toBe("apple");
-    expect(body.get("subject_token_type")).toBe("urn:ietf:params:oauth:token-type:id_token");
+  it("the login the app starts is website-style PKCE, not token exchange or an Apple hint", async () => {
+    const plan = hostedSignIn(false);
+    expect(plan).toEqual({ fresh: true });
+    const u = new URL(
+      authorizeUrl(kc, {
+        redirectUri: REDIRECT_URI,
+        codeChallenge: "c",
+        state: "s",
+        nonce: "n",
+        ...plan,
+      })
+    );
+    expect(u.searchParams.get("response_type")).toBe("code");
+    expect(u.searchParams.get("code_challenge_method")).toBe("S256");
+    expect(u.searchParams.get("prompt")).toBe("login");
+    expect(u.searchParams.get("kc_idp_hint")).toBeNull();
+    expect(u.searchParams.get("client_id")).toBe("pc-driver-app");
+    expect(u.searchParams.get("scope")).toBe("openid profile email");
+    expect(u.searchParams.get("scope")).not.toContain("offline_access");
+    expect(authErrorCopy("not_allowed")).toMatch(/not_allowed/);
+    expect(authErrorCopy("not_allowed")).not.toMatch(/connection/i);
+    const created = hostedSignIn(true);
+    const reg = new URL(
+      authorizeUrl(kc, {
+        redirectUri: REDIRECT_URI,
+        codeChallenge: "c",
+        state: "s",
+        nonce: "n",
+        ...created,
+      })
+    );
+    expect(reg.searchParams.get("prompt")).toBe("create");
+    expect(reg.searchParams.get("kc_idp_hint")).toBeNull();
+    expect(authErrorCopy("invalid_request")).not.toMatch(/connection/i);
+    expect(authErrorCopy("cancel")).toMatch(/cancelled/i);
+    expect(browserSignInFresh(false, true)).toBe(true);
+    const nativeSrc = readFileSync(new URL("./auth/keycloakNative.ts", import.meta.url), "utf8");
+    expect(nativeSrc).not.toContain("subject_issuer");
+    expect(nativeSrc).not.toContain("nativeSignIn");
+    expect(nativeSrc).not.toContain("token-exchange");
   });
 
   it("refresh keeps the old refresh token when none is returned; errors surface", async () => {
