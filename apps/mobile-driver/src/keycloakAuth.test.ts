@@ -9,6 +9,7 @@ import {
   exchangeCode,
   exchangeIdpToken,
   googleNativeConfig,
+  hostedSignIn,
   identityFromToken,
   idpEnabled,
   keycloakConfig,
@@ -159,6 +160,37 @@ describe("L36 Keycloak mobile auth", () => {
     expect(browserSignInFresh(true, false)).toBe(true);
     expect(browserSignInFresh(false, true)).toBe(true);
     expect(browserSignInFresh(false, false)).toBe(false);
+  });
+
+  it("the login the app starts is website-style PKCE, not token exchange or an Apple hint", () => {
+    const plan = hostedSignIn(false);
+    expect(plan).toEqual({ fresh: true });
+    const u = new URL(
+      authorizeUrl(kc, {
+        redirectUri: REDIRECT_URI,
+        codeChallenge: "c",
+        state: "s",
+        nonce: "n",
+        ...plan,
+      })
+    );
+    expect(u.searchParams.get("response_type")).toBe("code");
+    expect(u.searchParams.get("code_challenge_method")).toBe("S256");
+    expect(u.searchParams.get("prompt")).toBe("login");
+    expect(u.searchParams.get("kc_idp_hint")).toBeNull();
+    expect(u.searchParams.get("client_id")).toBe("pc-driver-app");
+    const created = hostedSignIn(true);
+    const reg = new URL(
+      authorizeUrl(kc, {
+        redirectUri: REDIRECT_URI,
+        codeChallenge: "c",
+        state: "s",
+        nonce: "n",
+        ...created,
+      })
+    );
+    expect(reg.searchParams.get("prompt")).toBe("create");
+    expect(reg.searchParams.get("kc_idp_hint")).toBeNull();
     expect(authErrorCopy("invalid_request")).not.toMatch(/connection/i);
     expect(authErrorCopy("cancel")).toMatch(/cancelled/i);
   });

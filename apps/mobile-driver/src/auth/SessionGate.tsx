@@ -17,7 +17,7 @@ import { color } from "../ui/theme";
 import {
   browserSignInFresh,
   endpoints,
-  type IdpHint,
+  hostedSignIn,
   type KeycloakConfig,
   keycloakConfig,
   needsRefresh,
@@ -25,15 +25,9 @@ import {
   revoke,
   type Tokens,
 } from "./keycloak";
-import {
-  endBrowserSession,
-  loadTokens,
-  nativeSignIn,
-  saveTokens,
-  signInWithKeycloak,
-} from "./keycloakNative";
+import { endBrowserSession, loadTokens, saveTokens, signInWithKeycloak } from "./keycloakNative";
 
-export type SignInOptions = { idpHint?: IdpHint; register?: boolean; native?: boolean };
+export type SignInOptions = { register?: boolean };
 
 type SessionView = {
   ready: boolean;
@@ -131,15 +125,9 @@ function KeycloakBridge({ kc, children }: { kc: KeycloakConfig; children: ReactN
     async (opts: SignInOptions = {}) => {
       setBootError(null);
       try {
-        const nativeAttempted = Boolean(opts.native && opts.idpHint);
-        const native = nativeAttempted ? await nativeSignIn(kc, opts.idpHint as IdpHint) : null;
-        if (native) {
-          forceFresh.current = false;
-          await store(native);
-          return;
-        }
-        const fresh = browserSignInFresh(nativeAttempted, forceFresh.current);
-        await store(await signInWithKeycloak(kc, { ...opts, fresh }));
+        const plan = hostedSignIn(Boolean(opts.register));
+        const fresh = browserSignInFresh(false, forceFresh.current || plan.fresh);
+        await store(await signInWithKeycloak(kc, { register: plan.register, fresh }));
         forceFresh.current = false;
       } catch (err) {
         const code = err instanceof Error ? err.message : "";

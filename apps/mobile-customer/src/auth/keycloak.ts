@@ -85,6 +85,8 @@ export function authorizeUrl(
     idpHint?: IdpHint;
     register?: boolean;
     loginHint?: string;
+    /** prompt=login so a stuck Keycloak cookie cannot skip the form. */
+    fresh?: boolean;
   }
 ): string {
   const q = new URLSearchParams({
@@ -99,8 +101,17 @@ export function authorizeUrl(
   });
   if (p.idpHint) q.set("kc_idp_hint", p.idpHint);
   if (p.register) q.set("prompt", "create");
+  else if (p.fresh) q.set("prompt", "login");
   if (p.loginHint) q.set("login_hint", p.loginHint);
   return `${endpoints(kc).authorize}?${q}`;
+}
+
+/**
+ * The sign-in the app starts. Same grant as the website: authorization code + PKCE.
+ * Not Clerk, and not native token exchange. No Apple hint: the live page has no Apple provider.
+ */
+export function hostedSignIn(register = false): { register?: true; fresh: true } {
+  return register ? { register: true, fresh: true } : { fresh: true };
 }
 
 export type RedirectResult = { code: string } | { error: string };

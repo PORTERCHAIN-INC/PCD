@@ -36,7 +36,7 @@ async function challengeFor(verifier: string): Promise<string> {
 
 export async function signInWithKeycloak(
   kc: KeycloakConfig,
-  opts: { idpHint?: IdpHint; register?: boolean } = {}
+  opts: { idpHint?: IdpHint; register?: boolean; fresh?: boolean } = {}
 ): Promise<Tokens> {
   const codeVerifier = randomString(48);
   const state = randomString(16);

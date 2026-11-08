@@ -160,6 +160,17 @@ export function browserSignInFresh(nativeAttempted: boolean, forceFresh: boolean
   return nativeAttempted || forceFresh;
 }
 
+/**
+ * The sign-in the app starts. Same grant as the website: authorization code + PKCE
+ * against the public mobile client. Not Clerk, and not native token exchange.
+ * Production standard token exchange rejects `subject_issuer`, which is the mobile
+ * failure while web login keeps working. No Apple hint: the live page has no Apple
+ * provider, so a hint would open a non-Apple form.
+ */
+export function hostedSignIn(register = false): { register?: true; fresh: true } {
+  return register ? { register: true, fresh: true } : { fresh: true };
+}
+
 export type RedirectResult = { code: string } | { error: string };
 
 export function parseRedirect(url: string, expectedState: string): RedirectResult {

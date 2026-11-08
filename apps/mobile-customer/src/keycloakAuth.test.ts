@@ -5,6 +5,7 @@ import {
   exchangeCode,
   exchangeIdpToken,
   googleNativeConfig,
+  hostedSignIn,
   identityFromToken,
   idpEnabled,
   keycloakConfig,
@@ -56,6 +57,36 @@ describe("L36 Keycloak mobile auth", () => {
       })
     );
     expect(reg.searchParams.get("prompt")).toBe("create");
+  });
+
+  it("the login the app starts is website-style PKCE, not token exchange or an Apple hint", () => {
+    const plan = hostedSignIn(false);
+    expect(plan).toEqual({ fresh: true });
+    const u = new URL(
+      authorizeUrl(kc, {
+        redirectUri: REDIRECT_URI,
+        codeChallenge: "c",
+        state: "s",
+        nonce: "n",
+        ...plan,
+      })
+    );
+    expect(u.searchParams.get("response_type")).toBe("code");
+    expect(u.searchParams.get("code_challenge_method")).toBe("S256");
+    expect(u.searchParams.get("prompt")).toBe("login");
+    expect(u.searchParams.get("kc_idp_hint")).toBeNull();
+    expect(u.searchParams.get("client_id")).toBe("pc-customer-app");
+    const created = new URL(
+      authorizeUrl(kc, {
+        redirectUri: REDIRECT_URI,
+        codeChallenge: "c",
+        state: "s",
+        nonce: "n",
+        ...hostedSignIn(true),
+      })
+    );
+    expect(created.searchParams.get("prompt")).toBe("create");
+    expect(created.searchParams.get("kc_idp_hint")).toBeNull();
   });
 
   it("redirect parsing checks state", () => {

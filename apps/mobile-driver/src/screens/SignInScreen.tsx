@@ -148,6 +148,13 @@ export function SignInScreen({ error, probing, inviteToken, onContinue, onSignOu
       {storeBlocked ? (
         <Banner tone="danger" title="Sign-in is unavailable on this build. Call dispatch." />
       ) : null}
+      {needHosted ? (
+        <Muted>
+          Sign in opens the Porterchain page. Use your email and password, or Google on that page.
+          Skip any link that says existing PorterChain sign-in. Sign in with Apple is not available
+          on that page.
+        </Muted>
+      ) : null}
       {shownError ? <Banner tone="danger" title={shownError} /> : null}
       {shownError && session.resetSignIn ? (
         <Muted>
