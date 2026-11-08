@@ -155,6 +155,10 @@ describe("L36 Keycloak mobile auth", () => {
     expect(u.searchParams.get("prompt")).toBe("login");
     expect(u.searchParams.get("kc_idp_hint")).toBeNull();
     expect(u.searchParams.get("client_id")).toBe("pc-driver-app");
+    expect(u.searchParams.get("scope")).toBe("openid profile email");
+    expect(u.searchParams.get("scope")).not.toContain("offline_access");
+    expect(authErrorCopy("not_allowed")).toMatch(/not_allowed/);
+    expect(authErrorCopy("not_allowed")).not.toMatch(/connection/i);
     const created = hostedSignIn(true);
     const reg = new URL(
       authorizeUrl(kc, {

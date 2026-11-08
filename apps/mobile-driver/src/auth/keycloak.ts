@@ -105,7 +105,7 @@ export function authorizeUrl(
   const q = new URLSearchParams({
     client_id: kc.clientId,
     response_type: "code",
-    scope: "openid email profile offline_access",
+    scope: "openid profile email",
     redirect_uri: p.redirectUri,
     code_challenge: p.codeChallenge,
     code_challenge_method: "S256",
@@ -286,5 +286,7 @@ export function authErrorCopy(code: string): string {
   if (code === "invalid_grant") return "Your sign-in expired. Sign in again.";
   if (code === "invalid_request" || code === "unsupported_grant_type")
     return "Porterchain could not use that sign-in button. Tap Reset sign-in on this phone, then Sign in with your email and password.";
+  if (code === "not_allowed")
+    return "Sign-in reached Porterchain, then Porterchain refused the session (not_allowed). Tap Sign in and use your email and password.";
   return "Couldn’t sign in. Check your connection and try again.";
 }

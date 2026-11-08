@@ -109,7 +109,10 @@ export function SignInScreen({ error, probing, inviteToken, onContinue, onSignOu
             <IdpButtons
               invite={Boolean(inviteToken)}
               onDone={onContinue}
-              onError={(message) => setLocalError(message)}
+              onError={(message) => {
+                setHint(null);
+                setLocalError(message);
+              }}
             />
             {session.resetSignIn ? (
               <Button
