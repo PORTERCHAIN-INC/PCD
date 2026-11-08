@@ -151,7 +151,7 @@ export function browserSignInFresh(nativeAttempted: boolean, forceFresh: boolean
 
 /**
  * The sign-in the app starts. Same grant as the website: authorization code + PKCE
- * against the public mobile client. Not Clerk, and not native token exchange.
+ * against the public mobile client. Not a legacy broker, and not native token exchange.
  * Production standard token exchange rejects `subject_issuer`, which is the mobile
  * failure while web login keeps working. No Apple hint: the live page has no Apple
  * provider, so a hint would open a non-Apple form.

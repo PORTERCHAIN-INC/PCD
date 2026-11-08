@@ -108,7 +108,7 @@ export function authorizeUrl(
 
 /**
  * The sign-in the app starts. Same grant as the website: authorization code + PKCE.
- * Not Clerk, and not native token exchange. No Apple hint: the live page has no Apple provider.
+ * Not a legacy broker, and not native token exchange. No Apple hint: the live page has no Apple provider.
  */
 export function hostedSignIn(register = false): { register?: true; fresh: true } {
   return register ? { register: true, fresh: true } : { fresh: true };
