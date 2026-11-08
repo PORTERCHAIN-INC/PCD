@@ -27,7 +27,7 @@
     "@porterchain/types": "workspace:*",
     "@porterchain/ui": "workspace:*",
     "ai": "^7.0.37",
-    "framer-motion": "^12.42.2",
+    "framer-motion": "^14.9.1",
     "lottie-web": "5.13.0",
     "lucide-react": "^1.23.0",
     "next": "16.4.1",
