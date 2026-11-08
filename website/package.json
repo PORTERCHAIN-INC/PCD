@@ -21,17 +21,17 @@
     "test:seo": "tsx --test src/lib/home/guide-rules.test.mts src/lib/seo/url-policy.test.mts src/i18n/client-messages.test.mts src/lib/seo/delivery-programmatic.test.mjs src/lib/track-status.test.mjs src/lib/express-quote.test.mts"
   },
   "dependencies": {
-    "@ai-sdk/react": "^4.0.40",
+    "@ai-sdk/react": "^4.0.167",
     "@porterchain/auth": "workspace:*",
     "@porterchain/maps": "workspace:*",
     "@porterchain/types": "workspace:*",
     "@porterchain/ui": "workspace:*",
-    "ai": "^7.0.37",
+    "ai": "^7.0.163",
     "framer-motion": "^12.42.2",
     "lottie-web": "5.13.0",
-    "lucide-react": "^1.23.0",
+    "lucide-react": "^1.69.0",
     "next": "16.4.1",
-    "next-intl": "^4.13.1",
+    "next-intl": "^4.14.9",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "react-icons": "^5.7.0",
@@ -41,7 +41,7 @@
     "web-vitals": "^5.3.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.55.0",
+    "@playwright/test": "^1.64.1",
     "@porterchain/config": "workspace:*",
     "@tailwindcss/postcss": "^4.3.2",
     "@types/node": "^26",
@@ -50,7 +50,7 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "eslint": "^10.6.0",
     "eslint-config-next": "16.4.1",
-    "prettier": "^3.9.4",
+    "prettier": "^3.9.10",
     "tailwindcss": "^4.3.2",
     "tsx": "^4.23.15",
     "typescript": "^6.0.3"
