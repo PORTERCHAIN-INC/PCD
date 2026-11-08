@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import {
   AUTH_TOKEN_STORE_KEY,
@@ -7,14 +8,12 @@ import {
   endSessionUrl,
   endpoints,
   exchangeCode,
-  exchangeIdpToken,
   googleNativeConfig,
   hostedSignIn,
   identityFromToken,
   idpEnabled,
   keycloakConfig,
   browserSignInFresh,
-  nativeExchangeFallsBack,
   needsRefresh,
   parseRedirect,
   PRESERVED_ON_AUTH_RESET,
@@ -139,30 +138,7 @@ describe("L36 Keycloak mobile auth", () => {
     expect(f.mock.calls[0][0]).toBe(endpoints(kc).token);
   });
 
-  it("standard token exchange rejection is invalid_request and falls back to the browser", async () => {
-    const bad = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 400,
-      json: async () => ({
-        error: "invalid_request",
-        error_description:
-          "Parameter 'subject_issuer' is not supported for standard token exchange",
-      }),
-    });
-    await expect(
-      exchangeIdpToken(bad, kc, { subjectToken: "not-a-real-token", subjectIssuer: "apple" })
-    ).rejects.toThrow("invalid_request");
-    expect(nativeExchangeFallsBack("invalid_request")).toBe(true);
-    expect(nativeExchangeFallsBack("unsupported_grant_type")).toBe(true);
-    expect(nativeExchangeFallsBack("cancel")).toBe(false);
-    expect(nativeExchangeFallsBack("dismiss")).toBe(false);
-    expect(nativeExchangeFallsBack("access_denied")).toBe(false);
-    expect(browserSignInFresh(true, false)).toBe(true);
-    expect(browserSignInFresh(false, true)).toBe(true);
-    expect(browserSignInFresh(false, false)).toBe(false);
-  });
-
-  it("the login the app starts is website-style PKCE, not token exchange or an Apple hint", () => {
+  it("the login the app starts is website-style PKCE, not token exchange or an Apple hint", async () => {
     const plan = hostedSignIn(false);
     expect(plan).toEqual({ fresh: true });
     const u = new URL(
@@ -193,15 +169,11 @@ describe("L36 Keycloak mobile auth", () => {
     expect(reg.searchParams.get("kc_idp_hint")).toBeNull();
     expect(authErrorCopy("invalid_request")).not.toMatch(/connection/i);
     expect(authErrorCopy("cancel")).toMatch(/cancelled/i);
-  });
-
-  it("native Apple/Google id token is exchanged for Keycloak tokens", async () => {
-    const f = ok({ access_token: "a", refresh_token: "r", expires_in: 60 });
-    await exchangeIdpToken(f, kc, { subjectToken: "apple.jwt", subjectIssuer: "apple" });
-    const body = new URLSearchParams(f.mock.calls[0][1].body);
-    expect(body.get("grant_type")).toBe("urn:ietf:params:oauth:grant-type:token-exchange");
-    expect(body.get("subject_issuer")).toBe("apple");
-    expect(body.get("subject_token_type")).toBe("urn:ietf:params:oauth:token-type:id_token");
+    expect(browserSignInFresh(false, true)).toBe(true);
+    const nativeSrc = readFileSync(new URL("./auth/keycloakNative.ts", import.meta.url), "utf8");
+    expect(nativeSrc).not.toContain("subject_issuer");
+    expect(nativeSrc).not.toContain("nativeSignIn");
+    expect(nativeSrc).not.toContain("token-exchange");
   });
 
   it("refresh keeps the old refresh token when none is returned; errors surface", async () => {

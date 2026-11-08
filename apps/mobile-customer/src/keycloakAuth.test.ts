@@ -1,9 +1,10 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import {
   authorizeUrl,
   endpoints,
+  authErrorCopy,
   exchangeCode,
-  exchangeIdpToken,
   googleNativeConfig,
   hostedSignIn,
   identityFromToken,
@@ -59,7 +60,7 @@ describe("L36 Keycloak mobile auth", () => {
     expect(reg.searchParams.get("prompt")).toBe("create");
   });
 
-  it("the login the app starts is website-style PKCE, not token exchange or an Apple hint", () => {
+  it("the login the app starts is website-style PKCE, not token exchange or an Apple hint", async () => {
     const plan = hostedSignIn(false);
     expect(plan).toEqual({ fresh: true });
     const u = new URL(
@@ -87,6 +88,11 @@ describe("L36 Keycloak mobile auth", () => {
     );
     expect(created.searchParams.get("prompt")).toBe("create");
     expect(created.searchParams.get("kc_idp_hint")).toBeNull();
+    expect(authErrorCopy("invalid_request")).not.toMatch(/connection/i);
+    const nativeSrc = readFileSync(new URL("./auth/keycloakNative.ts", import.meta.url), "utf8");
+    expect(nativeSrc).not.toContain("subject_issuer");
+    expect(nativeSrc).not.toContain("nativeSignIn");
+    expect(nativeSrc).not.toContain("token-exchange");
   });
 
   it("redirect parsing checks state", () => {
@@ -114,15 +120,6 @@ describe("L36 Keycloak mobile auth", () => {
     expect(body.get("grant_type")).toBe("authorization_code");
     expect(body.get("code_verifier")).toBe("v");
     expect(f.mock.calls[0][0]).toBe(endpoints(kc).token);
-  });
-
-  it("native Apple/Google id token is exchanged for Keycloak tokens", async () => {
-    const f = ok({ access_token: "a", refresh_token: "r", expires_in: 60 });
-    await exchangeIdpToken(f, kc, { subjectToken: "apple.jwt", subjectIssuer: "apple" });
-    const body = new URLSearchParams(f.mock.calls[0][1].body);
-    expect(body.get("grant_type")).toBe("urn:ietf:params:oauth:grant-type:token-exchange");
-    expect(body.get("subject_issuer")).toBe("apple");
-    expect(body.get("subject_token_type")).toBe("urn:ietf:params:oauth:token-type:id_token");
   });
 
   it("refresh keeps the old refresh token when none is returned; errors surface", async () => {

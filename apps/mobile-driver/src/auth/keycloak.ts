@@ -142,19 +142,8 @@ export function authResetDeletes(storageKey: string): boolean {
 }
 
 /**
- * Native Apple/Google token exchange is optional. Production Keycloak standard token exchange
- * rejects `subject_issuer` (`invalid_request`). That failure must open the browser PKCE flow
- * (authorization code), not stop on the sign-in screen. User cancel stays a cancel.
- */
-export function nativeExchangeFallsBack(code: string): boolean {
-  const c = code.trim();
-  if (c === "cancel" || c === "dismiss" || c === "access_denied") return false;
-  return true;
-}
-
-/**
- * Apple/Google already failed or were skipped, so the browser step must not reuse a Keycloak
- * cookie from the system session. A later retry after any other failure does the same.
+ * Sign-in always asks Keycloak to show the login form (`prompt=login`). A retry after a
+ * failure does the same, so a stuck system-browser cookie cannot finish the attempt.
  */
 export function browserSignInFresh(nativeAttempted: boolean, forceFresh: boolean): boolean {
   return nativeAttempted || forceFresh;
@@ -229,29 +218,6 @@ export async function exchangeCode(
     code: p.code,
     code_verifier: p.codeVerifier,
     redirect_uri: p.redirectUri,
-  });
-  return toTokens(body, now);
-}
-
-/**
- * Native Sign in with Apple / Google → Keycloak tokens via OAuth token exchange (external →
- * internal, RFC 8693). Keycloak validates the provider ID token against the broker config for
- * `subjectIssuer` (alias "apple" / "google") and links or creates the user like a browser login.
- */
-export async function exchangeIdpToken(
-  fetchFn: Fetch,
-  kc: KeycloakConfig,
-  p: { subjectToken: string; subjectIssuer: IdpHint | string },
-  now = Date.now()
-): Promise<Tokens> {
-  const body = await postForm(fetchFn, endpoints(kc).token, {
-    grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
-    client_id: kc.clientId,
-    subject_token: p.subjectToken,
-    subject_token_type: "urn:ietf:params:oauth:token-type:id_token",
-    subject_issuer: p.subjectIssuer,
-    requested_token_type: "urn:ietf:params:oauth:token-type:refresh_token",
-    scope: "openid email profile offline_access",
   });
   return toTokens(body, now);
 }

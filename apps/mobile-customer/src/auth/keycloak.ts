@@ -176,29 +176,6 @@ export async function exchangeCode(
   return toTokens(body, now);
 }
 
-/**
- * Native Sign in with Apple / Google → Keycloak tokens via OAuth token exchange (external →
- * internal, RFC 8693). Keycloak validates the provider ID token against the broker config for
- * `subjectIssuer` (alias "apple" / "google") and links or creates the user like a browser login.
- */
-export async function exchangeIdpToken(
-  fetchFn: Fetch,
-  kc: KeycloakConfig,
-  p: { subjectToken: string; subjectIssuer: IdpHint | string },
-  now = Date.now()
-): Promise<Tokens> {
-  const body = await postForm(fetchFn, endpoints(kc).token, {
-    grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
-    client_id: kc.clientId,
-    subject_token: p.subjectToken,
-    subject_token_type: "urn:ietf:params:oauth:token-type:id_token",
-    subject_issuer: p.subjectIssuer,
-    requested_token_type: "urn:ietf:params:oauth:token-type:refresh_token",
-    scope: "openid email profile offline_access",
-  });
-  return toTokens(body, now);
-}
-
 export async function refreshTokens(
   fetchFn: Fetch,
   kc: KeycloakConfig,
@@ -261,5 +238,7 @@ export function authErrorCopy(code: string): string {
     return "Sign-in was cancelled.";
   if (code === "state_mismatch") return "Sign-in expired. Try again.";
   if (code === "invalid_grant") return "Your sign-in expired. Sign in again.";
+  if (code === "invalid_request" || code === "unsupported_grant_type")
+    return "Porterchain could not use that sign-in. On the Porterchain page, use your email and password or Google. Skip existing PorterChain sign-in.";
   return "Couldn’t sign in. Check your connection and try again.";
 }
