@@ -38,6 +38,18 @@
 	}
 }
 
+# Browser photo capture. iPhone Safari hides "Take Photo" on <input type="file">
+# when Permissions-Policy is camera=(), even if the page never calls getUserMedia.
+# common's header block is deferred (it deletes Server / X-Powered-By), so this
+# snippet must be imported BEFORE `import common`. The first deferred header
+# wrapper is applied last and replaces the common value. Importing it after
+# common leaves camera=() in place. One Permissions-Policy header is sent.
+# Microphone stays off (no in-browser audio). Geolocation stays (self), same
+# as common — the driver portal calls navigator.geolocation.
+(photo_capture) {
+	header >Permissions-Policy "camera=(self), microphone=(), geolocation=(self)"
+}
+
 # Dedicated API host — used by all portals (CORS).
 # Self-hosted Protomaps PMTiles + fonts/sprites for MapLibre (replaces Google Maps JS).
 # Files live on the droplet in /opt/porterchain/tiles (see scripts/build-pmtiles.sh).
@@ -67,6 +79,8 @@ admin.porterchain.com {
 }
 
 merchant.porterchain.com {
+	# Pickup document "Take photo" (capture="environment"). Must precede common.
+	import photo_capture
 	import common
 	# Shopify Admin embeds /shopify-app: CSP frame-ancestors (set by the app) allows only
 	# Shopify hosts, so drop the SAMEORIGIN X-Frame-Options there. Every other path keeps it.
@@ -78,11 +92,15 @@ merchant.porterchain.com {
 }
 
 driver.porterchain.com {
+	# Proof / missing / exception photos are file inputs. Must precede common.
+	import photo_capture
 	import common
 	reverse_proxy driver:3003
 }
 
 customer.porterchain.com {
+	# Booking document "Take photo" (capture="environment"). Must precede common.
+	import photo_capture
 	import common
 	reverse_proxy customer:3004
 }
