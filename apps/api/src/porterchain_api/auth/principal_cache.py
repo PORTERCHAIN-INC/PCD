@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from functools import lru_cache
 from typing import Any
 
 logger = logging.getLogger("porterchain.security")
@@ -25,14 +26,30 @@ def principal_cache_ttl_seconds() -> int:
 
 
 def _client():
+    """Short-timeout client. The shared pool has no socket timeout, so a hung
+    PING would keep this request's DB connection checked out indefinitely.
+    """
     try:
-        from porterchain_shared.redis_client import get_redis_client
-
-        client = get_redis_client()
+        client = _bounded_client()
         client.ping()
         return client
     except Exception:  # noqa: BLE001
         return None
+
+
+@lru_cache
+def _bounded_client():
+    import redis
+
+    from porterchain_shared.config.settings import get_platform_settings
+
+    return redis.Redis.from_url(
+        get_platform_settings().redis_url,
+        decode_responses=True,
+        socket_timeout=1.0,
+        socket_connect_timeout=1.0,
+        max_connections=8,
+    )
 
 
 def cache_get(user_id: str) -> dict[str, Any] | None:

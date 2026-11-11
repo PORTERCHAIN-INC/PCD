@@ -37,6 +37,7 @@ integrations/shopify/.shopify/
 # local-only artifacts (not committed)
 .pcd-local-stack/
 rehearsal-shots/
+.worktrees/
 
 # SOPS-encrypted (reformatting breaks the MAC)
 secrets/*.enc.yaml

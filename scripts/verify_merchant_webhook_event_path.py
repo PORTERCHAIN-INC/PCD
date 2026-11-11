@@ -21,7 +21,13 @@ def main() -> int:
     needle = "deliver_merchant_fanout"
     for path in sorted(ROOT.rglob("*.py")):
         rel = str(path.relative_to(ROOT))
-        if "node_modules" in rel or ".venv" in rel or "/tests/" in rel or rel.startswith("apps/api/tests"):
+        if (
+            "node_modules" in rel
+            or ".venv" in rel
+            or "/tests/" in rel
+            or rel.startswith("apps/api/tests")
+            or rel.startswith(".worktrees/")
+        ):
             continue
         text = path.read_text(encoding="utf-8", errors="ignore")
         if needle not in text:

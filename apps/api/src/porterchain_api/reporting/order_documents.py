@@ -158,7 +158,6 @@ def render_branded_invoice_pdf(
     line_color = HexColor("#e2e8f0")
     surface = HexColor("#f8fafc")
     page_w, page_h = letter
-    cur = (currency or "cad").upper()
     amount = _money(amount_cents, currency)
     tax = _money(tax_cents, currency)
     fees = _money(fees_cents, currency)
@@ -181,25 +180,47 @@ def render_branded_invoice_pdf(
         ]
 
     class LiteralBlock(Flowable):
+        """Plain-text rows (cents checks read these). Splits across pages when tall."""
+
         def __init__(self, rows: list[str], size: float = 10, leading: float = 14, color=navy):
             super().__init__()
-            self.rows = rows
+            self.rows = list(rows)
             self.size = size
             self.leading = leading
             self.color = color
             self._width = 460
-            self.height = leading * max(len(rows), 1)
+            self.height = leading * max(len(self.rows), 1)
 
         def wrap(self, avail_width, avail_height):
             self._width = avail_width
             return avail_width, self.height
+
+        def split(self, avail_width, avail_height):
+            # Empty list => ReportLab moves this flowable to the next frame/page.
+            # Returning [self] when we still do not fit causes Splitting error(n==1).
+            if not self.rows:
+                return []
+            if avail_height < self.leading:
+                return []
+            if self.height <= avail_height:
+                return [self]
+            max_rows = int(avail_height // self.leading)
+            if max_rows < 1:
+                return []
+            first = LiteralBlock(
+                self.rows[:max_rows], size=self.size, leading=self.leading, color=self.color
+            )
+            rest = LiteralBlock(
+                self.rows[max_rows:], size=self.size, leading=self.leading, color=self.color
+            )
+            return [first, rest]
 
         def draw(self):
             self.canv.setFillColor(self.color)
             self.canv.setFont("Helvetica", self.size)
             y = self.height - self.size
             for row in self.rows:
-                self.canv.drawString(0, y, row)
+                self.canv.drawString(0, y, row[:120])
                 y -= self.leading
 
     mark = ImageReader(
@@ -330,19 +351,21 @@ def render_branded_invoice_pdf(
         Paragraph("Amount", label),
     ]
     table_rows: list[list[Any]] = [header]
-    line_literals: list[str] = []
-    for ln in list(lines or [])[:80]:
+    for ln in list(lines or []):
         desc = str(ln.get("description") or "Delivery")
         cents = int(ln.get("amount_cents") or 0)
         channel = ln.get("channel") or "—"
         model = ln.get("pricing_model") or "—"
         order_no = str(ln.get("order_number") or order_number or "—")
-        line_literals.append(f"{desc} · {channel}/{model} · ${cents / 100:.2f} {cur}")
+        money = _money(cents, currency)
+        # Channel/model stay in the description so PDF text extract + UI stay aligned,
+        # without a second full copy of every line (that overflowed letter frames).
+        table_desc = f"{desc} · {channel}/{model}"
         table_rows.append(
             [
-                Paragraph(desc.replace("&", "&amp;").replace("<", "&lt;"), body),
+                Paragraph(table_desc.replace("&", "&amp;").replace("<", "&lt;"), body),
                 Paragraph(order_no, body),
-                Paragraph(_money(cents, currency), body),
+                Paragraph(money, body),
             ]
         )
     if len(table_rows) == 1:
@@ -372,9 +395,6 @@ def render_branded_invoice_pdf(
         )
     )
     story.append(table)
-    if line_literals:
-        story.append(Spacer(1, 6))
-        story.append(LiteralBlock(line_literals, size=8, leading=11, color=muted))
     story.append(Spacer(1, 14))
     story.append(Paragraph("Totals", label))
     story.append(

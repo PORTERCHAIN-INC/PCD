@@ -232,15 +232,17 @@ def create_app() -> FastAPI:
 
     app.include_router(_booking_attachments.router)
 
+    import logging
+
     from fastapi import HTTPException, Request
     from fastapi.exceptions import RequestValidationError
     from fastapi.responses import JSONResponse
+    from sqlalchemy.exc import TimeoutError as DbPoolTimeout
 
     from porterchain_api.merchant_engine.booking_validation import (
         BookingValidationError,
     )
     from porterchain_api.platform.errors import error_envelope
-    import logging
 
     _logger = logging.getLogger(__name__)
 
@@ -292,6 +294,22 @@ def create_app() -> FastAPI:
             status_code=exc.status_code,
             content=error_envelope(exc.detail, request_id=rid),
             headers=headers or None,
+        )
+
+    @app.exception_handler(DbPoolTimeout)
+    async def _db_pool_timeout_handler(
+        request: Request, exc: DbPoolTimeout
+    ) -> JSONResponse:
+        """Pool checkout gave up. Return before the browser's 12s session abort."""
+        _logger.warning("db_pool_exhausted path=%s", request.url.path)
+        rid = _request_id(request)
+        headers = {"Retry-After": "2"}
+        if rid:
+            headers[REQUEST_ID_HEADER] = rid
+        return JSONResponse(
+            status_code=503,
+            content=error_envelope("db_unavailable", request_id=rid),
+            headers=headers,
         )
 
     @app.exception_handler(Exception)

@@ -6,6 +6,7 @@
 const AUTH_ERROR_COPY: Record<string, string> = {
   missing_portal_permission: "This account is not provisioned for this portal.",
   porterchain_api_timeout: "Porterchain API did not respond. Check the API and try again.",
+  db_unavailable: "Porterchain is busy right now. Wait a few seconds and try again.",
   missing_token: "Sign in required.",
   missing_bearer_token: "Sign in required.",
   staff_session_invalid: "Your staff session expired. Sign in again.",

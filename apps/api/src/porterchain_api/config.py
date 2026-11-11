@@ -41,7 +41,9 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("db_max_overflow", "DB_MAX_OVERFLOW"),
     )
     db_pool_timeout: int = Field(
-        default=30,
+        # Browser session-context aborts at 12s. A 30s checkout wait surfaces as
+        # "Porterchain API did not respond" instead of a retryable 503.
+        default=3,
         validation_alias=AliasChoices("db_pool_timeout", "DB_POOL_TIMEOUT"),
     )
     db_pool_recycle: int = Field(

@@ -9,6 +9,14 @@ from pathlib import Path
 
 logger = logging.getLogger("porterchain.authz")
 
+# No per-call deadline means a wedged gRPC channel holds the caller's pooled
+# DB connection (idle in transaction) until Postgres kills it at 60s.
+_RPC_TIMEOUT_S = 2.0
+
+
+def _grpc_call(method, request):
+    return method(request, timeout=_RPC_TIMEOUT_S)
+
 _SCHEMA_PATH = Path(__file__).with_name("schema.zed")
 
 
@@ -261,7 +269,7 @@ class AuthzClient:
         from authzed.api.v1 import WriteSchemaRequest
 
         schema = _SCHEMA_PATH.read_text(encoding="utf-8")
-        self._grpc.WriteSchema(WriteSchemaRequest(schema=schema))
+        _grpc_call(self._grpc.WriteSchema, WriteSchemaRequest(schema=schema))
 
     @property
     def last_zed_token(self) -> str | None:
@@ -297,7 +305,7 @@ class AuthzClient:
                     ),
                 )
             )
-        resp = self._grpc.WriteRelationships(WriteRelationshipsRequest(updates=updates))
+        resp = _grpc_call(self._grpc.WriteRelationships, WriteRelationshipsRequest(updates=updates))
         token = resp.written_at.token if resp.written_at else ""
         self._last_zed_token = token
         return token
@@ -346,7 +354,7 @@ class AuthzClient:
         updates = [upd(ops.OPERATION_DELETE, r) for r in delete] + [
             upd(ops.OPERATION_TOUCH, r) for r in write
         ]
-        resp = self._grpc.WriteRelationships(WriteRelationshipsRequest(updates=updates))
+        resp = _grpc_call(self._grpc.WriteRelationships, WriteRelationshipsRequest(updates=updates))
         token = resp.written_at.token if resp.written_at else ""
         self._last_zed_token = token
         return token
@@ -381,7 +389,7 @@ class AuthzClient:
                     ),
                 )
             )
-        resp = self._grpc.WriteRelationships(WriteRelationshipsRequest(updates=updates))
+        resp = _grpc_call(self._grpc.WriteRelationships, WriteRelationshipsRequest(updates=updates))
         token = resp.written_at.token if resp.written_at else ""
         self._last_zed_token = token
         return token
@@ -421,7 +429,7 @@ class AuthzClient:
         token = zed_token or self._last_zed_token
         if token:
             consistency = Consistency(at_least_as_fresh=ZedToken(token=token))
-        resp = self._grpc.CheckPermission(
+        resp = _grpc_call(self._grpc.CheckPermission,
             CheckPermissionRequest(
                 consistency=consistency,
                 resource=ObjectReference(object_type=resource_type, object_id=resource_id),
@@ -499,7 +507,7 @@ class AuthzClient:
             )
             for item in normalized
         ]
-        resp = self._grpc.CheckBulkPermissions(
+        resp = _grpc_call(self._grpc.CheckBulkPermissions,
             CheckBulkPermissionsRequest(consistency=consistency, items=req_items)
         )
         results: list[bool] = []
@@ -563,7 +571,7 @@ class AuthzClient:
                 object=ObjectReference(object_type=subject_type, object_id=subject_id)
             ),
         )
-        return [r.resource_object_id for r in self._grpc.LookupResources(req)]
+        return [r.resource_object_id for r in _grpc_call(self._grpc.LookupResources, req)]
 
 
 _client: AuthzClient | None = None

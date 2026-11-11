@@ -327,5 +327,9 @@ def resolve_principal_for_claims(db: Session, claims: IdentityClaims) -> Current
                 session_id=claims.session_id,
             ),
         )
-    except HTTPException:
+    except HTTPException as exc:
+        # 503 means the auth backend could not answer. None is read as
+        # "not provisioned" and would show Access denied during a pool stall.
+        if exc.status_code == 503:
+            raise
         return None

@@ -54,6 +54,47 @@ def test_build_invoice_pdf_embeds_detail_cents():
     assert "INV-1" in text
 
 
+def test_build_invoice_pdf_handles_many_delivery_lines():
+    """Cycle invoices can have 100+ lines; must not LayoutError on a tall LiteralBlock."""
+    from porterchain_api.reporting.order_documents import render_branded_invoice_pdf
+
+    lines = [
+        {
+            "description": f"Delivery ORD-{i:03d}",
+            "order_number": f"ORD-{i:03d}",
+            "amount_cents": 900,
+            "channel": "portal",
+            "pricing_model": "distance",
+        }
+        for i in range(1, 120)
+    ]
+    pdf = render_branded_invoice_pdf(
+        invoice_number="INV-CYCLE-119",
+        amount_cents=121023,
+        tax_cents=13923,
+        outstanding_cents=121023,
+        currency="cad",
+        status="sent",
+        payment_terms="NET_30",
+        merchant_name="Macaulay Centres for Children",
+        merchant_email="ncosgrove@macaulaycentres.org",
+        lines=lines,
+        compliance={
+            "billing_period": "2026-11-01 – 2026-11-11",
+            "payment_reference": "PC-TEST",
+            "tax_label": "Ontario HST",
+            "supplier_tax_number": "123456789RT0001",
+        },
+    )
+    assert pdf.startswith(b"%PDF")
+    text = pdf.decode("latin-1", errors="ignore")
+    assert "INV-CYCLE-119" in text
+    assert "Amount: $1210.23 CAD" in text
+    assert "portal/distance" in text
+    assert "ORD-001" in text
+    assert "ORD-119" in text
+
+
 def test_pdf_for_invoice_record_uses_customer_not_merchant_email():
     from porterchain_api.reporting.order_documents import pdf_for_invoice_record
 
