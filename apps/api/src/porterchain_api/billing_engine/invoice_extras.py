@@ -14,6 +14,14 @@ from porterchain_api.booking_models import Invoice, Order, Payment
 def invoice_line_count(db: Session, invoice: Invoice) -> int:
     if (getattr(invoice, "billing_kind", None) or "order") != "cycle":
         return 1
+    # Prefer linked orders (summary invoices also store zero-dollar link rows).
+    linked = int(
+        db.query(InvoiceLine)
+        .filter(InvoiceLine.invoice_id == invoice.id, InvoiceLine.order_id.isnot(None))
+        .count()
+    )
+    if linked:
+        return linked
     return int(db.query(InvoiceLine).filter(InvoiceLine.invoice_id == invoice.id).count())
 
 
@@ -43,6 +51,11 @@ def invoice_detail_extras(db: Session, invoice: Invoice) -> dict[str, Any]:
         .all()
     )
     for ln in rows:
+        amt = int(ln.amount_cents or 0)
+        tax = int(ln.tax_cents or 0)
+        # Hide zero-dollar order-link rows used only to mark orders as billed.
+        if amt == 0 and tax == 0 and ln.order_id:
+            continue
         order = db.get(Order, ln.order_id) if ln.order_id else None
         lines.append(
             {
@@ -50,8 +63,8 @@ def invoice_detail_extras(db: Session, invoice: Invoice) -> dict[str, Any]:
                 "order_id": ln.order_id,
                 "order_number": order.order_number if order else None,
                 "description": ln.description,
-                "amount_cents": int(ln.amount_cents or 0),
-                "tax_cents": int(ln.tax_cents or 0),
+                "amount_cents": amt,
+                "tax_cents": tax,
             }
         )
     from porterchain_api.billing_engine.late_penalty import penalty_fields

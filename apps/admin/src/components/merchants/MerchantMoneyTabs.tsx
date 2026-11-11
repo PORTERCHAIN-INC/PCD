@@ -36,9 +36,26 @@ function Metric({
 }
 
 export function StatementTab({ id }: { id: string }) {
+  const { getApiToken } = useAdminAuth();
   const { data, error } = useApiData((t) => merchants.statement(t, id), [id], {
     key: `merchant-statement-${id}`,
   });
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+
+  async function downloadPdf() {
+    setDownloading(true);
+    setDownloadError(null);
+    try {
+      const token = await getApiToken();
+      await merchants.downloadStatementPdf(token, id);
+    } catch (e) {
+      setDownloadError(merchantActionMessage(e, "Could not download statement PDF"));
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   if (error) {
     return (
       <SectionCard title="Current billing period">
@@ -58,11 +75,21 @@ export function StatementTab({ id }: { id: string }) {
   return (
     <SectionCard title="Current billing period">
       <div className="space-y-3 px-5 py-4 text-sm">
-        <p className="text-xs text-muted">
-          {shortDate(data.period_start)} → {shortDate(data.period_end)} ·{" "}
-          {titleCase(data.billing_cycle)} · {titleCase(data.payment_terms)} ({data.net_terms_days}{" "}
-          days)
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <p className="text-xs text-muted">
+            {shortDate(data.period_start)} → {shortDate(data.period_end)} ·{" "}
+            {titleCase(data.billing_cycle)} · {titleCase(data.payment_terms)} ({data.net_terms_days}{" "}
+            days)
+          </p>
+          <Button
+            type="button"
+            className="min-h-9 px-3 py-1.5 text-xs"
+            disabled={downloading}
+            onClick={() => void downloadPdf()}
+          >
+            {downloading ? "Preparing…" : "Download statement PDF"}
+          </Button>
+        </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Metric label="Outstanding" value={money(data.outstanding_balance_cents)} />
           <Metric label="Invoiced AR" value={money(data.outstanding_invoices_cents)} />
@@ -71,9 +98,10 @@ export function StatementTab({ id }: { id: string }) {
           <Metric label="Period orders" value={String(data.monthly_orders)} />
           <Metric label="Period spend" value={money(data.monthly_spend_cents)} />
         </div>
+        {downloadError ? <p className="text-xs text-red-600">{downloadError}</p> : null}
         <p className="text-xs text-muted">
-          Invoices are paid by Interac e-Transfer. Detailed line CSV stays on the merchant portal
-          Billing → Statement export.
+          Statement PDF includes balance, open invoices, Interac payment codes, and delivery /
+          return detail for recent cycle invoices.
         </p>
       </div>
     </SectionCard>

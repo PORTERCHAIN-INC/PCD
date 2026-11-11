@@ -69,6 +69,53 @@ def statement_data(db: Session, merchant: Any, *, now: datetime | None = None) -
     )
     from porterchain_api.platform.merchant_billing import merchant_credit_cents
 
+    # Delivery activity for the statement body (every parcel on recent cycle invoices).
+    from porterchain_api.billing_engine.models import InvoiceLine
+
+    delivery_rows: list[dict[str, Any]] = []
+    recent_inv_ids = [inv.id for inv in invs if (inv.issued_at or inv.created_at or now) >= now - timedelta(days=90)]
+    if recent_inv_ids:
+        line_rows = (
+            db.query(InvoiceLine)
+            .filter(InvoiceLine.invoice_id.in_(recent_inv_ids), InvoiceLine.order_id.isnot(None))
+            .order_by(InvoiceLine.created_at.asc())
+            .all()
+        )
+        seen_orders: set[str] = set()
+        for ln in line_rows:
+            if not ln.order_id or ln.order_id in seen_orders:
+                continue
+            seen_orders.add(ln.order_id)
+            order = db.get(Order, ln.order_id)
+            if not order:
+                continue
+            drop = order.dropoff if isinstance(order.dropoff, dict) else {}
+            meta = order.compliance_metadata if isinstance(order.compliance_metadata, dict) else {}
+            day = meta.get("route_day") or drop.get("route_day")
+            seq = meta.get("route_seq") or drop.get("route_seq") or 0
+            try:
+                seq_n = int(seq)
+            except (TypeError, ValueError):
+                seq_n = 0
+            try:
+                day_n = int(day) if day not in (None, "") else 0
+            except (TypeError, ValueError):
+                day_n = 0
+            delivery_rows.append(
+                {
+                    "day": str(day) if day else "",
+                    "day_n": day_n,
+                    "seq_n": seq_n,
+                    "order_number": order.order_number or "",
+                    "address": (drop.get("formatted") or drop.get("line1") or "")[:72],
+                    "name": (drop.get("contact_name") or drop.get("name") or "")[:36],
+                    "phone": (drop.get("phone") or "")[:18],
+                    "status": order.state or "",
+                    "amount_cents": int(order.amount_cents or 0) or (int(ln.amount_cents or 0) + int(ln.tax_cents or 0)),
+                }
+            )
+        delivery_rows.sort(key=lambda r: (r.get("day_n") or 0, r.get("seq_n") or 0, r.get("order_number") or ""))
+
     return {
         "merchant_name": merchant.company_name or merchant.legal_name or "Merchant",
         "generated": now.date().isoformat(),
@@ -85,6 +132,7 @@ def statement_data(db: Session, merchant: Any, *, now: datetime | None = None) -
             }
             for p in payments
         ],
+        "deliveries": delivery_rows,
         "etransfer_email": etransfer_recipient_email(db),
     }
 
@@ -155,5 +203,52 @@ def statement_pdf(data: dict[str, Any], *, issuer: str = "Porterchain Inc.", tax
         ("ALIGN", (3, 0), (3, -1), "RIGHT"), ("LINEBELOW", (0, 0), (-1, -1), 0.25, HexColor("#E5E7EB")),
     ]))
     story.append(pt)
+    deliveries = data.get("deliveries") or []
+    if deliveries:
+        story += [Spacer(1, 16), Paragraph("DELIVERIES / RETURNS DETAIL", label), Spacer(1, 4)]
+        drow = [["Day", "Order", "Address", "Name", "Phone", "Status", "Amount"]]
+        for d in deliveries:
+            drow.append(
+                [
+                    str(d.get("day") or ""),
+                    d.get("order_number") or "",
+                    (d.get("address") or "")[:42],
+                    (d.get("name") or "")[:22],
+                    d.get("phone") or "",
+                    d.get("status") or "",
+                    _money(int(d.get("amount_cents") or 0)),
+                ]
+            )
+        dt = Table(
+            drow,
+            colWidths=[0.4 * inch, 1.35 * inch, 2.15 * inch, 1.05 * inch, 0.95 * inch, 0.7 * inch, 0.7 * inch],
+            repeatRows=1,
+        )
+        dt.setStyle(
+            TableStyle(
+                [
+                    ("FONT", (0, 0), (-1, 0), "Helvetica-Bold", 7),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), muted),
+                    ("FONT", (0, 1), (-1, -1), "Helvetica", 7),
+                    ("TEXTCOLOR", (0, 1), (-1, -1), navy),
+                    ("ALIGN", (-1, 0), (-1, -1), "RIGHT"),
+                    ("LINEBELOW", (0, 0), (-1, -1), 0.25, HexColor("#E5E7EB")),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                    ("TOPPADDING", (0, 0), (-1, -1), 2),
+                ]
+            )
+        )
+        story.append(dt)
+        delivered = sum(1 for d in deliveries if (d.get("status") or "").upper() in {"DELIVERED", "INVOICED", "CLOSED"})
+        returns = sum(1 for d in deliveries if "RETURN" in (d.get("status") or "").upper())
+        story.append(
+            Spacer(1, 8),
+        )
+        story.append(
+            Paragraph(
+                f"Totals: {len(deliveries)} parcels · {delivered} deliveries · {returns} returns.",
+                body,
+            )
+        )
     doc.build(story)
     return buf.getvalue()

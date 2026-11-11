@@ -589,13 +589,18 @@ def pdf_for_invoice_record(db: Any, invoice: Any, *, lines: Sequence[dict[str, A
             .all()
         )
         for ln in stored:
-            linked = db.get(Order, ln.order_id) if ln.order_id else order
-            source = getattr(linked, "order_source", None)
+            amt = int(ln.amount_cents or 0)
+            tax = int(ln.tax_cents or 0)
+            # Zero-dollar order-link rows keep cycle AR from re-billing; hide on PDF.
+            if amt == 0 and tax == 0 and ln.order_id:
+                continue
+            linked = db.get(Order, ln.order_id) if ln.order_id else None
+            source = getattr(linked, "order_source", None) if linked else None
             line_rows.append(
                 {
                     "description": ln.description or "Delivery",
-                    "amount_cents": int(ln.amount_cents or 0),
-                    "order_number": getattr(linked, "order_number", None),
+                    "amount_cents": amt,
+                    "order_number": getattr(linked, "order_number", None) if linked else None,
                     "channel": channel_for_order_source(source) if source else None,
                     "pricing_model": getattr(merchant, "pricing_model", None) if merchant else None,
                 }

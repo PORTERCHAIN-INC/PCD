@@ -3,6 +3,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from porterchain_api.admin_engine.merchant360_service import Merchant360Service
@@ -290,6 +291,30 @@ def merchant_statement(merchant_id: str, ctx: Ctx, db: Session = Depends(get_db)
 
         mctx = admin_merchant_context(db, merchant_id, ctx)
         return MerchantBillingService().statement_summary(db, mctx)
+
+    return _invoke(ctx, "merchants_read", _run)
+
+
+@router.get("/{merchant_id}/statement.pdf")
+def merchant_statement_pdf(merchant_id: str, ctx: Ctx, db: Session = Depends(get_db)) -> Response:
+    """Same account statement PDF merchants download — balance, open invoices, delivery detail."""
+
+    def _run() -> Response:
+        from porterchain_api.admin_engine.platform_settings import supplier_gst_hst_number
+        from porterchain_api.reporting.statement import statement_data, statement_pdf
+
+        mctx = admin_merchant_context(db, merchant_id, ctx)
+        data = statement_data(db, mctx.merchant)
+        pdf = statement_pdf(data, tax_number=supplier_gst_hst_number(db))
+        name = f"porterchain-statement-{data['generated']}.pdf"
+        return Response(
+            content=pdf,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{name}"',
+                "Cache-Control": "no-store",
+            },
+        )
 
     return _invoke(ctx, "merchants_read", _run)
 

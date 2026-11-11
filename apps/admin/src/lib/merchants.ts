@@ -1,5 +1,6 @@
 import { adminFetch } from "@/lib/api";
 import type { Activity, Contract, Invoice, Task } from "@/lib/crm";
+import { downloadOrderFile } from "@/lib/orders";
 import { CAPACITY_CLASS_IDS, COMPACT_SCHEDULE_DEFAULTS, vehicleLabel } from "@porterchain/types";
 
 export type MerchantRow = {
@@ -1055,6 +1056,8 @@ export const merchants = {
       period_start: string;
       period_end: string;
     }>(`${B}/${id}/statement`, t),
+  downloadStatementPdf: (t: string, id: string) =>
+    downloadOrderFile(t, `${B}/${id}/statement.pdf`, "porterchain-statement.pdf"),
   webhookDeliveries: (t: string, id: string, webhookId: string) =>
     adminFetch<MerchantWebhookDeliveryRow[]>(`${B}/${id}/webhooks/${webhookId}/deliveries`, t),
   retryWebhookDelivery: (t: string, id: string, deliveryId: string) =>
